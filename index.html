@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GATE 32 — Salidas a lugares que no existen</title>
+  <meta name="description" content="GATE 32: una puerta de embarque a mundos que no existen. Elige un vuelo en el panel de salidas y viaja a un paisaje generativo irrepetible.">
+  <meta property="og:title" content="GATE 32 — Salidas a lugares que no existen">
+  <meta property="og:description" content="Elige un vuelo en el panel de salidas y embarca hacia un paisaje generativo irrepetible. Todos los vuelos salen de la puerta 32.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gate32.autoritasai.com">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2307090d'/%3E%3Ctext x='32' y='30' font-family='monospace' font-size='22' font-weight='bold' fill='%23ffb638' text-anchor='middle'%3E32%3C/text%3E%3Cpath d='M14 44h36l-5 6H19z' fill='%23ffb638'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ══════════ PANTALLA 1 · PANEL DE SALIDAS ══════════ -->
+  <main id="screen-board" class="screen">
+    <header class="term-header">
+      <div class="brand">
+        <svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true">
+          <rect width="64" height="64" rx="12" fill="none" stroke="currentColor" stroke-width="4"/>
+          <path d="M10 40 L52 22 c3 -1 5 2 2 4 L20 46 l-6 -2 z" fill="currentColor"/>
+          <path d="M18 50 h28" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <div class="brand-text">
+          <h1>GATE&nbsp;32</h1>
+          <p class="brand-sub">SALIDAS · LUGARES QUE NO EXISTEN</p>
+        </div>
+      </div>
+      <div class="term-meta">
+        <div id="clock" class="clock">--:--:--</div>
+        <div id="dateline" class="dateline">—</div>
+        <div class="weatherline">EXTERIOR 21°C · VIENTO SOLAR LEVE</div>
+      </div>
+    </header>
+
+    <section class="board-wrap" aria-label="Panel de salidas">
+      <div class="board-head" aria-hidden="true">
+        <span class="col-time">SALIDA</span>
+        <span class="col-flight">VUELO</span>
+        <span class="col-dest">DESTINO</span>
+        <span class="col-gate">PUERTA</span>
+        <span class="col-status">ESTADO</span>
+      </div>
+      <div id="board" class="board" role="list"></div>
+      <p class="board-hint">▸ Selecciona un vuelo para embarcar. Todos los vuelos salen de la puerta 32.</p>
+    </section>
+
+    <footer class="ticker" aria-hidden="true">
+      <div id="ticker-track" class="ticker-track"></div>
+    </footer>
+  </main>
+
+  <!-- ══════════ PANTALLA 2 · DESTINO ══════════ -->
+  <section id="screen-scene" class="screen hidden" aria-label="Destino">
+    <canvas id="scene-canvas"></canvas>
+    <div class="scene-ui">
+      <button id="btn-back" class="ghost-btn" type="button">← TABLÓN DE SALIDAS</button>
+      <div class="scene-info">
+        <p id="scene-flight" class="scene-flight">G32-000</p>
+        <h2 id="scene-title" class="scene-title">DESTINO</h2>
+        <p id="scene-tagline" class="scene-tagline">—</p>
+        <p id="scene-seed" class="scene-seed">SEMILLA —</p>
+      </div>
+      <div class="scene-actions">
+        <button id="btn-reseed" class="ghost-btn" type="button">⟳ NUEVA VISITA</button>
+        <button id="btn-pass" class="solid-btn" type="button">TARJETA DE EMBARQUE</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ MODAL · TARJETA DE EMBARQUE ══════════ -->
+  <div id="pass-modal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Tarjeta de embarque">
+    <div class="modal-box">
+      <div class="modal-top">
+        <label for="pass-name">NOMBRE DEL PASAJERO O PASAJERA</label>
+        <div class="modal-row">
+          <input id="pass-name" type="text" maxlength="26" placeholder="TU NOMBRE" autocomplete="name">
+          <button id="btn-download" class="solid-btn" type="button">DESCARGAR PNG</button>
+          <button id="btn-close-pass" class="ghost-btn" type="button">CERRAR</button>
+        </div>
+      </div>
+      <canvas id="pass-canvas" width="1500" height="560"></canvas>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
