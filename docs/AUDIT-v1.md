@@ -25,8 +25,10 @@ retención ni monetización. **Descartada como base de producto.**
 
 ## Punto de restauración
 
-- Tag: `snapshot/gate32-v1` → commit `8abfc19`.
-- Restaurar: `git checkout snapshot/gate32-v1`.
+- Commit `8abfc19` en el historial de `main` (canónico; siempre accesible).
+- Tag local `snapshot/gate32-v1` (el token de esta sesión no tiene permiso
+  para subir tags, por lo que el tag no existe en el remoto).
+- Restaurar: `git checkout 8abfc19`.
 
 ## Limitación del entorno de trabajo
 
