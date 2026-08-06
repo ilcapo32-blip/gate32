@@ -13,9 +13,11 @@ interface VaWindow extends Window {
 
 // Los eventos personalizados de Vercel Web Analytics requieren plan Pro; en
 // el plan Hobby solo se registran visitas. GoatCounter (gratuito, sin
-// cookies) cubre los eventos del embudo: al crear la cuenta, poner aquí el
-// código del sitio (p. ej. "gate32") y redesplegar.
-const GOATCOUNTER_CODE = "";
+// cookies) cubre los eventos del embudo.
+const GOATCOUNTER_CODE = "gate32";
+
+let gcReady = false;
+const gcQueue: { path: string; title: string; event: true }[] = [];
 
 export function initAnalytics(): void {
   if (!GOATCOUNTER_CODE) return;
@@ -23,6 +25,11 @@ export function initAnalytics(): void {
   s.async = true;
   s.src = "https://gc.zgo.at/count.js";
   s.dataset["goatcounter"] = `https://${GOATCOUNTER_CODE}.goatcounter.com/count`;
+  s.addEventListener("load", () => {
+    gcReady = true;
+    const gc = (window as VaWindow).goatcounter;
+    for (const e of gcQueue.splice(0)) gc?.count(e);
+  });
   document.head.appendChild(s);
 }
 
@@ -36,7 +43,10 @@ export function track(name: string, data?: Props): void {
   }
   try {
     // en GoatCounter los eventos son rutas: quedan agrupados por nombre
-    (window as VaWindow).goatcounter?.count({ path: name, title: name, event: true });
+    const payload = { path: name, title: name, event: true as const };
+    const gc = (window as VaWindow).goatcounter;
+    if (gc && gcReady) gc.count(payload);
+    else if (GOATCOUNTER_CODE) gcQueue.push(payload);
   } catch {
     /* ídem */
   }
