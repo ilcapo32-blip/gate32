@@ -97,6 +97,82 @@ sabremos cuánto tráfico y cuántas activaciones vienen de cada plataforma.
 
 ---
 
+---
+
+# Producción híbrida: qué se genera con IA y qué no
+
+**La línea que no se cruza:** la IA generativa vale para *metáforas y ambiente*,
+nunca para simular el producto. Un plano generado de una interfaz falsa o de una
+transcripción inventada es publicidad engañosa — y hundiría justo el argumento
+que vendemos, que es la confianza.
+
+| Pieza | Producción | Motivo |
+|---|---|---|
+| Demo real (arrastrar → texto → SRT) y modo avión | **Grabación de pantalla propia** | Es la prueba del producto |
+| Hook visual (0-2 s) y b-roll | **Imágenes generadas + movimiento en CapCut** | Gratis, sin marca de agua, sube retención |
+| Portadas | Imágenes generadas | Coste 0 |
+| Clips de vídeo generativo (Kling y similares) | **Solo con tracción demostrada** | El plan gratuito de Kling incrusta marca de agua y limita a 720p: contradice nuestro "sin marca de agua". El plan de pago (~7 $/mes) solo se justifica si los primeros vídeos traen tráfico medible |
+
+**Truco clave:** una imagen fija 9:16 con un *zoom lento* o parallax en CapCut
+(efecto Ken Burns) es indistinguible de un clip generado en un reel de 20 s, y
+no lleva marca de agua. Ese es el camino por defecto.
+
+## Prompts de imagen (ChatGPT / DALL·E)
+
+Pídelas en **vertical 9:16**, sin texto dentro de la imagen (el texto se pone en
+CapCut, donde se lee bien y se puede cambiar). Los prompts van en inglés porque
+los modelos de imagen rinden mejor así.
+
+**Estilo común** — añádelo al final de cada prompt para que todas parezcan de la
+misma marca:
+> `Cinematic editorial photography, dark charcoal background, warm amber accent light, shallow depth of field, high contrast, moody, 9:16 vertical, no text, no logos, no watermark.`
+
+1. **Modo avión / independencia (para V1)**
+   `A laptop open on a wooden desk in a dark room at night, screen glowing warm amber, a small paper airplane resting on the keyboard, no wifi router in sight, intimate and quiet mood.`
+
+2. **El villano: tu audio viajando a servidores ajenos (para V1 y V2)**
+   `Glowing sound waves being pulled from a personal laptop through the air into a vast cold blue data center in the distance, cables like tentacles, ominous, surveillance feeling.`
+
+3. **Lo local: el audio se queda contigo (contraplano del anterior)**
+   `A glowing amber sound waveform contained safely inside a transparent glass dome sitting on a desk beside a laptop, warm protective light, calm and secure.`
+
+4. **La trampa del "gratis" (para V2)**
+   `A padlock made of glass sitting on top of a stack of audio cassette tapes, a price tag hanging from it, cold blue light, frustration mood.`
+
+5. **Creadores / subtítulos (para V3)**
+   `Close-up of hands editing a vertical video on a phone mounted on a tripod, ring light glow, editing timeline visible as abstract colored bars, energetic creator workspace.`
+
+6. **Periodismo / fuentes (para V5)**
+   `Close-up of a hand holding a small voice recorder on a café table next to a notebook, face out of frame in shadow, confidential meeting atmosphere, warm amber lamp.`
+
+7. **Estudiantes / clases (para V6)**
+   `A phone recording audio on a university lecture desk, blurred lecture hall and blackboard in the background, notebook and coffee, morning light.`
+
+8. **Portada genérica de marca**
+   `An abstract amber audio waveform turning into flowing lines of text, dark background, elegant, minimal, product-hero aesthetic.`
+
+## Prompts de vídeo (Kling, solo si se paga el plan sin marca de agua)
+
+Úsalos en **imagen → vídeo** partiendo de las imágenes anteriores: sale mucho más
+coherente que texto → vídeo, y gasta menos créditos.
+
+- Sobre la imagen 1: `Slow cinematic push-in toward the laptop screen, the paper airplane trembles slightly, dust motes drifting in the amber light. Static camera otherwise, 5 seconds, subtle motion only.`
+- Sobre la imagen 2: `The sound waves stream away from the laptop toward the distant data center, slow parallax dolly to the right, cold light pulsing. 5 seconds.`
+- Sobre la imagen 3: `The waveform inside the glass dome gently pulses and loops, warm light breathing, camera slowly orbits a few degrees. 5 seconds.`
+- Sobre la imagen 5: `Hands continue editing, timeline bars slide subtly, ring light flickers naturally, handheld micro-movement. 5 seconds.`
+
+**Regla de uso:** estos planos van **antes o después** de la demo real, nunca
+mezclados de forma que parezcan parte de la interfaz.
+
+## Montaje en CapCut (receta de 20 segundos)
+
+1. `0-2 s` **Hook**: imagen generada a pantalla completa + zoom lento + texto grande.
+2. `2-12 s` **Demo real**: tu grabación de pantalla, recortada al área útil, acelerada y rotulada si hace falta.
+3. `12-17 s` **Remate**: segunda imagen generada (la del contraplano) + la frase clave.
+4. `17-20 s` **Tarjeta final**: `docs/media/gate32-endcard-9x16.png`.
+5. Subtítulos: genera el SRT **con Gate32** a partir de tu propia voz y súbelo a
+   CapCut. Es coherente con lo que vendemos y, de paso, pruebas el producto.
+
 ## Cadencia y método
 
 - Graba **los 6 en una sola tarde** (el material se repite; cambia el guion).
