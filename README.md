@@ -1,80 +1,111 @@
-# GATE 32 ✈
+# Gate32 · Transcripción y subtítulos con IA, 100 % en tu navegador
 
-**Salidas a lugares que no existen.**
+**https://gate32.autoritasai.com**
 
-Gate32 es una terminal de embarque imposible: un panel de salidas estilo
-*split-flap* (las solapas giratorias de los aeropuertos de antes) donde todos
-los vuelos salen de la puerta 32… y ninguno va a un lugar real.
+Convierte audio y vídeo en texto o subtítulos SRT/VTT con Whisper ejecutándose
+**localmente en tu navegador**. Gratis, sin límites, sin registro y sin que tus
+archivos salgan de tu equipo.
 
-🔗 **https://gate32.autoritasai.com**
+![Gate32](public/og.png)
 
-![Panel de salidas](docs/panel-salidas.png)
+## Qué problema resuelve
 
-## Cómo se viaja
+Los transcriptores "gratis" habituales imponen minutos de prueba, topes por
+archivo, muros de registro y — lo estructural — **suben tu audio a sus
+servidores**. Las alternativas privadas son apps de escritorio (a menudo solo
+macOS) o herramientas de terminal. Gate32 elimina el dilema: privacidad
+verificable con la comodidad de una web.
 
-1. **El panel de salidas** muestra ocho vuelos con hora, estado y megafonía
-   propia. Las solapas giran de verdad, los estados cambian con el tiempo
-   (EMBARCANDO, ÚLTIMA LLAMADA, RETRASADO…) y los vuelos que despegan se
-   reprograman: la puerta 32 nunca cierra.
-2. **Elige un vuelo** y embarcas (con su *bing-bong* de megafonía) hacia un
-   paisaje generativo dibujado en canvas y animado en tiempo real. Cada visita
-   nace de una **semilla aleatoria**: ningún viaje se repite.
-3. **Descarga tu tarjeta de embarque** personalizada en PNG, con tu nombre,
-   asiento, semilla del viaje y código de barras. Válida para un viaje
-   imaginario, sin fecha de caducidad.
+La investigación de mercado, la matriz de 20 oportunidades y los motivos de
+esta elección están en [`RESEARCH.md`](RESEARCH.md); la tesis de producto en
+[`PRODUCT.md`](PRODUCT.md); las métricas y umbrales en
+[`VALIDATION.md`](VALIDATION.md).
 
-![Dunas de Ámbar](docs/dunas-de-ambar.png)
-![Tarjeta de embarque](docs/tarjeta-embarque.png)
+## Cómo utilizarlo
 
-## Los ocho destinos
+1. Entra en la web y arrastra un archivo de audio/vídeo (o graba con el micro).
+2. La primera vez, el navegador descarga el modelo (≈50–250 MB según calidad)
+   y lo deja cacheado; después funciona incluso sin conexión.
+3. Whisper transcribe por bloques con progreso visible.
+4. Corrige el texto con el audio sincronizado y exporta TXT, Markdown, SRT,
+   VTT o JSON.
 
-| Vuelo | Destino | El paisaje |
-|---|---|---|
-| G32-101 | **AURORA-9** | Cortinas de aurora boreal sobre montañas |
-| G32-117 | **MAR DE NIEBLA** | Olas y bancos de niebla bajo la luna |
-| G32-208 | **DUNAS DE ÁMBAR** | Atardecer retro entre capas de arena |
-| G32-224 | **NEBULOSA ÍMPAR** | Polvo de estrellas en órbita lenta |
-| G32-313 | **CIUDAD LUCIÉRNAGA** | Skyline nocturno con luciérnagas |
-| G32-332 | **JARDÍN CINÉTICO** | Tallos que se mecen y pétalos a la deriva |
-| G32-355 | **ISLA VOLTA** | Tormenta, lluvia, relámpagos y un faro |
-| G32-404 | **ESTACIÓN CERO** | Casi nada: nieve, horizonte y una baliza |
-
-## Cómo está hecho
-
-- **Cero dependencias, cero build.** HTML + CSS + JavaScript (módulos ES)
-  servidos tal cual: Vercel lo despliega sin pipeline y no hay nada que pueda
-  romperse.
-- **Arte 100 % procedural.** Cada mundo es un algoritmo (`js/scenes.js`) con
-  PRNG con semilla (mulberry32) y ruido de valor fractal; no hay ni una sola
-  imagen en el proyecto.
-- **Split-flap real.** Cada celda del panel gira por caracteres intermedios
-  hasta componer el texto (`js/board.js`), con arranque escalonado fila a fila.
-- **Sonido sintetizado.** La megafonía se genera con WebAudio: sin ficheros.
-- **Tarjeta en canvas.** La tarjeta de embarque se dibuja y exporta a PNG en
-  el navegador (`js/pass.js`).
-- Responsive, accesible por teclado (Esc para volver) y respeta
-  `prefers-reduced-motion`.
+## Arquitectura
 
 ```
-index.html      la terminal
-styles.css      fósforo ámbar, scanlines y solapas
-js/main.js      cableado: pantallas, escena a pantalla completa, modal
-js/board.js     panel split-flap, vuelos, reloj y megafonía
-js/scenes.js    los ocho mundos generativos
-js/pass.js      tarjeta de embarque descargable
-js/util.js      PRNG con semilla, ruido y campanillas WebAudio
+index.html            landing + shell de la app (SEO, OG, JSON-LD, FAQ)
+src/main.ts           estados de la UI, edición, exports, historial
+src/styles.css        diseño claro/oscuro, responsive, accesible
+src/lib/
+  worker.ts           Whisper vía transformers.js (WebGPU → WASM fallback)
+  transcriber.ts      cliente tipado del worker (capa de IA sustituible)
+  audio.ts            decodificación a mono 16 kHz (OfflineAudioContext)
+  formats.ts          lógica pura: ventanas, fusión, TXT/MD/SRT/VTT/JSON
+  analytics.ts        eventos anónimos de validación (Vercel Web Analytics)
+  history.ts          historial local (localStorage, sin cuenta)
+  types.ts            tipos y protocolo del worker
+scripts/e2e.mjs       E2E de recorrido crítico (Playwright)
+src/lib/__tests__/    tests unitarios (vitest)
 ```
 
-## Desarrollo local
+Decisiones clave:
 
-No hace falta instalar nada:
+- **Sin backend de procesado.** El audio se decodifica y transcribe en el
+  cliente; el único tráfico es la descarga del modelo desde el CDN de
+  Hugging Face (cacheada por el navegador).
+- **Ventanas solapadas** de 30 s con 5 s de solape y fusión por punto medio:
+  progreso real, memoria acotada y lógica testeable.
+- **Capa de IA aislada** tras `transcriber.ts`: cambiar de modelo o añadir un
+  motor de servidor (plan Pro) no toca la UI.
+- **Coste marginal ≈ 0 €** por usuario: el proyecto escala en un plan gratuito.
+
+## Instalación local
 
 ```bash
-python3 -m http.server 8032
-# → http://localhost:8032
+npm install
+npm run dev        # desarrollo
+npm test           # tests unitarios
+npm run build      # comprobación de tipos + build de producción
+npm run preview    # servir dist/
+npm run test:e2e   # E2E (CHROMIUM_PATH=/ruta/a/chromium si hace falta)
 ```
 
----
+## Variables de entorno
 
-*Construido por Claude para Gate32. No deje su imaginación desatendida:
-podría embarcar sin usted.*
+**Ninguna.** No hay claves ni secretos: no existen credenciales que proteger
+ni configurar. La analítica usa Vercel Web Analytics, que se activa (gratis)
+desde el panel de Vercel del proyecto; hasta entonces el script es un no-op.
+
+## Despliegue
+
+Vercel detecta Vite automáticamente: `npm install && npm run build` → `dist/`.
+Cada push a `main` publica en https://gate32.autoritasai.com.
+
+## Limitaciones actuales
+
+- La velocidad depende del equipo del usuario: con WebGPU (Chrome/Edge
+  recientes) es varias veces más rápida que el tiempo real; sin WebGPU cae a
+  WASM, útil pero lento con el modelo Preciso.
+- Sin identificación de hablantes (diarización) ni resúmenes: son la capa Pro
+  propuesta, pendiente de señal de demanda (`pro_interest`).
+- Archivos muy largos (>~90 min) exigen memoria holgada; se avisa al usuario.
+- La transcripción en Safari/iOS funciona con WASM pero sin aceleración.
+
+## Roadmap basado en validación
+
+Cada paso depende de los umbrales definidos en [`VALIDATION.md`](VALIDATION.md):
+
+1. **Señal de activación ≥ 10 %** → páginas SEO por caso de uso (entrevistas,
+   subtítulos, clases) y mejoras de rendimiento percibido.
+2. **`pro_interest` ≥ 5 % de activados** → capa 2: resúmenes/actas (BYOK
+   gratuito primero), lotes y diarización; lista de espera de pago.
+3. **Finalización < 25 %** → modo híbrido opcional (procesado en servidor con
+   consentimiento explícito) financiado por la capa Pro.
+4. **Sin tráfico** → iterar distribución (Plan-100), no producto.
+
+## Historia del proyecto
+
+La v1 de Gate32 fue un experimento estético (terminal de embarque generativa),
+archivado tras auditoría en el commit `8abfc19`
+([`docs/AUDIT-v1.md`](docs/AUDIT-v1.md)). La v2 nace de la investigación de
+mercado documentada en este repositorio.
