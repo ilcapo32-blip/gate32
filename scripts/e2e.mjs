@@ -164,6 +164,21 @@ try {
   const dz = await page.locator("#dropzone").boundingBox();
   check("dropzone usable en móvil", !!dz && dz.width > 300);
 
+  // 4b · aviso y modelo por defecto en teléfonos reales (puntero grueso)
+  const phone = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+  });
+  const phonePage = await phone.newPage();
+  await phonePage.goto(`${BASE}/`, { waitUntil: "load" });
+  check("móvil: aviso de rendimiento visible", await phonePage.locator("#mobile-note").isVisible());
+  check(
+    "móvil: modelo Rápido por defecto",
+    (await phonePage.locator("#model-quality").inputValue()) === "fast",
+  );
+  await phone.close();
+
   check("sin errores JS de página", pageErrors.length === 0);
   if (pageErrors.length) console.log("PAGE ERRORS:\n" + pageErrors.join("\n"));
 } finally {

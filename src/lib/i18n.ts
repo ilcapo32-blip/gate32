@@ -52,6 +52,8 @@ const dict = {
     share_text: "Transcribe audio y vídeo gratis, sin límites y sin subir archivos: la IA corre en tu navegador.",
     recording_prefix: "grabacion",
     attribution: "Transcrito con Gate32 · https://gate32.autoritasai.com",
+    mobile_note:
+      "📱 En el móvil funciona, pero va más lento que en un ordenador. Para probarlo ya, graba 30 segundos con el micrófono; para clases o entrevistas largas, mejor desde el portátil.",
   },
   en: {
     reading: "Reading the audio…",
@@ -95,6 +97,8 @@ const dict = {
     share_text: "Transcribe audio & video for free, no limits, no uploads: the AI runs in your browser.",
     recording_prefix: "recording",
     attribution: "Transcribed with Gate32 · https://gate32.autoritasai.com",
+    mobile_note:
+      "📱 It works on phones, but slower than on a computer. For a quick try, record 30 seconds with the mic; for long lectures or interviews, use a laptop.",
   },
 } as const;
 

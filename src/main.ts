@@ -65,6 +65,19 @@ fileInput.accept = ACCEPT;
 // primera experiencia en esos equipos.
 if (!("gpu" in navigator)) modelSelect.value = "fast";
 
+// El tráfico social llega sobre todo desde el móvil, donde el procesado es
+// más lento: expectativas claras por delante para no quemar la visita.
+const onPhone =
+  window.matchMedia("(pointer: coarse)").matches && window.innerWidth < 820;
+if (onPhone) {
+  modelSelect.value = "fast";
+  const note = document.querySelector<HTMLElement>("#mobile-note");
+  if (note) {
+    note.textContent = t("mobile_note");
+    note.hidden = false;
+  }
+}
+
 // ── estado ──
 interface Current {
   id: string;

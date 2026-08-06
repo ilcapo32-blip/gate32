@@ -216,6 +216,16 @@ button { font-family: inherit; }
 
 .privacy-inline { font-size: 0.8rem; color: var(--muted); }
 
+.mobile-note {
+  margin-top: 0.8rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
 /* ── botones ── */
 
 .btn {
