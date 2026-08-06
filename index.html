@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gate32 — Transcribir audio a texto y subtítulos gratis, sin subir archivos</title>
+  <meta name="description" content="Transcribe audio y vídeo a texto o subtítulos SRT/VTT con IA, gratis y sin límites. Todo ocurre en tu navegador: tus archivos nunca se suben a ningún servidor. Sin registro." />
+  <link rel="canonical" href="https://gate32.autoritasai.com/" />
+  <meta property="og:title" content="Gate32 — Transcripción con IA, 100% en tu navegador" />
+  <meta property="og:description" content="Audio y vídeo a texto o subtítulos SRT/VTT, gratis y sin límites. Tus archivos no salen de tu equipo. Sin registro." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gate32.autoritasai.com/" />
+  <meta property="og:image" content="https://gate32.autoritasai.com/og.png" />
+  <meta property="og:locale" content="es_ES" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Gate32",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Web",
+    "url": "https://gate32.autoritasai.com/",
+    "description": "Transcripción de audio y vídeo a texto y subtítulos con IA ejecutada localmente en el navegador. Gratuita, sin registro y sin subir archivos.",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+    "inLanguage": "es"
+  }
+  </script>
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Gate32, inicio">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="currentColor" opacity="0.14"/><path d="M6 20 V12 M10 23 V9 M14 26 V6 M18 24 V8 M22 21 V11 M26 19 V13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>
+      <span>Gate<b>32</b></span>
+    </a>
+    <nav class="site-nav" aria-label="Secciones">
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#privacidad">Privacidad</a>
+      <a href="#faq">Preguntas</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ═════════ HERO + APP ═════════ -->
+    <section class="hero">
+      <h1>Transcribe audio y vídeo a texto, <em>sin que salga de tu navegador</em></h1>
+      <p class="hero-sub">
+        Whisper, la IA de reconocimiento de voz, ejecutándose en tu propio equipo.
+        Obtén texto y subtítulos SRT/VTT de entrevistas, clases, reuniones o vídeos.
+      </p>
+      <ul class="badges" aria-label="Ventajas">
+        <li>✓ Gratis y sin límites</li>
+        <li>✓ Sin registro</li>
+        <li>✓ Tus archivos no se suben</li>
+        <li>✓ Exporta TXT · SRT · VTT</li>
+      </ul>
+
+      <div class="panel" id="panel">
+        <div class="controls">
+          <label class="control">
+            <span>Calidad del modelo</span>
+            <select id="model-quality">
+              <option value="fast">Rápido · ~50 MB</option>
+              <option value="balanced" selected>Equilibrado · ~80 MB</option>
+              <option value="accurate">Preciso · ~250 MB</option>
+            </select>
+          </label>
+          <label class="control">
+            <span>Idioma del audio</span>
+            <select id="language">
+              <option value="es" selected>Español</option>
+              <option value="auto">Detectar automáticamente</option>
+              <option value="en">Inglés</option>
+              <option value="ca">Catalán</option>
+              <option value="gl">Gallego</option>
+              <option value="eu">Euskera</option>
+              <option value="pt">Portugués</option>
+              <option value="fr">Francés</option>
+              <option value="de">Alemán</option>
+              <option value="it">Italiano</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="dropzone" class="dropzone" role="button" tabindex="0"
+             aria-label="Elegir o arrastrar archivo de audio o vídeo">
+          <input type="file" id="file-input" class="visually-hidden" />
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="drop-icon"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0 4 4m-4-4L8 8M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+          <strong>Arrastra un archivo de audio o vídeo</strong>
+          <span>o haz clic para elegirlo · MP3, WAV, M4A, OGG, MP4, WEBM…</span>
+        </div>
+
+        <div class="alt-actions">
+          <button id="record-btn" class="btn ghost" type="button">
+            <span class="rec-dot" aria-hidden="true"></span>
+            <span id="record-label">Grabar con el micrófono</span>
+          </button>
+          <span class="privacy-inline">🔒 El procesado es 100 % local. Solo se descarga el modelo la primera vez.</span>
+        </div>
+
+        <!-- estado: cargando / transcribiendo / error -->
+        <div id="status" class="status" role="status" aria-live="polite" hidden>
+          <div class="status-row">
+            <span id="status-text">Preparando…</span>
+            <span id="status-detail" class="status-detail"></span>
+          </div>
+          <div class="progress" id="progress-wrap">
+            <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+          </div>
+          <div id="partial" class="partial" hidden></div>
+          <button id="cancel-btn" class="btn ghost small" type="button">Cancelar</button>
+        </div>
+
+        <div id="error" class="error" role="alert" hidden>
+          <strong>No se ha podido completar</strong>
+          <p id="error-msg"></p>
+          <p id="error-hint" class="error-hint"></p>
+          <button id="error-dismiss" class="btn ghost small" type="button">Entendido</button>
+        </div>
+      </div>
+
+      <div id="recents" class="recents" hidden>
+        <h2>Recientes en este dispositivo</h2>
+        <div id="recents-list" class="recents-list"></div>
+      </div>
+    </section>
+
+    <!-- ═════════ RESULTADO ═════════ -->
+    <section id="result" class="result" hidden aria-label="Resultado de la transcripción">
+      <div class="result-head">
+        <div>
+          <h2 id="result-title">Transcripción</h2>
+          <p id="result-meta" class="result-meta"></p>
+        </div>
+        <button id="new-btn" class="btn ghost" type="button">+ Nueva transcripción</button>
+      </div>
+
+      <audio id="player" controls preload="metadata" hidden></audio>
+
+      <div class="toolbar" role="toolbar" aria-label="Exportar">
+        <button class="btn" data-export="copy" type="button">Copiar</button>
+        <button class="btn" data-export="txt" type="button">TXT</button>
+        <button class="btn" data-export="md" type="button">Markdown</button>
+        <button class="btn" data-export="srt" type="button">SRT</button>
+        <button class="btn" data-export="vtt" type="button">VTT</button>
+        <button class="btn" data-export="json" type="button">JSON</button>
+        <label class="attribution">
+          <input type="checkbox" id="attribution" checked />
+          <span>Incluir "Transcrito con Gate32" en TXT/MD</span>
+        </label>
+      </div>
+
+      <p class="edit-hint">Haz clic en cualquier texto para corregirlo. Clic en un tiempo para saltar al audio.</p>
+      <div id="segments" class="segments"></div>
+
+      <div class="after-export">
+        <div class="pro-card">
+          <div>
+            <strong>¿Te serviría un Gate32 Pro?</strong>
+            <p>Identificación de hablantes, transcripción por lotes y actas automáticas.</p>
+          </div>
+          <button id="pro-btn" class="btn accent" type="button">Me interesa</button>
+          <p id="pro-thanks" class="pro-thanks" hidden>Anotado (de forma anónima). Estamos midiendo el interés para construirlo. ¡Gracias!</p>
+        </div>
+        <button id="share-btn" class="btn ghost" type="button">Compartir Gate32</button>
+      </div>
+    </section>
+
+    <!-- ═════════ CÓMO FUNCIONA ═════════ -->
+    <section id="como-funciona" class="info">
+      <h2>Cómo funciona</h2>
+      <ol class="steps">
+        <li>
+          <strong>1 · Elige tu archivo</strong>
+          <p>Audio o vídeo, en cualquier formato habitual. También puedes grabar directamente con el micrófono.</p>
+        </li>
+        <li>
+          <strong>2 · La IA trabaja en tu equipo</strong>
+          <p>Tu navegador descarga el modelo Whisper una sola vez (queda guardado) y transcribe usando tu propio procesador o gráfica. Nada se sube a ningún servidor.</p>
+        </li>
+        <li>
+          <strong>3 · Edita y exporta</strong>
+          <p>Corrige lo que quieras con el audio sincronizado y descarga el resultado en TXT, Markdown, SRT, VTT o JSON.</p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ═════════ PRIVACIDAD ═════════ -->
+    <section id="privacidad" class="info">
+      <h2>Privacidad de verdad, no de eslogan</h2>
+      <p>
+        La mayoría de transcriptores "gratis" suben tu audio a sus servidores. Gate32 no puede hacer
+        eso ni queriendo: <strong>no tiene servidor de procesado</strong>. El reconocimiento de voz se ejecuta
+        íntegramente en tu navegador con WebGPU o WASM. La única descarga es el propio modelo de IA,
+        que queda cacheado: después puedes transcribir incluso sin conexión.
+      </p>
+      <p>
+        Ideal para material sensible: entrevistas con fuentes, reuniones internas, consultas
+        profesionales, investigación con datos personales. El código es
+        <a href="https://github.com/ilcapo32-blip/gate32" rel="noopener">público y verificable</a>.
+      </p>
+    </section>
+
+    <!-- ═════════ FAQ ═════════ -->
+    <section id="faq" class="info">
+      <h2>Preguntas frecuentes</h2>
+      <details>
+        <summary>¿De verdad es gratis y sin límites?</summary>
+        <p>Sí. Como el procesado ocurre en tu equipo, a nosotros no nos cuesta nada que transcribas más: no hay minutos de prueba, ni topes por archivo, ni marca de agua, ni registro.</p>
+      </details>
+      <details>
+        <summary>¿Cómo transcribo una entrevista confidencial sin subirla a ningún sitio?</summary>
+        <p>Arrastra el archivo aquí. El audio no sale de tu navegador: puedes comprobarlo desconectando la red después de que cargue el modelo — la transcripción sigue funcionando.</p>
+      </details>
+      <details>
+        <summary>¿Puedo generar subtítulos SRT o VTT gratis y sin marca de agua?</summary>
+        <p>Sí. Tras transcribir, pulsa SRT o VTT y descargarás el archivo con los tiempos de cada frase, listo para YouTube, Premiere, DaVinci o cualquier reproductor.</p>
+      </details>
+      <details>
+        <summary>¿Qué precisión tiene? ¿Qué idiomas soporta?</summary>
+        <p>Usa Whisper de OpenAI en tu dispositivo, con tres tamaños de modelo. El modo Preciso ofrece muy buena calidad en español y decenas de idiomas más. Audio con mucho ruido o solapamiento de voces reduce la precisión, como en cualquier transcriptor.</p>
+      </details>
+      <details>
+        <summary>¿Cuánto tarda?</summary>
+        <p>Depende de tu equipo. Con gráfica compatible con WebGPU (la mayoría de portátiles recientes en Chrome o Edge) es varias veces más rápido que en tiempo real. En equipos modestos funciona igualmente (WASM), pero tarda más: usa el modelo Rápido.</p>
+      </details>
+      <details>
+        <summary>¿Sirve para archivos largos, como una clase de dos horas?</summary>
+        <p>Sí, procesa por bloques con progreso visible. Para sesiones muy largas (más de ~90 minutos) conviene un equipo con memoria holgada; si algo falla, prueba con el modelo Rápido o divide el archivo.</p>
+      </details>
+      <details>
+        <summary>¿En qué se diferencia de Otter, Notta o HappyScribe?</summary>
+        <p>Esas herramientas procesan tu audio en sus servidores y limitan el plan gratuito (minutos, número de archivos, funciones). Gate32 es local: privacidad verificable, sin límites y sin cuenta. A cambio, funciones de servidor como la identificación de hablantes aún no están disponibles (estamos midiendo el interés).</p>
+      </details>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      <strong>Gate32</strong> · Transcripción con IA local ·
+      <a href="https://github.com/ilcapo32-blip/gate32" rel="noopener">Código abierto</a>
+    </p>
+    <p class="footnote">Tus archivos y transcripciones se quedan en tu dispositivo. Analítica anónima de uso sin cookies.</p>
+  </footer>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

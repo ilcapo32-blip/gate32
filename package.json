@@ -1,0 +1,21 @@
+{
+  "name": "gate32",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "description": "Transcripción y subtítulos con IA, 100% en tu navegador. Sin subir archivos, sin registro, sin límites.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.7.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "vite": "^8.2.0",
+    "vitest": "^4.1.0"
+  }
+}
