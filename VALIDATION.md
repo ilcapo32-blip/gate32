@@ -15,11 +15,21 @@
 
 ## Instrumentación
 
-Vercel Web Analytics (anónima, sin cookies, respetuosa con privacidad) con
-eventos personalizados. El script es un no-op inofensivo hasta que Web
-Analytics se active en el panel de Vercel (acción pendiente del propietario;
-gratuita en el plan Hobby). Los eventos también se registran en un contador
-local (localStorage) para depuración.
+Doble capa, ambas anónimas y sin cookies:
+
+1. **Vercel Web Analytics** (activada): visitas, páginas, países,
+   dispositivos y referrers — suficiente para tráfico y canales (incluido
+   GEO, vía referrers de chatgpt.com/perplexity.ai). **Limitación
+   verificada:** los eventos personalizados requieren plan Pro; en Hobby no
+   se registran.
+2. **GoatCounter** (gratuita, open source, sin cookies) para los eventos del
+   embudo (`transcribe_done`, `export`, `pro_interest`, `return_visit`…).
+   Integración lista en `src/lib/analytics.ts`; se activa rellenando
+   `GOATCOUNTER_CODE` con el código del sitio tras crear la cuenta en
+   goatcounter.com (pendiente del propietario, 2 minutos).
+
+Los eventos también se registran en un contador local (localStorage) para
+depuración.
 
 **Nunca** se envía contenido de audio ni texto transcrito: solo nombres de
 evento y propiedades técnicas agregadas (duración en minutos redondeados,

@@ -14,7 +14,7 @@ import {
   exportName,
 } from "./lib/formats";
 import type { ModelQuality, Segment } from "./lib/types";
-import { track, trackVisit } from "./lib/analytics";
+import { initAnalytics, track, trackVisit } from "./lib/analytics";
 import {
   loadHistory,
   saveToHistory,
@@ -581,6 +581,7 @@ function openFromHistory(entry: HistoryEntry): void {
 
 // ── arranque ──
 
+initAnalytics();
 trackVisit();
 renderRecents();
 

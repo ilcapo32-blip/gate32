@@ -8,6 +8,22 @@ type Props = Record<string, string | number | boolean>;
 
 interface VaWindow extends Window {
   va?: (command: "event", payload: { name: string; data?: Props }) => void;
+  goatcounter?: { count(opts: { path: string; title?: string; event: boolean }): void };
+}
+
+// Los eventos personalizados de Vercel Web Analytics requieren plan Pro; en
+// el plan Hobby solo se registran visitas. GoatCounter (gratuito, sin
+// cookies) cubre los eventos del embudo: al crear la cuenta, poner aquí el
+// código del sitio (p. ej. "gate32") y redesplegar.
+const GOATCOUNTER_CODE = "";
+
+export function initAnalytics(): void {
+  if (!GOATCOUNTER_CODE) return;
+  const s = document.createElement("script");
+  s.async = true;
+  s.src = "https://gc.zgo.at/count.js";
+  s.dataset["goatcounter"] = `https://${GOATCOUNTER_CODE}.goatcounter.com/count`;
+  document.head.appendChild(s);
 }
 
 const COUNTS_KEY = "g32:event-counts";
@@ -17,6 +33,12 @@ export function track(name: string, data?: Props): void {
     (window as VaWindow).va?.("event", data ? { name, data } : { name });
   } catch {
     /* la analítica jamás debe romper la app */
+  }
+  try {
+    // en GoatCounter los eventos son rutas: quedan agrupados por nombre
+    (window as VaWindow).goatcounter?.count({ path: name, title: name, event: true });
+  } catch {
+    /* ídem */
   }
   try {
     const raw = localStorage.getItem(COUNTS_KEY);
