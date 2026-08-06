@@ -27,6 +27,49 @@
     "inLanguage": "es"
   }
   </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿De verdad es gratis y sin límites?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sí. Como el procesado ocurre en el equipo del usuario, no hay minutos de prueba, ni topes por archivo, ni marca de agua, ni registro." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cómo transcribo una entrevista confidencial sin subirla a ningún sitio?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Arrastra el archivo a Gate32. El audio no sale del navegador: puede comprobarse desconectando la red tras cargar el modelo, porque la transcripción sigue funcionando." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Puedo generar subtítulos SRT o VTT gratis y sin marca de agua?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sí. Tras transcribir, se descargan SRT o VTT con los tiempos de cada frase, listos para YouTube, Premiere, DaVinci o cualquier reproductor." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Qué precisión tiene y qué idiomas soporta?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Usa Whisper de OpenAI en el dispositivo, con tres tamaños de modelo. El modo Preciso ofrece muy buena calidad en español y decenas de idiomas más." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuánto tarda en transcribir?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Con gráfica compatible con WebGPU (portátiles recientes en Chrome o Edge) es varias veces más rápido que el tiempo real. En equipos modestos funciona con WASM, más lento; conviene el modelo Rápido." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Sirve para archivos largos, como una clase de dos horas?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sí, procesa por bloques con progreso visible. Para sesiones de más de 90 minutos conviene un equipo con memoria holgada o dividir el archivo." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿En qué se diferencia de Otter, Notta o HappyScribe?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Esas herramientas procesan el audio en sus servidores y limitan el plan gratuito. Gate32 es local: privacidad verificable, sin límites y sin cuenta. Funciones de servidor como la identificación de hablantes aún no están disponibles." }
+      }
+    ]
+  }
+  </script>
   <script>
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
@@ -204,6 +247,32 @@
         profesionales, investigación con datos personales. El código es
         <a href="https://github.com/ilcapo32-blip/gate32" rel="noopener">público y verificable</a>.
       </p>
+    </section>
+
+    <!-- ═════════ COMPARATIVA ═════════ -->
+    <section id="comparativa" class="info">
+      <h2>Gate32 frente a las alternativas</h2>
+      <div class="table-wrap">
+        <table>
+          <caption class="visually-hidden">Comparativa de Gate32 con transcriptores SaaS y aplicaciones de escritorio</caption>
+          <thead>
+            <tr>
+              <th scope="col"></th>
+              <th scope="col">Gate32</th>
+              <th scope="col">SaaS de transcripción típico</th>
+              <th scope="col">Apps locales de escritorio</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">El audio sale de tu equipo</th><td>No, nunca</td><td>Sí, se sube a sus servidores</td><td>No</td></tr>
+            <tr><th scope="row">Precio</th><td>Gratis sin límites</td><td>Prueba limitada + suscripción</td><td>Gratis o compra única</td></tr>
+            <tr><th scope="row">Requiere cuenta</th><td>No</td><td>Sí</td><td>No</td></tr>
+            <tr><th scope="row">Requiere instalación</th><td>No, es una web</td><td>No</td><td>Sí, y a menudo solo macOS</td></tr>
+            <tr><th scope="row">Subtítulos SRT/VTT sin marca de agua</th><td>Sí</td><td>Normalmente de pago</td><td>Según la app</td></tr>
+            <tr><th scope="row">Identificación de hablantes</th><td>Todavía no</td><td>Sí, en planes de pago</td><td>Según la app</td></tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <!-- ═════════ FAQ ═════════ -->

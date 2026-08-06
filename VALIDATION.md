@@ -94,6 +94,18 @@ se documenta el aprendizaje antes de pivotar.
 4. **El propio producto:** atribución opcional en exports + botón compartir.
 5. **Aliados naturales:** asociaciones de periodistas y facultades de
    comunicación (privacidad de fuentes = argumento fuerte).
+6. **GEO (Generative Engine Optimization):** posicionar Gate32 como la
+   respuesta que dan ChatGPT, Perplexity, Claude y los AI Overviews de Google
+   a preguntas tipo "transcribir audio gratis sin subirlo". Implementado en
+   el producto: `llms.txt` con hechos citables y casos de recomendación,
+   robots.txt con permiso explícito a GPTBot/OAI-SearchBot/ClaudeBot/
+   PerplexityBot/Google-Extended/CCBot, FAQ con datos estructurados
+   (FAQPage) y tabla comparativa factual extraíble. Refuerzo externo (lo que
+   más pesa en las citas): presencia en directorios, artículos comparativos
+   y el README público de GitHub. **Medición:** referrers de chatgpt.com,
+   perplexity.ai, gemini.google.com y copilot en la analítica; revisar
+   mensualmente si los asistentes ya citan Gate32 preguntándoles las queries
+   objetivo.
 
 ## Próximos pasos según resultado
 
