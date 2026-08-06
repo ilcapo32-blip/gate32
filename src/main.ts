@@ -514,7 +514,19 @@ newBtn.addEventListener("click", () => {
 proBtn.addEventListener("click", () => {
   track("pro_interest");
   proBtn.disabled = true;
-  show(proThanks);
+  hide(proBtn);
+  show($("#pro-features"));
+});
+
+document.querySelectorAll<HTMLButtonElement>(".pro-feature").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    track("pro_feature", { feature: btn.dataset["feature"] ?? "?" });
+    // en GoatCounter cada feature queda como su propio evento
+    track(`pro_feature_${btn.dataset["feature"] ?? "otra"}`);
+    btn.disabled = true;
+    btn.classList.add("picked");
+    show(proThanks);
+  });
 });
 
 shareBtn.addEventListener("click", async () => {
@@ -584,6 +596,15 @@ function openFromHistory(entry: HistoryEntry): void {
 initAnalytics();
 trackVisit();
 renderRecents();
+
+// PWA: el service worker hace que la app cargue sin conexión
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      /* sin SW la app funciona igual, solo pierde el arranque offline */
+    });
+  });
+}
 
 // Hook mínimo para pruebas E2E (solo activo con ?e2e=1 en la URL): permite
 // inyectar un resultado sin ejecutar el modelo, para probar edición y exports

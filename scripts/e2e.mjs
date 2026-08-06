@@ -137,7 +137,9 @@ try {
   check("VTT con cabecera", (await dl("vtt")).startsWith("WEBVTT"));
 
   await page.click("#pro-btn");
-  check("CTA Pro registra interés", await page.locator("#pro-thanks").isVisible());
+  check("CTA Pro despliega funcionalidades", await page.locator("#pro-features").isVisible());
+  await page.click(".pro-feature");
+  check("CTA Pro registra la feature elegida", await page.locator("#pro-thanks").isVisible());
 
   // 4 · móvil
   await page.setViewportSize({ width: 390, height: 844 });

@@ -14,6 +14,9 @@
   <meta property="og:locale" content="es_ES" />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#1c1c1a" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -208,6 +211,12 @@
             <p>Identificación de hablantes, transcripción por lotes y actas automáticas.</p>
           </div>
           <button id="pro-btn" class="btn accent" type="button">Me interesa</button>
+          <div id="pro-features" class="pro-features" hidden>
+            <span>¿Qué te haría pagar? (anónimo)</span>
+            <button class="btn ghost small pro-feature" data-feature="diarizacion" type="button">Separar hablantes</button>
+            <button class="btn ghost small pro-feature" data-feature="lotes" type="button">Lotes de archivos</button>
+            <button class="btn ghost small pro-feature" data-feature="actas" type="button">Actas y resúmenes</button>
+          </div>
           <p id="pro-thanks" class="pro-thanks" hidden>Anotado (de forma anónima). Estamos midiendo el interés para construirlo. ¡Gracias!</p>
         </div>
         <button id="share-btn" class="btn ghost" type="button">Compartir Gate32</button>

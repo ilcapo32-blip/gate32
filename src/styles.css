@@ -478,6 +478,20 @@ button { font-family: inherit; }
 .pro-card p { color: var(--muted); font-size: 0.82rem; }
 .pro-thanks { color: var(--ok); font-size: 0.82rem; width: 100%; }
 
+.pro-features {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.pro-feature.picked {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
 /* ── secciones informativas ── */
 
 .info {
