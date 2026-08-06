@@ -59,6 +59,10 @@ const recentsList = $("#recents-list");
 
 fileInput.accept = ACCEPT;
 
+// Sin WebGPU la inferencia cae a WASM (lenta): el modelo pequeño es mejor
+// primera experiencia en esos equipos.
+if (!("gpu" in navigator)) modelSelect.value = "fast";
+
 // ── estado ──
 interface Current {
   id: string;
@@ -212,9 +216,8 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
           statusDetail.textContent =
             done < total ? `bloque ${done} de ${total} · quedan ~${clock(eta)}` : "terminando…";
         },
-        onDone(segments, seconds) {
-          void seconds;
-          finishTranscription(segments, quality, (performance.now() - tLoad0) / 1000);
+        onDone(segments, genSeconds) {
+          finishTranscription(segments, quality, genSeconds, (performance.now() - tLoad0) / 1000);
         },
         onError(_stage, message) {
           track("transcribe_error", { stage: "transcribe", kind: "inference" });
@@ -240,7 +243,12 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
   });
 }
 
-function finishTranscription(segments: Segment[], quality: ModelQuality, totalSeconds: number): void {
+function finishTranscription(
+  segments: Segment[],
+  quality: ModelQuality,
+  genSeconds: number,
+  totalSeconds: number,
+): void {
   if (!current) return;
   busy = false;
   hide(statusBox);
@@ -260,7 +268,8 @@ function finishTranscription(segments: Segment[], quality: ModelQuality, totalSe
     model: quality,
     device: current.device,
     minutes: current.minutes,
-    seconds: Math.round(totalSeconds),
+    seconds: Math.round(genSeconds),
+    total_seconds: Math.round(totalSeconds),
   });
 
   saveToHistory({
@@ -271,10 +280,11 @@ function finishTranscription(segments: Segment[], quality: ModelQuality, totalSe
     segments,
   });
 
+  const setup = totalSeconds - genSeconds;
   renderResult(
-    `Transcrito en ${clock(totalSeconds)} · modelo ${modelLabel(quality)} · ${
-      current.device === "webgpu" ? "WebGPU" : "WASM"
-    }`,
+    `Transcrito en ${clock(genSeconds)}` +
+      (setup > 20 ? ` (más ${clock(setup)} de preparación del modelo, solo la primera vez)` : "") +
+      ` · modelo ${modelLabel(quality)} · ${current.device === "webgpu" ? "WebGPU" : "WASM"}`,
   );
 }
 
