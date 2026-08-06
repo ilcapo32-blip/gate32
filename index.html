@@ -6,6 +6,9 @@
   <title>Gate32 — Transcribir audio a texto y subtítulos gratis, sin subir archivos</title>
   <meta name="description" content="Transcribe audio y vídeo a texto o subtítulos SRT/VTT con IA, gratis y sin límites. Todo ocurre en tu navegador: tus archivos nunca se suben a ningún servidor. Sin registro." />
   <link rel="canonical" href="https://gate32.autoritasai.com/" />
+  <link rel="alternate" hreflang="es" href="https://gate32.autoritasai.com/" />
+  <link rel="alternate" hreflang="en" href="https://gate32.autoritasai.com/en/" />
+  <link rel="alternate" hreflang="x-default" href="https://gate32.autoritasai.com/" />
   <meta property="og:title" content="Gate32 — Transcripción con IA, 100% en tu navegador" />
   <meta property="og:description" content="Audio y vídeo a texto o subtítulos SRT/VTT, gratis y sin límites. Tus archivos no salen de tu equipo. Sin registro." />
   <meta property="og:type" content="website" />
@@ -88,6 +91,7 @@
       <a href="#como-funciona">Cómo funciona</a>
       <a href="#privacidad">Privacidad</a>
       <a href="#faq">Preguntas</a>
+      <a href="/en/" hreflang="en" lang="en">EN</a>
     </nav>
   </header>
 
@@ -203,6 +207,16 @@
 
       <p class="edit-hint">Haz clic en cualquier texto para corregirlo. Clic en un tiempo para saltar al audio.</p>
       <div id="segments" class="segments"></div>
+
+      <div id="usecase" class="usecase" hidden>
+        <span>¿Para qué lo has usado? (anónimo)</span>
+        <button class="btn ghost small usecase-opt" data-kind="entrevista" type="button">Entrevista</button>
+        <button class="btn ghost small usecase-opt" data-kind="clase" type="button">Clase</button>
+        <button class="btn ghost small usecase-opt" data-kind="subtitulos" type="button">Subtítulos</button>
+        <button class="btn ghost small usecase-opt" data-kind="reunion" type="button">Reunión</button>
+        <button class="btn ghost small usecase-opt" data-kind="otro" type="button">Otro</button>
+        <span id="usecase-thanks" hidden>¡Gracias!</span>
+      </div>
 
       <div class="after-export">
         <div class="pro-card">

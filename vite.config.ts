@@ -10,6 +10,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: page("index.html"),
+        en: page("en/index.html"),
         subtitulos: page("subtitulos/index.html"),
         entrevistas: page("entrevistas/index.html"),
         clases: page("clases/index.html"),

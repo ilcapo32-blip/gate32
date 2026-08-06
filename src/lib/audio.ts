@@ -1,5 +1,7 @@
 // Decodificación de audio/vídeo a mono 16 kHz, todo en el navegador.
 
+import { t } from "./i18n";
+
 export interface DecodedAudio {
   audio: Float32Array;
   duration: number; // segundos
@@ -17,22 +19,20 @@ export async function decodeToMono16k(file: Blob): Promise<DecodedAudio> {
   const AC: typeof AudioContext =
     window.AudioContext ??
     (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-  if (!AC) throw new Error("Este navegador no soporta Web Audio.");
+  if (!AC) throw new Error(t("no_webaudio"));
 
   const ctx = new AC();
   let decoded: AudioBuffer;
   try {
     decoded = await ctx.decodeAudioData(buf);
   } catch {
-    throw new Error(
-      "No se ha podido leer el audio de este archivo. Prueba con MP3, WAV, M4A, OGG, MP4 o WEBM.",
-    );
+    throw new Error(t("decode_error"));
   } finally {
     void ctx.close();
   }
 
   if (decoded.duration < 0.5) {
-    throw new Error("El archivo es demasiado corto (menos de medio segundo).");
+    throw new Error(t("too_short"));
   }
 
   if (decoded.sampleRate === TARGET_RATE && decoded.numberOfChannels === 1) {

@@ -478,7 +478,8 @@ button { font-family: inherit; }
 .pro-card p { color: var(--muted); font-size: 0.82rem; }
 .pro-thanks { color: var(--ok); font-size: 0.82rem; width: 100%; }
 
-.pro-features {
+.pro-features,
+.usecase {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -486,6 +487,16 @@ button { font-family: inherit; }
   font-size: 0.8rem;
   color: var(--muted);
 }
+
+.usecase {
+  margin-top: 1.2rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+}
+
+.usecase-opt.picked,
+#usecase-thanks { color: var(--ok); }
 
 .pro-feature.picked {
   border-color: var(--ok);

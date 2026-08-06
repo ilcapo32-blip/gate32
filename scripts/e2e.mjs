@@ -131,6 +131,9 @@ try {
   const txt = await dl("txt");
   check("TXT contiene edición", txt.includes("EDITADO"));
   check("TXT contiene atribución", txt.includes("gate32.autoritasai.com"));
+  check("encuesta de caso de uso aparece tras exportar", await page.locator("#usecase").isVisible());
+  await page.click(".usecase-opt");
+  check("encuesta agradece la respuesta", await page.locator("#usecase-thanks").isVisible());
   await page.uncheck("#attribution");
   check("TXT sin atribución al desmarcar", !(await dl("txt")).includes("gate32.autoritasai.com"));
   check("SRT bien formado", (await dl("srt")).startsWith("1\n00:00:00,000 --> 00:00:02,500"));
@@ -140,6 +143,20 @@ try {
   check("CTA Pro despliega funcionalidades", await page.locator("#pro-features").isVisible());
   await page.click(".pro-feature");
   check("CTA Pro registra la feature elegida", await page.locator("#pro-thanks").isVisible());
+
+  // 3b · página inglesa: app completa operativa
+  await page.goto(`${BASE}/en/?e2e=1`, { waitUntil: "load" });
+  check("EN: h1 en inglés", /Transcribe audio/i.test((await page.locator("h1").textContent()) ?? ""));
+  await page.evaluate(() => {
+    window.__g32.showResult([{ start: 0, end: 2.5, text: "Hello, this is a test." }]);
+  });
+  await page.waitForSelector("#result:not([hidden])");
+  const [dlEn] = await Promise.all([
+    page.waitForEvent("download"),
+    page.click('[data-export="txt"]'),
+  ]);
+  const txtEn = readFileSync(await dlEn.path(), "utf8");
+  check("EN: atribución en inglés", txtEn.includes("Transcribed with Gate32"));
 
   // 4 · móvil
   await page.setViewportSize({ width: 390, height: 844 });

@@ -1,5 +1,6 @@
 // Gate32 · orquestación de la interfaz: estados, transcripción, edición,
-// exports, historial y analítica.
+// exports, historial y analítica. Las cadenas generadas por JS pasan por
+// i18n (el idioma lo fija el atributo lang de cada página).
 
 import "./styles.css";
 import { decodeToMono16k, ACCEPT, LONG_FILE_WARN_MIN } from "./lib/audio";
@@ -14,6 +15,7 @@ import {
   exportName,
 } from "./lib/formats";
 import type { ModelQuality, Segment } from "./lib/types";
+import { t, lang, locale } from "./lib/i18n";
 import { initAnalytics, track, trackVisit } from "./lib/analytics";
 import {
   loadHistory,
@@ -77,6 +79,7 @@ const transcriber = new Transcriber();
 let current: Current | null = null;
 let busy = false;
 let editTracked = false;
+let usecaseAnswered = false;
 let objectUrl: string | null = null;
 
 // ── utilidades de UI ──
@@ -129,7 +132,7 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
   show(statusBox);
   dropzone.classList.add("disabled");
   setProgress(null);
-  statusText.textContent = "Leyendo el audio…";
+  statusText.textContent = t("reading");
   statusDetail.textContent = "";
 
   let audio: Float32Array;
@@ -138,18 +141,13 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
     ({ audio, duration } = await decodeToMono16k(file));
   } catch (err) {
     track("transcribe_error", { stage: "decode", kind: "decode" });
-    showError(
-      err instanceof Error ? err.message : "Archivo no soportado.",
-      "Formatos que funcionan bien: MP3, WAV, M4A, OGG, MP4 y WEBM.",
-    );
+    showError(err instanceof Error ? err.message : t("unsupported"), t("decode_hint"));
     return;
   }
 
   const minutes = Math.max(1, Math.round(duration / 60));
   if (duration / 60 > LONG_FILE_WARN_MIN) {
-    const go = confirm(
-      `El archivo dura ${Math.round(duration / 60)} minutos. Los archivos muy largos consumen bastante memoria del navegador. ¿Continuar?`,
-    );
+    const go = confirm(t("long_confirm", { min: Math.round(duration / 60) }));
     if (!go) {
       resetToIdle();
       return;
@@ -173,26 +171,26 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
   };
   track("transcribe_start", {
     model: quality,
-    source: name.startsWith("grabacion-") ? "mic" : "file",
+    source: name.startsWith(`${t("recording_prefix")}-`) ? "mic" : "file",
     minutes,
+    lang,
   });
 
   const loadFiles = new Map<string, number>();
   const tLoad0 = performance.now();
 
-  statusText.textContent = "Preparando el modelo de IA…";
+  statusText.textContent = t("preparing");
   transcriber.load(quality, {
     onDevice(device) {
       if (current) current.device = device;
-      statusDetail.textContent =
-        device === "webgpu" ? "acelerado por tu gráfica (WebGPU)" : "modo compatible (WASM)";
+      statusDetail.textContent = device === "webgpu" ? t("device_gpu") : t("device_wasm");
     },
     onLoadProgress(progress, fileName) {
       loadFiles.set(fileName, progress);
       let sum = 0;
       loadFiles.forEach((v) => (sum += v));
       const pct = sum / loadFiles.size;
-      statusText.textContent = "Descargando el modelo (solo la primera vez)…";
+      statusText.textContent = t("downloading");
       setProgress(pct);
     },
     onReady(cached, seconds) {
@@ -201,8 +199,8 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
         seconds: Math.round(seconds),
         cached,
       });
-      statusText.textContent = "Transcribiendo…";
-      statusDetail.textContent = `${clock(duration)} de audio`;
+      statusText.textContent = t("transcribing");
+      statusDetail.textContent = t("of_audio", { t: clock(duration) });
       setProgress(0);
       show(partialBox);
       const tGen0 = performance.now();
@@ -214,7 +212,9 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
           const elapsed = (performance.now() - tGen0) / 1000;
           const eta = done > 0 ? (elapsed / done) * (total - done) : 0;
           statusDetail.textContent =
-            done < total ? `bloque ${done} de ${total} · quedan ~${clock(eta)}` : "terminando…";
+            done < total
+              ? t("block_progress", { done, total, eta: clock(eta) })
+              : t("finishing");
         },
         onDone(segments, genSeconds) {
           finishTranscription(segments, quality, genSeconds, (performance.now() - tLoad0) / 1000);
@@ -222,10 +222,7 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
         onError(_stage, message) {
           track("transcribe_error", { stage: "transcribe", kind: "inference" });
           transcriber.reset();
-          showError(
-            `El modelo ha fallado durante la transcripción: ${message}`,
-            "Prueba con el modelo Rápido, con un archivo más corto, o recarga la página. En portátiles antiguos el modo Preciso puede quedarse sin memoria.",
-          );
+          showError(t("infer_error", { msg: message }), t("infer_hint"));
         },
       });
     },
@@ -235,10 +232,7 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
     onError(_stage, message) {
       track("transcribe_error", { stage: "load", kind: "network" });
       transcriber.reset();
-      showError(
-        `No se ha podido cargar el modelo: ${message}`,
-        "El modelo se descarga de Hugging Face la primera vez: comprueba tu conexión o inténtalo de nuevo en unos minutos.",
-      );
+      showError(t("load_error", { msg: message }), t("load_hint"));
     },
   });
 }
@@ -256,10 +250,7 @@ function finishTranscription(
   dropzone.classList.remove("disabled");
 
   if (segments.length === 0) {
-    showError(
-      "No se ha detectado voz en el archivo.",
-      "Comprueba que el idioma seleccionado es correcto y que el audio contiene habla audible.",
-    );
+    showError(t("no_voice"), t("no_voice_hint"));
     return;
   }
 
@@ -270,6 +261,7 @@ function finishTranscription(
     minutes: current.minutes,
     seconds: Math.round(genSeconds),
     total_seconds: Math.round(totalSeconds),
+    lang,
   });
 
   saveToHistory({
@@ -282,14 +274,17 @@ function finishTranscription(
 
   const setup = totalSeconds - genSeconds;
   renderResult(
-    `Transcrito en ${clock(genSeconds)}` +
-      (setup > 20 ? ` (más ${clock(setup)} de preparación del modelo, solo la primera vez)` : "") +
-      ` · modelo ${modelLabel(quality)} · ${current.device === "webgpu" ? "WebGPU" : "WASM"}`,
+    t("done_meta", { gen: clock(genSeconds) }) +
+      (setup > 20 ? t("done_setup", { setup: clock(setup) }) : "") +
+      t("done_model", {
+        model: modelLabel(quality),
+        device: current.device === "webgpu" ? "WebGPU" : "WASM",
+      }),
   );
 }
 
 function modelLabel(q: ModelQuality): string {
-  return q === "fast" ? "Rápido" : q === "accurate" ? "Preciso" : "Equilibrado";
+  return q === "fast" ? t("model_fast") : q === "accurate" ? t("model_accurate") : t("model_balanced");
 }
 
 // ── resultado y edición ──
@@ -311,7 +306,6 @@ function renderResult(metaText: string): void {
     time.type = "button";
     time.className = "seg-time";
     time.textContent = clock(seg.start);
-    time.title = "Saltar a este punto del audio";
     time.addEventListener("click", () => {
       if (current?.fromHistory) return;
       player.currentTime = seg.start;
@@ -339,7 +333,11 @@ function renderResult(metaText: string): void {
   });
 
   hide(proThanks);
+  hide($("#usecase"));
+  usecaseAnswered = false;
   proBtn.disabled = false;
+  show(proBtn);
+  hide($("#pro-features"));
   show(resultSection);
   resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
   renderRecents();
@@ -355,11 +353,11 @@ function persistEditsSoon(): void {
 
 player.addEventListener("timeupdate", () => {
   if (!current || current.fromHistory) return;
-  const t = player.currentTime;
+  const time = player.currentTime;
   const rows = segmentsBox.querySelectorAll<HTMLElement>(".segment");
   let activeIndex = -1;
   current.segments.forEach((s, i) => {
-    if (t >= s.start && t < s.end) activeIndex = i;
+    if (time >= s.start && time < s.end) activeIndex = i;
   });
   rows.forEach((row, i) => row.classList.toggle("active", i === activeIndex));
 });
@@ -386,18 +384,18 @@ document.querySelectorAll<HTMLButtonElement>("[data-export]").forEach((btn) => {
       case "copy":
         try {
           await navigator.clipboard.writeText(toTXT(segs, false));
-          btn.textContent = "¡Copiado!";
-          setTimeout(() => (btn.textContent = "Copiar"), 1600);
+          btn.textContent = t("copied");
+          setTimeout(() => (btn.textContent = t("copy")), 1600);
         } catch {
-          alert("No se ha podido copiar al portapapeles.");
+          alert(t("clipboard_fail"));
           return;
         }
         break;
       case "txt":
-        download(toTXT(segs, attribution), exportName(title, "txt"), "text/plain;charset=utf-8");
+        download(toTXT(segs, attribution, t("attribution")), exportName(title, "txt"), "text/plain;charset=utf-8");
         break;
       case "md":
-        download(toMD(segs, title, attribution), exportName(title, "md"), "text/markdown;charset=utf-8");
+        download(toMD(segs, title, attribution, t("attribution")), exportName(title, "md"), "text/markdown;charset=utf-8");
         break;
       case "srt":
         download(toSRT(segs), exportName(title, "srt"), "application/x-subrip;charset=utf-8");
@@ -411,7 +409,22 @@ document.querySelectorAll<HTMLButtonElement>("[data-export]").forEach((btn) => {
       default:
         return;
     }
-    track("export", { format });
+    track("export", { format, lang });
+    if (!usecaseAnswered) show($("#usecase"));
+  });
+});
+
+// ── encuesta de caso de uso (1 clic, anónima) ──
+
+document.querySelectorAll<HTMLButtonElement>(".usecase-opt").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const kind = btn.dataset["kind"] ?? "otro";
+    track("use_case", { kind });
+    track(`use_case_${kind}`);
+    usecaseAnswered = true;
+    btn.classList.add("picked");
+    show($("#usecase-thanks"));
+    setTimeout(() => hide($("#usecase")), 1500);
   });
 });
 
@@ -468,29 +481,26 @@ recordBtn.addEventListener("click", async () => {
       if (e.data.size > 0) recChunks.push(e.data);
     });
     recorder.addEventListener("stop", () => {
-      stream.getTracks().forEach((t) => t.stop());
+      stream.getTracks().forEach((tr) => tr.stop());
       window.clearInterval(recTimer);
       recordBtn.classList.remove("recording");
-      recordLabel.textContent = "Grabar con el micrófono";
+      recordLabel.textContent = t("record");
       const blob = new Blob(recChunks, { type: recorder?.mimeType ?? "audio/webm" });
       recorder = null;
       if (blob.size > 0) {
         const stamp = new Date().toTimeString().slice(0, 5).replace(":", ".");
-        void handleFile(blob, `grabacion-${stamp}`);
+        void handleFile(blob, `${t("recording_prefix")}-${stamp}`);
       }
     });
     recorder.start();
     const t0 = Date.now();
     recordBtn.classList.add("recording");
-    recordLabel.textContent = "Detener (00:00)";
+    recordLabel.textContent = t("stop_rec", { t: "00:00" });
     recTimer = window.setInterval(() => {
-      recordLabel.textContent = `Detener (${clock((Date.now() - t0) / 1000)})`;
+      recordLabel.textContent = t("stop_rec", { t: clock((Date.now() - t0) / 1000) });
     }, 500);
   } catch {
-    showError(
-      "No se ha podido acceder al micrófono.",
-      "Concede permiso de micrófono en el navegador y vuelve a intentarlo.",
-    );
+    showError(t("mic_error"), t("mic_hint"));
   }
 });
 
@@ -530,11 +540,8 @@ document.querySelectorAll<HTMLButtonElement>(".pro-feature").forEach((btn) => {
 });
 
 shareBtn.addEventListener("click", async () => {
-  const data = {
-    title: "Gate32 — transcripción con IA local",
-    text: "Transcribe audio y vídeo gratis, sin límites y sin subir archivos: la IA corre en tu navegador.",
-    url: "https://gate32.autoritasai.com/",
-  };
+  const url = lang === "en" ? "https://gate32.autoritasai.com/en/" : "https://gate32.autoritasai.com/";
+  const data = { title: t("share_title"), text: t("share_text"), url };
   if (navigator.share) {
     try {
       await navigator.share(data);
@@ -544,8 +551,8 @@ shareBtn.addEventListener("click", async () => {
     }
   } else {
     await navigator.clipboard.writeText(data.url);
-    shareBtn.textContent = "¡Enlace copiado!";
-    setTimeout(() => (shareBtn.textContent = "Compartir Gate32"), 1600);
+    shareBtn.textContent = t("link_copied");
+    setTimeout(() => (shareBtn.textContent = t("share_btn")), 1600);
     track("share", { channel: "clipboard" });
   }
 });
@@ -563,7 +570,7 @@ function renderRecents(): void {
     const chip = document.createElement("button");
     chip.type = "button";
     chip.className = "recent-chip";
-    const date = new Date(entry.date).toLocaleDateString("es-ES", {
+    const date = new Date(entry.date).toLocaleDateString(locale, {
       day: "numeric",
       month: "short",
     });
@@ -588,7 +595,7 @@ function openFromHistory(entry: HistoryEntry): void {
   };
   editTracked = false;
   hide(errorBox);
-  renderResult("recuperado del historial de este dispositivo (sin audio)");
+  renderResult(t("from_history"));
 }
 
 // ── arranque ──
@@ -620,7 +627,7 @@ if (new URLSearchParams(location.search).has("e2e")) {
         device: "?",
         fromHistory: true,
       };
-      renderResult("resultado inyectado para pruebas");
+      renderResult("e2e");
     },
   };
 }

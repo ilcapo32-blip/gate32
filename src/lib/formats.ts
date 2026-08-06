@@ -92,17 +92,26 @@ export function timecode(seconds: number, sep: "," | "." = ","): string {
 export const ATTRIBUTION_LINE =
   "Transcrito con Gate32 · https://gate32.autoritasai.com";
 
-export function toTXT(segments: Segment[], attribution: boolean): string {
+export function toTXT(
+  segments: Segment[],
+  attribution: boolean,
+  attributionLine: string = ATTRIBUTION_LINE,
+): string {
   const body = segments.map((s) => s.text).join("\n\n");
-  return attribution ? `${body}\n\n—\n${ATTRIBUTION_LINE}\n` : `${body}\n`;
+  return attribution ? `${body}\n\n—\n${attributionLine}\n` : `${body}\n`;
 }
 
-export function toMD(segments: Segment[], title: string, attribution: boolean): string {
+export function toMD(
+  segments: Segment[],
+  title: string,
+  attribution: boolean,
+  attributionLine: string = ATTRIBUTION_LINE,
+): string {
   const lines = [`# ${title}`, ""];
   for (const s of segments) {
     lines.push(`**[${clock(s.start)}]** ${s.text}`, "");
   }
-  if (attribution) lines.push("---", `_${ATTRIBUTION_LINE}_`, "");
+  if (attribution) lines.push("---", `_${attributionLine}_`, "");
   return lines.join("\n");
 }
 
