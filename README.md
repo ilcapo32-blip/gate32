@@ -72,9 +72,44 @@ npm run test:e2e   # E2E (CHROMIUM_PATH=/ruta/a/chromium si hace falta)
 
 ## Variables de entorno
 
-**Ninguna.** No hay claves ni secretos: no existen credenciales que proteger
-ni configurar. La analítica usa Vercel Web Analytics, que se activa (gratis)
-desde el panel de Vercel del proyecto; hasta entonces el script es un no-op.
+**Ninguna es obligatoria.** No hay claves ni secretos que proteger.
+
+| Variable | Para qué |
+|---|---|
+| `VITE_MODEL_HOST` | Origen alternativo de los pesos del modelo, con barra final (p. ej. `https://modelos.midominio.com/`). Sin definir, se usa el CDN de Hugging Face. Ver *Autoalojamiento*. |
+
+La analítica usa Vercel Web Analytics (se activa gratis desde el panel del
+proyecto) y GoatCounter; ambas son anónimas y sin cookies.
+
+## Autoalojamiento
+
+Gate32 no tiene backend, así que autoalojarlo es servir ficheros estáticos:
+
+```bash
+git clone https://github.com/ilcapo32-blip/gate32
+cd gate32
+npm ci
+npm run build          # genera dist/
+# sirve dist/ con nginx, Caddy, Docker, python -m http.server…
+```
+
+**Para funcionar sin ninguna llamada externa** (aislado / air-gapped), aloja
+también los pesos del modelo. Descárgalos una vez de Hugging Face
+(`onnx-community/whisper-base` y los tamaños que quieras usar), sírvelos
+manteniendo la ruta `{modelo}/resolve/main/{fichero}` y compila con:
+
+```bash
+VITE_MODEL_HOST=https://modelos.tudominio.com/ npm run build
+```
+
+A partir de ahí no se contacta con ningún tercero: ni modelos, ni analítica
+(bórrala si quieres), ni telemetría. El audio nunca salía de todos modos.
+
+> Nota honesta sobre terminología: la instancia pública de
+> gate32.autoritasai.com **no es "autoalojada"** — es una web estática que
+> alojamos nosotros y que procesa en tu navegador. Lo que sí es, es
+> **autoalojable**: cualquiera puede servirla desde su propia máquina con los
+> pasos de arriba.
 
 ## Despliegue
 

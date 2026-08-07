@@ -22,6 +22,12 @@ import {
 
 env.allowLocalModels = false;
 
+// Autoalojamiento: por defecto los pesos se descargan del CDN de Hugging Face,
+// pero VITE_MODEL_HOST permite servirlos desde tu propio dominio y ejecutar
+// Gate32 sin ninguna llamada externa (ver README, "Autoalojamiento").
+const MODEL_HOST = import.meta.env.VITE_MODEL_HOST;
+if (MODEL_HOST) env.remoteHost = MODEL_HOST;
+
 // La firma real de pipeline() genera uniones que desbordan al comprobador de
 // tipos (TS2590); se fija aquí una firma estrecha para el único uso que hay.
 const asrPipeline = pipeline as unknown as (
