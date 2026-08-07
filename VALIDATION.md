@@ -77,10 +77,17 @@ embudo. Cualquier medición posterior se compara contra este punto cero.
 propietario. El dato limpio llegará cuando haya volumen suficiente para que su
 propio uso sea despreciable.
 
-**Señal cualitativa dominante:** la identificación de hablantes (diarización)
-es, con tres peticiones independientes de usuarios distintos, la función más
-pedida. Al ofrecerla gratis el competidor directo, es un **requisito de
-paridad**, no una palanca de precio (ver MONETIZATION.md).
+**Señal cualitativa sobre diarización — con la evidencia real:**
+- **1 petición explícita** de un usuario (r/podcasting, 2026-08-07).
+- **2 competidores** la ofrecen gratis (Transcrisper, VocaScript). Eso es
+  contexto de mercado, **no demanda**.
+- **0 clics** en el CTA "¿qué te haría pagar?": nadie ha llegado a expresarlo.
+
+No es, por tanto, "la función más pedida": es *la única* pedida, una vez. Al
+regalarla el competidor sigue sin ser palanca de precio, pero la decisión de
+construirla no puede apoyarse en demanda observada — solo en el argumento de
+que nuestros segmentos objetivo (entrevistas, podcasts) generan audio
+multi-hablante.
 
 ## Eventos definidos
 
