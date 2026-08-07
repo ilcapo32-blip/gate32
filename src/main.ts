@@ -62,8 +62,12 @@ const recentsList = $("#recents-list");
 fileInput.accept = ACCEPT;
 
 // Sin WebGPU la inferencia cae a WASM (lenta): el modelo pequeño es mejor
-// primera experiencia en esos equipos.
-if (!("gpu" in navigator)) modelSelect.value = "fast";
+// primera experiencia en esos equipos, y el modelo grande deja de ofrecerse
+// porque sería inviable.
+if (!("gpu" in navigator)) {
+  modelSelect.value = "fast";
+  modelSelect.querySelector('option[value="max"]')?.remove();
+}
 
 // El tráfico social llega sobre todo desde el móvil, donde el procesado es
 // más lento: expectativas claras por delante para no quemar la visita.
@@ -341,7 +345,10 @@ function finishTranscription(
 }
 
 function modelLabel(q: ModelQuality): string {
-  return q === "fast" ? t("model_fast") : q === "accurate" ? t("model_accurate") : t("model_balanced");
+  if (q === "fast") return t("model_fast");
+  if (q === "accurate") return t("model_accurate");
+  if (q === "max") return t("model_max");
+  return t("model_balanced");
 }
 
 // ── resultado y edición ──

@@ -1,6 +1,6 @@
 // Tipos compartidos entre la UI, el cliente del worker y el worker.
 
-export type ModelQuality = "fast" | "balanced" | "accurate";
+export type ModelQuality = "fast" | "balanced" | "accurate" | "max";
 
 export interface ModelSpec {
   id: string;
@@ -27,6 +27,13 @@ export const MODELS: Record<ModelQuality, ModelSpec> = {
     fallbackId: "Xenova/whisper-small",
     label: "Preciso",
     sizeLabel: "~250 MB",
+  },
+  // Solo se ofrece con WebGPU: en WASM sería inviablemente lento.
+  max: {
+    id: "onnx-community/whisper-large-v3-turbo",
+    fallbackId: "onnx-community/whisper-medium-ONNX",
+    label: "Máxima",
+    sizeLabel: "~800 MB",
   },
 };
 
