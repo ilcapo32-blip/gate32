@@ -21,17 +21,45 @@ Después: **There's An AI For That** (theresanaiforthat.com/submit),
 (alternativeto.net — crear ficha y marcarla como alternativa a Otter.ai,
 Notta y HappyScribe), **Uneed** (uneed.best), **AI Tool Hunt**, **Toolify**.
 
-**Nombre:** Gate32
-**Tagline (EN):** Free unlimited audio/video transcription & subtitles — AI runs 100% in your browser, files never leave your device.
-**Descripción (EN):**
+### Pack de alta (copiar y pegar campo a campo)
+
+| Campo | Valor |
+|---|---|
+| **Nombre** | Gate32 |
+| **URL** | https://gate32.autoritasai.com/en/ (usa la inglesa en directorios anglófonos) |
+| **Repositorio** | https://github.com/ilcapo32-blip/gate32 |
+| **Tagline corto** (≤60) | `Transcription that never uploads your files` |
+| **Tagline largo** (≤100) | `Free unlimited AI transcription & subtitles — runs 100% in your browser` |
+| **Descripción breve** (≤160) | `Transcribe audio and video to text or SRT/VTT subtitles with AI running in your browser. No uploads, no sign-up, no limits. Free and open source.` |
+| **Categorías** | Transcription · Speech-to-Text · Subtitles · Privacy · Productivity · Developer Tools |
+| **Etiquetas** | whisper, transcription, subtitles, srt, vtt, webgpu, privacy, local-ai, speech-to-text, offline, open-source, spanish |
+| **Modelo de precio** | Free (100% free, no paid tier yet) |
+| **Público** | Journalists, students, podcasters, video creators, researchers, professionals handling sensitive audio |
+| **Alternativa a** | Otter.ai · Notta · HappyScribe · Maestra · Rev |
+| **Licencia** | MIT |
+| **Plataformas** | Web (Chrome, Edge, Firefox, Safari) · PWA instalable |
+
+**Descripción larga (EN)** — para el campo de 500-1000 caracteres:
 > Gate32 transcribes audio and video into text and SRT/VTT subtitles using
-> Whisper running entirely in your browser (WebGPU). No sign-up, no minute
-> caps, no watermarks, no uploads — your files never leave your device, and it
-> even works offline after the first model download. Edit the transcript with
-> synced audio playback and export TXT, Markdown, SRT, VTT or JSON. Free and
-> open source. Spanish-first UI, supports dozens of languages.
-**Categorías:** Transcription, Speech-to-Text, Subtitles, Privacy
-**Alternativa a:** Otter.ai, Notta, HappyScribe, Maestra
+> Whisper running entirely in your browser via WebGPU (with a WASM fallback).
+> There is no processing backend, so your files physically cannot be uploaded —
+> you can verify it by going offline once the model is cached and watching it
+> keep working. No sign-up, no minute caps, no watermarks. Edit the transcript
+> with synced audio playback, jump to any timestamp, and export TXT, Markdown,
+> SRT, VTT or JSON. Works with MP3, WAV, M4A, OGG, MP4, WEBM and more, or record
+> straight from your microphone. Spanish and English interface, dozens of
+> transcription languages. Free, open source (MIT), and it costs nothing to run
+> because your own device does the work.
+
+**Assets** (todos en el repo, ya públicos):
+
+| Necesitan | Fichero |
+|---|---|
+| Logo cuadrado | `public/icon-512.png` |
+| Imagen social 1200×630 | `public/og.png` |
+| Captura escritorio | `docs/media/captura-escritorio.png` |
+| Captura del resultado | `docs/media/captura-resultado.png` |
+| Captura móvil | `docs/media/captura-movil.png` |
 
 ---
 
