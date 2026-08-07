@@ -179,6 +179,45 @@ try {
   );
   await phone.close();
 
+  // 5 · instrumentación: los eventos del embudo llegan de verdad a GoatCounter.
+  // Se intercepta el script de gc.zgo.at con un doble que registra las llamadas,
+  // así se valida NUESTRO cableado sin depender de la red ni de terceros.
+  const gcCtx = await browser.newContext({ viewport: { width: 1360, height: 900 } });
+  await gcCtx.route("https://gc.zgo.at/**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/javascript",
+      body: "window.goatcounter={count:function(o){(window.__gc=window.__gc||[]).push(o.path)}};",
+    }),
+  );
+  const gcPage = await gcCtx.newPage();
+  await gcPage.goto(`${BASE}/?e2e=1`, { waitUntil: "load" });
+  await gcPage.evaluate(() => {
+    window.__g32.showResult([{ start: 0, end: 2, text: "Hola." }]);
+  });
+  await gcPage.waitForSelector("#result:not([hidden])");
+  const [gcDl] = await Promise.all([
+    gcPage.waitForEvent("download"),
+    gcPage.click('[data-export="txt"]'),
+  ]);
+  await gcDl.path();
+  await gcPage.click(".usecase-opt");
+  await gcPage.click("#pro-btn");
+  await gcPage.click(".pro-feature");
+  await gcPage.waitForTimeout(400);
+  const gcEvents = await gcPage.evaluate(() => window.__gc ?? []);
+  check("analítica: evento export registrado", gcEvents.includes("export"));
+  check("analítica: evento pro_interest registrado", gcEvents.includes("pro_interest"));
+  check(
+    "analítica: evento de caso de uso registrado",
+    gcEvents.some((e) => String(e).startsWith("use_case")),
+  );
+  check(
+    "analítica: evento de feature Pro registrado",
+    gcEvents.some((e) => String(e).startsWith("pro_feature")),
+  );
+  await gcCtx.close();
+
   check("sin errores JS de página", pageErrors.length === 0);
   if (pageErrors.length) console.log("PAGE ERRORS:\n" + pageErrors.join("\n"));
 } finally {

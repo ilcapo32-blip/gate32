@@ -35,6 +35,33 @@ depuración.
 evento y propiedades técnicas agregadas (duración en minutos redondeados,
 modelo, webgpu sí/no, formato de export).
 
+### Sesgo de medición (importante para interpretar los números)
+
+Vercel sirve su script desde nuestro propio dominio (`/_vercel/insights/`), así
+que los bloqueadores rara vez lo filtran. GoatCounter carga desde `gc.zgo.at`,
+un tercero, y **sí se bloquea con frecuencia**. Como los eventos del embudo solo
+existen en GoatCounter, siempre subcontarán respecto a las visitas de Vercel.
+
+**Regla:** los ratios se calculan **dentro de una misma fuente**
+(`transcribe_done` de GoatCounter ÷ páginas vistas de GoatCounter). Cruzar
+fuentes daría una activación artificialmente baja y podría llevarnos a
+abandonar la tesis por un artefacto de medición, no por falta de demanda.
+
+Lo que sí es comparable entre fuentes: la **tendencia** y los **referrers**.
+
+### Verificación del cableado
+
+`scripts/e2e.mjs` intercepta el script de GoatCounter con un doble y comprueba
+que `export`, `pro_interest`, `use_case_*` y `pro_feature_*` se emiten de
+verdad. Verificado el 2026-08-07: los cuatro eventos llegan. Así no se descubre
+una instrumentación rota *después* de gastar la munición de distribución.
+
+### Línea de salida (2026-08-07)
+
+Antes de que entre tráfico externo real: 8 visitantes en Vercel y 2 visitas en
+GoatCounter, todas del propietario (Android/España/directo), 0 eventos de
+embudo. Cualquier medición posterior se compara contra este punto cero.
+
 ## Eventos definidos
 
 | Evento | Momento | Propiedades |
