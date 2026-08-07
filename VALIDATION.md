@@ -62,6 +62,26 @@ Antes de que entre tráfico externo real: 8 visitantes en Vercel y 2 visitas en
 GoatCounter, todas del propietario (Android/España/directo), 0 eventos de
 embudo. Cualquier medición posterior se compara contra este punto cero.
 
+### Primera medición con tráfico externo (2026-08-07, 20:20)
+
+| Métrica | Valor | Umbral | Lectura |
+|---|---|---|---|
+| Visitas (GoatCounter) | 58 (30 a `/en`, 6 a `/`) | — | Tráfico de r/podcasting y r/selfhosted |
+| `transcribe_start` | 4 | — | |
+| `transcribe_done` | 3 | — | **Primeras transcripciones completadas** |
+| **Finalización** (done/start) | **75 %** | ≥ 60 % sano | ✅ La tesis local aguanta en hardware ajeno |
+| **Activación** (done/visitas) | **~5 %** | ≥ 10 % continuar · < 3 % replantear | 🟡 Zona intermedia; el tráfico viene de hilos técnicos donde muchos miran sin audio a mano |
+| Dispositivo de los éxitos | 3/3 WebGPU | — | Ningún éxito registrado en WASM todavía |
+
+**Aviso de interpretación:** parte de esas transcripciones son pruebas del
+propietario. El dato limpio llegará cuando haya volumen suficiente para que su
+propio uso sea despreciable.
+
+**Señal cualitativa dominante:** la identificación de hablantes (diarización)
+es, con tres peticiones independientes de usuarios distintos, la función más
+pedida. Al ofrecerla gratis el competidor directo, es un **requisito de
+paridad**, no una palanca de precio (ver MONETIZATION.md).
+
 ## Eventos definidos
 
 | Evento | Momento | Propiedades |
