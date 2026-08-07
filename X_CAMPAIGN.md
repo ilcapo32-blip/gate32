@@ -8,6 +8,11 @@
 2. **Programar es gratis desde la propia X**: en el compositor web, icono del
    reloj → fecha y hora. No hace falta herramienta externa. (Alternativa:
    Buffer, plan gratuito, 10 posts en cola por canal.)
+   Pega **todos** los tuits de la semana en una sesión y olvídate.
+   *Límite conocido:* no se puede programar la respuesta con el enlace, así que
+   para los tuits programados el enlace tiene que estar **en la bio** — ponlo
+   ahí antes de programar nada. Si estás delante cuando salga uno, añade la
+   respuesta con el enlace a mano: rinde más.
 3. **Cadencia:** 2-3 al día, mezclando categorías. Nunca dos del mismo bloque
    seguidos ni dos días iguales.
 4. **Responder pesa más que publicar.** Con una cuenta pequeña, un buen
@@ -101,22 +106,119 @@
 
 33. ¿Qué es lo que más echáis en falta en el transcriptor que usáis ahora?
 
+## Bloque H · Micro-hilos (2 o 3 tuits, rinden más que uno suelto)
+
+**H1 — La trampa del gratis**
+- 1/ Todos los transcriptores "gratis" acaban en lo mismo: minutos limitados o tu audio en su servidor. Es que no hay otra: transcribir en la nube cuesta dinero y alguien lo paga.
+- 2/ Salvo que no haya nube. Si el modelo se descarga y corre en tu navegador, el coste por minuto es cero para el que lo ofrece. Y entonces no hay razón para limitarte.
+- 3/ Eso es Gate32. Whisper dentro de la pestaña, sin cuenta, sin subir nada. Enlace abajo.
+
+**H2 — Lo que aprendí lanzando**
+- 1/ Llevo una semana enseñando Gate32 por foros. Lo que creía que vendía: privacidad. Lo que de verdad importa a la gente: no tener que instalar Python ni tener GPU.
+- 2/ Me lo dijo un podcaster en Reddit y tenía razón. He reescrito la home entera con ese mensaje.
+- 3/ Si vas a lanzar algo: el pitch que escribes en tu cuarto casi nunca es el bueno.
+
+**H3 — Cómo funciona por dentro**
+- 1/ ¿Cómo corre Whisper dentro de un navegador? transformers.js compila el modelo a ONNX y ONNX Runtime Web lo ejecuta sobre WebGPU, la API que da acceso a tu tarjeta gráfica desde JavaScript.
+- 2/ El audio se decodifica a 16 kHz mono con OfflineAudioContext y se parte en ventanas de 30 s con 5 de solape, que luego se fusionan por el punto medio.
+- 3/ Resultado: 9 minutos de audio en 1:32 en un portátil normal, sin backend. Hace dos años esto no era posible.
+
+**H4 — Para quien no puede subir el audio**
+- 1/ Hay gente que no elige transcriptor por precio: periodistas con fuentes, psicólogos, investigadores con comité de ética, abogados. Para ellos "sube tu archivo" es directamente no.
+- 2/ La solución de siempre era instalar Whisper en local. Funciona, pero deja fuera a cualquiera que no se maneje con la terminal.
+- 3/ Gate32 es esa opción para el resto: se abre en el navegador y el archivo no sale del equipo. Puedes comprobarlo desconectando internet a mitad.
+
+## Bloque I · Más tuits sueltos
+
+34. La transcripción no la hace un servidor mío: la hace tu procesador. Yo solo escribí la página.
+
+35. Sin cuenta, sin correo, sin "empieza gratis". Abres la web y arrastras el archivo.
+
+36. Lo más raro de Gate32 es que cuanta más gente lo use, menos me cuesta. No hay coste por minuto porque no hay minutos míos corriendo.
+
+37. Si alguna vez te ha frenado subir una grabación a una web que no conoces: ese es exactamente el problema que intento resolver.
+
+38. Funciona en el móvil, pero es más lento y consume batería. Lo digo yo antes de que lo descubras tú: para archivos largos, ordenador.
+
+39. La primera vez tarda porque baja el modelo. Después queda guardado y arranca al instante, incluso sin conexión. Es el único peaje.
+
+40. Exporta a TXT, Markdown, SRT, VTT y JSON. El JSON se puede volver a importar para seguir donde lo dejaste.
+
+41. He publicado los números del lanzamiento en el repo: visitas, intentos, transcripciones terminadas y en qué punto se cae la gente. Si construyes algo parecido, te ahorras mis errores.
+
+42. Un transcriptor que funciona en modo avión. Suena a truco y es simplemente que el modelo está en tu navegador.
+
+43. Herramienta gratis para subtitular vídeos cortos: arrastras, esperas, descargas el SRT. Sin marca de agua ni registro.
+
+44. No uso tu audio para entrenar nada. No es política de privacidad, es arquitectura: nunca llega a mí.
+
+45. Whisper es de OpenAI y es abierto. Lo raro no es que existan transcriptores gratis: es que casi todos te pidan la tarjeta.
+
+46. Cinco formatos de exportación y ninguna cuenta. Si te sirve, sirve; si no, cierras la pestaña y no queda nada tuyo en ningún lado.
+
+47. Todo el código está en GitHub con licencia MIT. Puedes clonarlo y servirlo desde tu propio dominio, con los pesos del modelo incluidos. Cero llamadas externas.
+
+48. Si das clases o las recibes: dos horas de grabación, transcripción con marcas de tiempo, exportas a Markdown y ya tienes el esqueleto de los apuntes.
+
+49. La parte difícil no era la IA, era la memoria: un archivo de una hora no cabe entero. Se procesa por trozos con solape para que no se pierda nada en las costuras.
+
+50. Pregunta honesta para quien transcribe a diario: ¿qué te haría cambiar de herramienta? No busco que uses la mía, busco saber qué falta.
+
+---
+
+## Respuestas para hilos ajenos (esto rinde más que publicar)
+
+Busca en X: `transcribir audio`, `transcripción entrevista`, `subtítulos SRT`,
+`Otter límite`, `alternativa a Otter`, `whisper local`, `transcribe podcast`.
+Filtra por "Más recientes". Responde en los que tengan menos de 20 respuestas:
+en los grandes te entierran.
+
+**Regla:** responde primero a lo que preguntan, aunque la respuesta no sea
+Gate32. Si Gate32 encaja, va al final y en una línea. Si no encaja, no lo
+menciones: esa respuesta también construye cuenta.
+
+**R1 · Alguien se queja del límite de minutos o del precio**
+> El límite existe porque a ellos les cuesta dinero cada minuto que procesan. La vuelta a eso es transcribir en local: con GPU, faster-whisper; en Mac, MacWhisper. Yo hice una que corre en el navegador (Gate32) para no tener que instalar nada, por si te vale.
+
+**R2 · Alguien pregunta por privacidad / audio sensible**
+> Si el audio es sensible, la pregunta no es qué web es más segura sino si el archivo sale del equipo. Cualquier cosa que corra en local te lo resuelve. Yo uso la mía, que va dentro del navegador: se puede comprobar desconectando internet a mitad de la transcripción.
+
+**R3 · Alguien pide subtítulos para vídeo**
+> Para SRT sin marca de agua ni cuenta: hay opciones locales. Whisper acierta bastante más si le indicas el idioma en lugar de dejar que lo detecte. Luego el SRT lo importas directo en CapCut o Premiere.
+
+**R4 · Alguien dice que Whisper local es complicado de instalar**
+> Lo es, y es la razón por la que la mayoría acaba en una web de pago. Hay una vía intermedia: modelos que corren en el navegador con WebGPU, sin Python ni CUDA. Descargas el modelo una vez y luego funciona hasta sin conexión.
+
+**R5 · Un desarrollador pregunta cómo se hace**
+> transformers.js + ONNX Runtime Web sobre WebGPU. Lo complicado no es la inferencia, es la memoria con audios largos: hay que trocear en ventanas con solape y fusionar. Tengo el código abierto con licencia MIT si quieres ver la parte fea.
+
+**R6 · Alguien sordo o con problemas de audición pide subtítulos**
+> Sin vender nada: hay herramientas gratuitas que generan subtítulos sin límite de minutos ni cuenta. Si te sirve te paso una que corre en el propio navegador. Y si necesitas algo concreto que no haga, dímelo y lo miro.
+
+Nunca abras una respuesta con "¡Gran pregunta!", ni con emojis de cohete, ni
+con listas de tres puntos con negritas. Escribe como escribirías a un
+conocido: dos o tres frases, minúscula si te sale, sin rematar con una
+llamada a la acción.
+
 ---
 
 ## Calendario sugerido (primera semana)
 
-| Día | Mañana | Tarde |
-|---|---|---|
-| 1 | A1 | B6 |
-| 2 | C12 | D16 |
-| 3 | A2 | E23 |
-| 4 | B7 | G31 |
-| 5 | C14 | D17 |
-| 6 | F28 | B8 |
-| 7 | D19 | G32 |
+| Día | Mañana (~9:00) | Tarde (~19:00) | Extra |
+|---|---|---|---|
+| 1 | A1 | B6 | hilo **H1** al mediodía |
+| 2 | C12 | D16 | |
+| 3 | A2 | E23 | |
+| 4 | B7 | G31 | hilo **H2** al mediodía |
+| 5 | C14 | D17 | |
+| 6 | F28 | I36 | |
+| 7 | D19 | G32 | hilo **H4** al mediodía |
 
-Repetir el patrón alternando bloques. Los del bloque B (números reales) van
-mejor cuando tienes un dato nuevo que contar: guárdalos para cuando lo haya.
+Segunda semana: A3, C13, D18, E24, I34, B10, F29, G33, hilo H3, y sigue
+bajando por el bloque I. Hay material para tres semanas sin repetir.
+
+Los del bloque B (números reales) van mejor cuando tienes un dato nuevo que
+contar: guárdalos para cuando lo haya, no los quemes todos la primera semana.
 
 ## Qué medir
 
