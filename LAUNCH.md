@@ -99,6 +99,18 @@ r/opositores. **Leer las reglas de autopromoción de cada sub antes de postear.*
      podcasting, creadores): de ahí salen las transcripciones reales, la
      retención y, eventualmente, el MRR. **Son la prioridad del Plan-100.**
 
+**Reglas concretas por subreddit (aprendidas en el lanzamiento):**
+
+- **r/selfhosted exige divulgación de uso de IA.** Un bot retira el post y lo
+  restaura automáticamente en cuanto respondes explicando cómo se usó IA para
+  crear el proyecto. La respuesta debe ser completa y honesta: el repo es
+  público y los commits llevan la coautoría visible, así que cualquiera puede
+  comprobarlo. Bien contada, la divulgación **suma credibilidad** en vez de
+  restarla.
+- **Los subs anglófonos son los que están trayendo tráfico real**
+  (Reino Unido y Australia en las primeras 24 h, 4 de 5 visitas a `/en`).
+  Publicar en inglés y enlazar `/en/` no era opcional.
+
 **Cómo responder a los comentarios** (importa más que el post): agradece,
 refuerza el diferenciador con algo *verificable* (la prueba del modo avión), y
 pide un dato concreto — sobre todo **cuánto tarda en su equipo**, que es la
