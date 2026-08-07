@@ -68,13 +68,22 @@ async function loadModel(quality: ModelQuality): Promise<void> {
   const spec = MODELS[quality];
   let sawDownload = false;
   const progress_callback = (p: unknown) => {
-    const info = p as { status?: string; progress?: number; file?: string };
-    if (info.status === "progress" && typeof info.progress === "number") {
+    const info = p as {
+      status?: string;
+      file?: string;
+      loaded?: number;
+      total?: number;
+    };
+    // Se reportan bytes, no porcentajes: promediar porcentajes por fichero
+    // daba una barra sin sentido (un tokenizador de 5 KB pesaba lo mismo que
+    // un decodificador de 600 MB, y entre ficheros se quedaba en el 100 %).
+    if (info.status === "progress" && typeof info.loaded === "number") {
       sawDownload = true;
       post({
         type: "load-progress",
-        progress: info.progress,
         file: info.file ?? "",
+        loaded: info.loaded,
+        total: typeof info.total === "number" ? info.total : 0,
       });
     }
   };

@@ -6,7 +6,7 @@ import type { ModelQuality, Segment, WorkerRequest, WorkerResponse } from "./typ
 
 export interface TranscribeCallbacks {
   onDevice?(device: "webgpu" | "wasm"): void;
-  onLoadProgress?(progress: number, file: string): void;
+  onLoadProgress?(file: string, loaded: number, total: number): void;
   onReady?(cached: boolean, seconds: number): void;
   onWindowProgress?(done: number, total: number, partial: Segment[]): void;
   onDone(segments: Segment[], seconds: number): void;
@@ -38,7 +38,7 @@ export class Transcriber {
         cb.onDevice?.(msg.device);
         break;
       case "load-progress":
-        cb.onLoadProgress?.(msg.progress, msg.file);
+        cb.onLoadProgress?.(msg.file, msg.loaded, msg.total);
         break;
       case "ready":
         cb.onReady?.(msg.cached, msg.seconds);

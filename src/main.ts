@@ -14,7 +14,7 @@ import {
   clock,
   exportName,
 } from "./lib/formats";
-import type { ModelQuality, Segment } from "./lib/types";
+import { MODELS, type ModelQuality, type Segment } from "./lib/types";
 import { t, lang, locale } from "./lib/i18n";
 import { initAnalytics, track, trackVisit } from "./lib/analytics";
 import {
@@ -249,13 +249,20 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
       if (current) current.device = device;
       statusDetail.textContent = device === "webgpu" ? t("device_gpu") : t("device_wasm");
     },
-    onLoadProgress(progress, fileName) {
-      loadFiles.set(fileName, progress);
+    onLoadProgress(fileName, loaded) {
+      // Progreso por bytes descargados sobre el tamaño conocido del modelo:
+      // monotónico y comprensible ("120 MB de ~250 MB").
+      loadFiles.set(fileName, loaded);
       let sum = 0;
       loadFiles.forEach((v) => (sum += v));
-      const pct = sum / loadFiles.size;
+      const spec = MODELS[quality];
+      const doneMB = Math.round(sum / 1e6);
       statusText.textContent = t("downloading");
-      setProgress(pct);
+      statusDetail.textContent = t("downloading_size", {
+        done: doneMB,
+        total: Math.round(spec.bytes / 1e6),
+      });
+      setProgress(Math.min(99, (sum / spec.bytes) * 100));
     },
     onReady(cached, seconds) {
       track("model_ready", {
