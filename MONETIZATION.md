@@ -9,9 +9,18 @@ para usuarios intensivos.
 
 Todas ejecutables en el navegador → coste marginal ≈ 0 → margen ≈ 100 %:
 
+> **Revisión 2026-08-07 tras el hallazgo competitivo (ver RESEARCH.md §1b):**
+> Transcrisper ofrece **diarización gratis** en el navegador. Por tanto la
+> diarización pasa de "función Pro estrella" a **requisito de paridad que hay
+> que dar gratis** si la señal la pide. Cobrar por ella ya no es viable.
+> La monetización se desplaza hacia donde el competidor no está: **el flujo de
+> corrección y verificación** (el dolor que los profesionales declaran) y las
+> capas con coste real de servidor (actas con LLM, equipos).
+
 | Funcionalidad Pro | Por qué pagarían | Viabilidad técnica |
 |---|---|---|
-| **Identificación de hablantes** (diarización) | La función nº1 por la que Otter cobra; entrevistas y reuniones la piden | Modelo de segmentación pyannote en ONNX corre en navegador (patrón demostrado por whisper-speaker-diarization de Xenova) |
+| ~~Identificación de hablantes~~ (ahora paridad gratuita) | El competidor directo la regala: deja de ser palanca de precio | pyannote en ONNX corre en navegador |
+| **Herramientas de corrección profesional** (atajos de teclado, reproducción a media velocidad, pedal/foot-switch, buscar-y-reemplazar con audio, marcas de "dudoso", control de calidad por confianza) | Es *el* trabajo caro que hoy se hace a mano; nadie lo optimiza | Todo en cliente, coste 0 |
 | **Lotes** (cola de archivos) | Podcasters/creadores con backlog | Trivial sobre la arquitectura actual |
 | **Actas y resúmenes con IA** | Del texto bruto al entregable | Fase 1 BYOK (clave del usuario, gratis para nosotros); fase 2 API propia financiada por ingresos |
 | **Vocabulario personalizado** | Nombres propios, jerga técnica | `initial_prompt` de Whisper |

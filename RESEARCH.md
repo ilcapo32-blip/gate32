@@ -68,6 +68,47 @@ Este documento distingue explícitamente entre **[HECHO]** (observado en fuentes
 
 ---
 
+## 1b · Revisión competitiva (2026-08-07) — corrige la sección anterior
+
+Descubierto a través de hilos reales de Reddit en español. **Corrige la
+afirmación de arriba de que no existía nada local-first con flujo completo:**
+existía, y compite en las mismas comunidades.
+
+| Competidor | Procesado | Precio | Lo que tiene y nosotros no |
+|---|---|---|---|
+| **Transcrisper** (transcrisper.com) | **Local, navegador, GPU** | Gratis | **Diarización**, archivos de 10 h, saltar silencios, export DOCX/PDF, historial persistente |
+| VocaScript | **Servidor** (subida) | Gratis con límites por hora + planes | Diarización, 100+ idiomas, importar por URL (YouTube, Zoom, Drive) |
+| TurboScribe | Servidor | 3 transcripciones/día de 30 min | Precisión alta con ruido |
+| AirCaption | App de escritorio | — | Local, pero requiere instalación |
+
+**Consecuencias, sin adornos:**
+
+1. **"IA local en el navegador" ya no es un diferenciador exclusivo.**
+   Transcrisper ocupa exactamente nuestro hueco, con más funciones.
+2. **La diarización no es monetizable**: el competidor directo la regala.
+3. El mercado, en cambio, **queda validado**: hay hilos recurrentes de gente
+   real pidiendo esto (r/asklinguistics, r/EducacionChile,
+   r/RepublicadeChile, r/generativeAI) y varios productos compitiendo.
+4. **Lo que sí nos queda como diferencia real:**
+   - **Código abierto y auditable** (MIT, repo público). Frente a un binario
+     cerrado, "puedes leer el código" es estrictamente más fuerte que
+     "confía en mí" — y es *el* argumento para datos de investigación,
+     periodismo y comités de ética.
+   - **Español nativo** en interfaz, contenido y SEO.
+   - **Activo SEO/GEO ya plantado** (5 páginas indexables, datos
+     estructurados, llms.txt, IndexNow, sitemap): compone con el tiempo.
+   - **Velocidad de iteración.**
+
+**Señal cualitativa más valiosa del hilo de r/asklinguistics** (12 votos, el
+comentario más apoyado): *"Si los datos tienen que ser precisos, alguien tiene
+que hacerlo a mano. Simplemente no hay una forma real de evitarlo."*
+→ **[INFERENCIA]** El dolor real de los profesionales no es generar el borrador
+—eso ya lo resuelve cualquier Whisper— sino **el pase de corrección**. Ahí es
+donde hay tiempo, dinero y ninguna herramienta buena. Transcrisper optimiza
+rendimiento (10 h, saltar silencios); nadie optimiza *la corrección*.
+→ **[HIPÓTESIS a validar]** El hueco defendible de Gate32 no es transcribir
+mejor, sino **ser el mejor sitio para corregir y verificar una transcripción**.
+
 ## 2 · Veinte oportunidades
 
 Formato por oportunidad — **U**: usuario · **P**: problema/deseo ·
