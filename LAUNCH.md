@@ -10,7 +10,13 @@ métricas), Product Hunt cuando el flujo esté rodado con usuarios reales.
 
 ## 1 · Directorios (altas gratuitas, ~10 min cada una)
 
-Enviar a: **There's An AI For That** (theresanaiforthat.com/submit),
+**Prioridad 1 — PeerPush** (peerpush.com): alta gratuita (entra en cola de
+publicación), backlink de autoridad alta y, sobre todo, está optimizado para
+que lo lean ChatGPT, Perplexity, Copilot y los AI Overviews → cuenta como
+directorio **y** como palanca GEO. Recomendado por un comentarista en
+r/indiehackers, verificado antes de incluirlo.
+
+Después: **There's An AI For That** (theresanaiforthat.com/submit),
 **Futurepedia** (futurepedia.io/submit-tool), **AlternativeTo**
 (alternativeto.net — crear ficha y marcarla como alternativa a Otter.ai,
 Notta y HappyScribe), **Uneed** (uneed.best), **AI Tool Hunt**, **Toolify**.
@@ -34,6 +40,26 @@ Notta y HappyScribe), **Uneed** (uneed.best), **AI Tool Hunt**, **Toolify**.
 Subreddits candidatos: r/InternetesHispano, r/programacion_es, r/podcasting
 (EN), r/journalism (EN), r/DataHoarder (EN, aman lo local), r/selfhosted (EN),
 r/opositores. **Leer las reglas de autopromoción de cada sub antes de postear.**
+
+**Dos reglas aprendidas en el primer intento (r/indiehackers, agosto 2026):**
+
+1. **Escribe en el idioma del sub.** En subs anglófonos, en inglés: Reddit
+   traduce automáticamente y el texto traducido pierde fuerza y alcance. Usa el
+   guion en inglés de más abajo.
+2. **Distingue el tipo de comunidad**, porque sirven para cosas distintas:
+   - *Comunidades de makers* (r/indiehackers, r/SideProject, Hacker News):
+     dan **feedback, backlinks y pistas de distribución**, no clientes. El
+     primer comentario recibido allí nos descubrió PeerPush y confirmó que el
+     gancho es la privacidad local. Valiosísimo — pero no esperes activación.
+   - *Comunidades de usuarios finales* (periodismo, opositores, estudiantes,
+     podcasting, creadores): de ahí salen las transcripciones reales, la
+     retención y, eventualmente, el MRR. **Son la prioridad del Plan-100.**
+
+**Cómo responder a los comentarios** (importa más que el post): agradece,
+refuerza el diferenciador con algo *verificable* (la prueba del modo avión), y
+pide un dato concreto — sobre todo **cuánto tarda en su equipo**, que es la
+métrica H2 que no podemos medir de otra forma. Un comentarista que prueba y
+reporta tiempos vale más que diez upvotes.
 
 **Título (ES):** He hecho un transcriptor de audio gratuito donde el archivo nunca sale de tu navegador (la IA corre en local con WebGPU)
 
