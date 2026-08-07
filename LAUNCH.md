@@ -51,6 +51,22 @@ Notta y HappyScribe), **Uneed** (uneed.best), **AI Tool Hunt**, **Toolify**.
 > transcription languages. Free, open source (MIT), and it costs nothing to run
 > because your own device does the work.
 
+**Campos que los autorrellenos suelen fallar** (revisar SIEMPRE):
+
+- **Use cases / funciones:** ningún directorio debe listar *Translation*.
+  Gate32 transcribe (`task: "transcribe"`), **no traduce**. Afirmarlo atraería
+  usuarios que rebotan y ensuciaría la métrica de activación.
+- **Alternatives:** rellenar siempre (Otter.ai, Notta, HappyScribe, Rev,
+  Maestra). Es el campo por el que la gente descubre productos: buscan
+  "alternativa a Otter", no "transcriptor local".
+- **MRR / ingresos:** dejar vacío mientras sea 0. El campo suele traer un
+  placeholder tipo `$1000`; no es un valor por defecto, es un ejemplo.
+- **Descripción:** aprovechar el límite (los directorios modernos alimentan a
+  ChatGPT/Perplexity). Densa, factual y **con las limitaciones incluidas**:
+  las fuentes que se autolimitan se citan con más confianza.
+- **Capturas:** subir al menos 3 (landing, resultado con editor y exports,
+  móvil). La del resultado es la que enseña el valor real.
+
 **Assets** (todos en el repo, ya públicos):
 
 | Necesitan | Fichero |
@@ -159,6 +175,16 @@ reporta tiempos vale más que diez upvotes.
 > 4/ Es código abierto y no tiene ni cuentas ni cookies. Si transcribes
 > entrevistas, clases o reuniones, pruébalo y dime tiempos:
 > https://gate32.autoritasai.com
+
+**Hashtags en X:** 3-4 por tuit como máximo (más parece spam), distintos en
+cada uno. Hook: `#IA #Privacidad` · Funciones: `#Subtítulos #Productividad` ·
+Cierre con enlace: `#OpenSource #IA #Whisper`.
+
+**Menciones que sí valen:** en el tuit técnico, mencionar a **@huggingface** y
+**@xenovacom** (autor de transformers.js, la librería sobre la que corre
+Gate32). Es una mención legítima —estamos construidos sobre su trabajo— y ese
+ecosistema amplifica proyectos que demuestran IA local funcionando de verdad.
+Vale más que cualquier hashtag.
 
 ---
 
