@@ -58,6 +58,7 @@ const proThanks = $("#pro-thanks");
 const shareBtn = $<HTMLButtonElement>("#share-btn");
 const recentsBox = $("#recents");
 const recentsList = $("#recents-list");
+const waitSurvey = $("#wait-survey");
 
 fileInput.accept = ACCEPT;
 
@@ -108,8 +109,19 @@ const transcriber = new Transcriber();
 let current: Current | null = null;
 let busy = false;
 let editTracked = false;
-let usecaseAnswered = false;
 let objectUrl: string | null = null;
+
+// Una vez respondida la encuesta no se vuelve a preguntar en este dispositivo:
+// la descarga del modelo solo ocurre una vez, pero el usuario puede exportar
+// muchas veces y no hay que convertir la pregunta en un peaje.
+const USECASE_KEY = "gate32.usecase";
+let usecaseAnswered = (() => {
+  try {
+    return localStorage.getItem(USECASE_KEY) !== null;
+  } catch {
+    return false;
+  }
+})();
 
 // ── utilidades de UI ──
 
@@ -131,8 +143,22 @@ function setProgress(pct: number | null): void {
   }
 }
 
+// La descarga del modelo es el único tiempo muerto del flujo, y es también el
+// único momento en el que el usuario ya está comprometido pero no puede hacer
+// nada. Aprovecharlo para preguntar no cuesta conversión, siempre que la barra
+// de progreso siga mandando: la pregunta va debajo y es opcional.
+let waitSurveyShown = false;
+function showWaitSurvey(bytesDone: number): void {
+  // Solo con descarga real en curso; una carga desde caché no llega aquí.
+  if (waitSurveyShown || usecaseAnswered || bytesDone < 4e6) return;
+  waitSurveyShown = true;
+  show(waitSurvey);
+  track("wait_survey_shown");
+}
+
 function resetToIdle(): void {
   busy = false;
+  hide(waitSurvey);
   hide(statusBox);
   hide(errorBox);
   hide(partialBox);
@@ -143,6 +169,7 @@ function resetToIdle(): void {
 
 function showError(message: string, hint: string): void {
   busy = false;
+  hide(waitSurvey);
   hide(statusBox);
   errorMsg.textContent = message;
   errorHint.textContent = hint;
@@ -202,6 +229,7 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
   editTracked = false;
   hide(errorBox);
   hide(resultSection);
+  hide(waitSurvey);
   show(statusBox);
   dropzone.classList.add("disabled");
   setProgress(null);
@@ -269,14 +297,22 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
       loadFiles.forEach((v) => (sum += v));
       const spec = MODELS[quality];
       const doneMB = Math.round(sum / 1e6);
+      const totalMB = Math.round(spec.bytes / 1e6);
       statusText.textContent = t("downloading");
-      statusDetail.textContent = t("downloading_size", {
-        done: doneMB,
-        total: Math.round(spec.bytes / 1e6),
-      });
+
+      // Estimación de lo que queda a partir del ritmo medido. Solo se muestra
+      // cuando hay muestra suficiente para no dar una cifra que baile.
+      const elapsed = (performance.now() - tLoad0) / 1000;
+      const eta = sum > 4e6 && elapsed > 3 ? ((spec.bytes - sum) / (sum / elapsed)) : 0;
+      statusDetail.textContent =
+        eta > 3 && eta < 3600
+          ? t("downloading_eta", { done: doneMB, total: totalMB, eta: clock(eta) })
+          : t("downloading_size", { done: doneMB, total: totalMB });
       setProgress(Math.min(99, (sum / spec.bytes) * 100));
+      showWaitSurvey(sum);
     },
     onReady(cached, seconds) {
+      hide(waitSurvey);
       track("model_ready", {
         model: quality,
         seconds: Math.round(seconds),
@@ -507,16 +543,37 @@ document.querySelectorAll<HTMLButtonElement>("[data-export]").forEach((btn) => {
 });
 
 // ── encuesta de caso de uso (1 clic, anónima) ──
+// Se pregunta en dos momentos: durante la descarga del modelo (tiempo muerto)
+// y tras el primer export. El evento distingue el momento porque las tasas de
+// respuesta no son comparables entre sí y mezclarlas falsearía el reparto.
 
 document.querySelectorAll<HTMLButtonElement>(".usecase-opt").forEach((btn) => {
   btn.addEventListener("click", () => {
     const kind = btn.dataset["kind"] ?? "otro";
-    track("use_case", { kind });
-    track(`use_case_${kind}`);
+    const when = btn.dataset["when"] ?? "export";
+    track("use_case", { kind, when });
+    track(`use_case_${when}_${kind}`);
     usecaseAnswered = true;
+    try {
+      localStorage.setItem(USECASE_KEY, kind);
+    } catch {
+      /* modo privado: la encuesta simplemente se podrá repetir */
+    }
     btn.classList.add("picked");
-    show($("#usecase-thanks"));
-    setTimeout(() => hide($("#usecase")), 1500);
+
+    const box = btn.closest<HTMLElement>("#wait-survey, #usecase");
+    if (!box) return;
+    if (box.id === "usecase") {
+      show($("#usecase-thanks"));
+      setTimeout(() => hide(box), 1500);
+      return;
+    }
+    // En la espera todo lo que cambia está por debajo de la barra de progreso,
+    // así que la barra no se mueve al colapsar la pregunta.
+    box.querySelector<HTMLElement>(".wait-survey-q")?.setAttribute("hidden", "");
+    box.querySelector<HTMLElement>(".wait-survey-opts")?.setAttribute("hidden", "");
+    const thanks = box.querySelector<HTMLElement>(".wait-survey-thanks");
+    if (thanks) show(thanks);
   });
 });
 
@@ -722,6 +779,12 @@ if (new URLSearchParams(location.search).has("e2e")) {
         fromHistory: true,
       };
       renderResult("e2e");
+    },
+    // Simula la fase de descarga para poder comprobar que la encuesta de
+    // espera aparece sin depender del CDN de modelos.
+    waitSurvey(): void {
+      show(statusBox);
+      showWaitSurvey(9e6);
     },
   };
 }

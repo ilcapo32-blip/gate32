@@ -170,6 +170,20 @@
           <div class="progress" id="progress-wrap">
             <div class="progress-bar" id="progress-bar" style="width:0%"></div>
           </div>
+          <div id="wait-survey" class="wait-survey" hidden>
+            <p class="wait-survey-q">
+              <strong>The download keeps going above ↑</strong> While it does, if you feel like it:
+              what are you going to use the transcript for? It helps me decide what to improve.
+            </p>
+            <div class="wait-survey-opts">
+              <button class="btn ghost small usecase-opt" data-kind="entrevista" data-when="wait" type="button">Interview</button>
+              <button class="btn ghost small usecase-opt" data-kind="clase" data-when="wait" type="button">Lecture</button>
+              <button class="btn ghost small usecase-opt" data-kind="subtitulos" data-when="wait" type="button">Subtitles</button>
+              <button class="btn ghost small usecase-opt" data-kind="reunion" data-when="wait" type="button">Meeting</button>
+              <button class="btn ghost small usecase-opt" data-kind="otro" data-when="wait" type="button">Other</button>
+            </div>
+            <p class="wait-survey-thanks" hidden>Thanks! The download carries on above.</p>
+          </div>
           <div id="partial" class="partial" hidden></div>
           <button id="cancel-btn" class="btn ghost small" type="button">Cancel</button>
         </div>
@@ -218,11 +232,11 @@
 
       <div id="usecase" class="usecase" hidden>
         <span>What did you use it for? (anonymous)</span>
-        <button class="btn ghost small usecase-opt" data-kind="entrevista" type="button">Interview</button>
-        <button class="btn ghost small usecase-opt" data-kind="clase" type="button">Lecture</button>
-        <button class="btn ghost small usecase-opt" data-kind="subtitulos" type="button">Subtitles</button>
-        <button class="btn ghost small usecase-opt" data-kind="reunion" type="button">Meeting</button>
-        <button class="btn ghost small usecase-opt" data-kind="otro" type="button">Other</button>
+        <button class="btn ghost small usecase-opt" data-kind="entrevista" data-when="export" type="button">Interview</button>
+        <button class="btn ghost small usecase-opt" data-kind="clase" data-when="export" type="button">Lecture</button>
+        <button class="btn ghost small usecase-opt" data-kind="subtitulos" data-when="export" type="button">Subtitles</button>
+        <button class="btn ghost small usecase-opt" data-kind="reunion" data-when="export" type="button">Meeting</button>
+        <button class="btn ghost small usecase-opt" data-kind="otro" data-when="export" type="button">Other</button>
         <span id="usecase-thanks" hidden>Thanks!</span>
       </div>
 

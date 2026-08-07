@@ -89,11 +89,36 @@ construirla no puede apoyarse en demanda observada — solo en el argumento de
 que nuestros segmentos objetivo (entrevistas, podcasts) generan audio
 multi-hablante.
 
+### Por qué no sabemos para qué se usa (2026-08-07, corregido)
+
+La encuesta de caso de uso existía desde el principio, pero solo se mostraba
+**después del primer export**. Como todavía no ha habido ningún export externo,
+nunca llegó a verse: los 0 resultados no eran desinterés, eran una encuesta que
+nadie tuvo delante. Es un fallo de diseño de la medición, no una señal.
+
+Corrección: se pregunta también **durante la descarga del modelo**, el único
+tiempo muerto del flujo y el único momento en que el usuario ya está
+comprometido pero no puede hacer nada. Condiciones que la hacen aceptable:
+
+- La barra de progreso queda **por encima** y no se mueve al responder; el
+  E2E lo verifica midiendo su posición antes y después.
+- Solo aparece si hay descarga real en curso (> 4 MB); una carga desde caché
+  no la ve nunca.
+- Un clic, anónima, opcional, y **una sola vez por dispositivo**
+  (`localStorage: gate32.usecase`): quien responda en la espera no vuelve a
+  verla tras exportar.
+
+El evento distingue el momento (`use_case_wait_*` vs `use_case_export_*`)
+porque las dos tasas de respuesta no son comparables: mezclarlas falsearía el
+reparto por caso de uso. `wait_survey_shown` da el denominador.
+
 ## Eventos definidos
 
 | Evento | Momento | Propiedades |
 |---|---|---|
 | (page view) | visita | automático de Vercel |
+| `wait_survey_shown` | la encuesta se muestra durante la descarga | — |
+| `use_case_wait_*` / `use_case_export_*` | respuesta a la encuesta | `kind`, `when` |
 | `transcribe_start` | usuario lanza una transcripción | `model`, `device`, `source` (file/mic), `minutes` |
 | `model_ready` | pesos cargados | `model`, `seconds`, `cached` |
 | `transcribe_done` | transcripción completa | `model`, `device`, `minutes`, `seconds` |

@@ -139,7 +139,7 @@ try {
   check("TXT contiene edición", txt.includes("EDITADO"));
   check("TXT contiene atribución", txt.includes("gate32.autoritasai.com"));
   check("encuesta de caso de uso aparece tras exportar", await page.locator("#usecase").isVisible());
-  await page.click(".usecase-opt");
+  await page.click("#usecase .usecase-opt");
   check("encuesta agradece la respuesta", await page.locator("#usecase-thanks").isVisible());
   await page.uncheck("#attribution");
   check("TXT sin atribución al desmarcar", !(await dl("txt")).includes("gate32.autoritasai.com"));
@@ -179,6 +179,26 @@ try {
   await page.waitForSelector("#error:not([hidden])", { timeout: 10000 });
   check("JSON ajeno da error claro", await page.locator("#error").isVisible());
   await page.click("#error-dismiss");
+
+  // 3d · encuesta durante la descarga del modelo. Lo que no puede romperse es
+  // que la barra de progreso siga visible, por encima y sin moverse.
+  await page.evaluate(() => localStorage.removeItem("gate32.usecase"));
+  await page.reload({ waitUntil: "load" });
+  check("encuesta de espera oculta al arrancar", await page.locator("#wait-survey").isHidden());
+  await page.evaluate(() => window.__g32.waitSurvey());
+  check("encuesta de espera visible al descargar", await page.locator("#wait-survey").isVisible());
+  check("progreso visible junto a la encuesta", await page.locator("#progress-wrap").isVisible());
+  const barBox = await page.locator("#progress-wrap").boundingBox();
+  const surveyBox = await page.locator("#wait-survey").boundingBox();
+  check("la barra de progreso queda por encima de la encuesta", barBox.y < surveyBox.y);
+  await page.click("#wait-survey .usecase-opt");
+  check(
+    "encuesta de espera agradece sin ocultar el progreso",
+    (await page.locator("#wait-survey .wait-survey-thanks").isVisible()) &&
+      (await page.locator("#progress-wrap").isVisible()),
+  );
+  const barAfter = await page.locator("#progress-wrap").boundingBox();
+  check("la barra no se mueve al responder", Math.abs(barAfter.y - barBox.y) < 1);
 
   // 3b · página inglesa: app completa operativa
   await page.goto(`${BASE}/en/?e2e=1`, { waitUntil: "load" });
@@ -237,7 +257,11 @@ try {
     gcPage.click('[data-export="txt"]'),
   ]);
   await gcDl.path();
-  await gcPage.click(".usecase-opt");
+  // La encuesta de espera va primero: una vez respondida cualquiera de las dos,
+  // no se vuelve a preguntar en ese dispositivo.
+  await gcPage.evaluate(() => window.__g32.waitSurvey());
+  await gcPage.click("#wait-survey [data-kind='clase']");
+  await gcPage.click("#usecase .usecase-opt");
   await gcPage.click("#pro-btn");
   await gcPage.click(".pro-feature");
   await gcPage.waitForTimeout(400);
@@ -247,6 +271,10 @@ try {
   check(
     "analítica: evento de caso de uso registrado",
     gcEvents.some((e) => String(e).startsWith("use_case")),
+  );
+  check(
+    "analítica: la encuesta de espera se registra y distingue el momento",
+    gcEvents.includes("wait_survey_shown") && gcEvents.includes("use_case_wait_clase"),
   );
   check(
     "analítica: evento de feature Pro registrado",
