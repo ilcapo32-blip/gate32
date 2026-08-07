@@ -162,6 +162,36 @@ reporta tiempos vale más que diez upvotes.
 
 ---
 
+## 2b · Responder en hilos ajenos (donde alguien ya pregunta)
+
+Es el canal de mayor conversión y el que más fácil se estropea. Un texto que
+empieza por "podéis probar Gate32" es un anuncio: lo borran o lo hunden.
+
+**Estructura que funciona:**
+1. Responde de verdad la pregunta.
+2. Menciona **varias** opciones, no solo la nuestra.
+3. **Declara que Gate32 es tuyo.** Innegociable: recomendarlo sin decirlo
+   incumple las normas de Reddit y quema la marca si se descubre.
+4. Añade una limitación real.
+5. Termina preguntando algo (tiempos, equipo, caso de uso).
+
+**Nunca escribir:**
+
+| Falso o ambiguo | Correcto |
+|---|---|
+| "todos los formatos de texto" | "TXT, MD, SRT, VTT y JSON" (no hacemos DOCX ni PDF) |
+| "corregir en tiempo real con el audio" | "editar con el audio sincronizado" (no hay transcripción en directo) |
+| "totalmente privado" | "desconecta internet tras cargar el modelo y sigue funcionando" |
+| "sin límites" a secas | "sin límites, aunque en móvil va lento y la primera vez descarga el modelo" |
+
+**No reutilizar la misma plantilla literal** en varios hilos: Reddit detecta el
+texto repetido y los moderadores lo tratan como spam. Reescribe cada respuesta
+adaptándola al hilo.
+
+**Mencionar competidores (Transcrisper, whisper.cpp, MacWhisper, faster-whisper)
+suma más de lo que resta:** una respuesta que solo nombra tu herramienta es
+publicidad; una que nombra tres es ayuda, y el enlace sigue estando ahí.
+
 ## 3 · Menéame
 
 **Titular:** Gate32: transcriptor de audio y subtítulos gratuito donde la IA corre en tu navegador y el archivo nunca se sube
