@@ -103,6 +103,12 @@ Cada paso depende de los umbrales definidos en [`VALIDATION.md`](VALIDATION.md):
    consentimiento explícito) financiado por la capa Pro.
 4. **Sin tráfico** → iterar distribución (Plan-100), no producto.
 
+## Licencia
+
+MIT — ver [`LICENSE`](LICENSE). El código es auditable a propósito: la promesa
+de privacidad ("tu audio no sale del dispositivo") solo vale si cualquiera
+puede comprobarla leyendo el código.
+
 ## Historia del proyecto
 
 La v1 de Gate32 fue un experimento estético (terminal de embarque generativa),
