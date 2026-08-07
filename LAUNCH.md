@@ -82,6 +82,28 @@ reporta tiempos vale más que diez upvotes.
 
 **Title (EN, para subs en inglés):** I built a free transcription tool where your audio never leaves your browser (Whisper on WebGPU, no sign-up, no caps)
 
+**Body (EN):**
+> Every "free" transcription tool I tried had a catch: 30 trial minutes, a
+> sign-up wall, watermarked exports — and all of them upload your audio to
+> their servers. Otter's free plan lets you import 3 files. Not per month:
+> ever.
+>
+> So I built Gate32: Whisper running inside the browser via WebGPU. No account,
+> no minute caps, no watermark. The privacy claim is verifiable — load the
+> page, go offline once the model is cached, and it still transcribes, because
+> there is no backend to upload anything to.
+>
+> It handles audio and video (or records from your mic), lets you fix the text
+> with synced playback, and exports TXT, Markdown, SRT, VTT and JSON. Spanish
+> and English UI, dozens of languages. Open source.
+>
+> https://gate32.autoritasai.com/en/
+>
+> What I'd genuinely like feedback on: **how long it takes on your machine**.
+> On my laptop 9 minutes of audio took 1:33 with WebGPU, but I have no idea how
+> it behaves across different GPUs — and without WebGPU it falls back to WASM,
+> which is much slower. Timings very welcome.
+
 ---
 
 ## 3 · Menéame
