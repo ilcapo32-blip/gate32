@@ -109,6 +109,33 @@ rendimiento (10 h, saltar silencios); nadie optimiza *la corrección*.
 → **[HIPÓTESIS a validar]** El hueco defendible de Gate32 no es transcribir
 mejor, sino **ser el mejor sitio para corregir y verificar una transcripción**.
 
+## 1c · Segmento no contemplado: accesibilidad (sordera)
+
+**[ANÉCDOTA, no evidencia]** Un hilo viral en X (376 K visualizaciones) de una
+mujer sorda a la que se le niega el acceso de su intérprete de lengua de signos
+en consultas médicas. Un comentarista le sugiere grabar el audio para
+transcribirlo después.
+
+**Lectura:** para personas sordas o con pérdida auditiva, la transcripción no
+es comodidad sino acceso, y ocurre a diario (consultas, clases, reuniones). El
+argumento de privacidad local es aún más fuerte que en nuestros otros públicos:
+una consulta médica contiene datos de salud.
+
+**Encaje real de Gate32 hoy: malo, y conviene decirlo.**
+1. **No hay transcripción en tiempo real.** Grabamos y procesamos después; en
+   una consulta se necesita leer *mientras* hablan.
+2. **El móvil es nuestro peor escenario** (WASM, lento) y es precisamente el
+   dispositivo que se lleva a una consulta.
+
+**Condiciones para entrar en este segmento** (ninguna cumplida):
+transcripción por streaming con latencia baja, rendimiento aceptable en
+teléfonos de gama media, y validación con usuarios sordos reales — no con
+suposiciones de oyentes.
+
+**Criterio ético asumido:** no promocionar la herramienta en hilos donde
+alguien denuncia una vulneración de derechos. Ofrecer una app como "solución"
+legitima que la institución incumpla su obligación de proporcionar intérprete.
+
 ## 2 · Veinte oportunidades
 
 Formato por oportunidad — **U**: usuario · **P**: problema/deseo ·
