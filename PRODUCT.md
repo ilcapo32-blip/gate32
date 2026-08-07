@@ -61,6 +61,33 @@ Ver umbrales de fracaso en `VALIDATION.md`. Resumen: si con tráfico real la
 tasa de finalización de transcripciones es <25 % (el rendimiento local no
 cumple) o casi nadie repite ni exporta, la tesis "local-first" no aguanta.
 
+## Refinamiento de la propuesta (2026-08-07, desde campo)
+
+La tesis original lideraba con **privacidad**. Tres conversaciones con usuarios
+reales en r/podcasting la corrigen: la privacidad es *por qué te creen*, pero
+**el acceso es por qué pueden usarte**.
+
+Lo dijo mejor un narrador de audiobooks que corre faster-whisper con
+`large_v3` en su propia GPU (Ryzen 5 5500, ~10× tiempo real):
+
+> "La tuya sirve más, porque gente que no tiene Python ni una GPU puede
+> correrlo."
+
+**Consecuencia:** no competimos en velocidad con las herramientas nativas —
+ahí perdemos y hay que reconocerlo. Competimos en que Whisper de calidad esté
+al alcance de quien nunca va a instalar Python, CUDA ni dependencias. Somos la
+rampa de entrada, no la estación de carreras.
+
+**Dato de campo (primero fuera de nuestro portátil):**
+faster-whisper `large_v3` nativo ≈ 10× tiempo real · Gate32 `tiny` en WebGPU
+≈ 5,8× tiempo real. La brecha es real y esperable (CTranslate2+CUDA frente a
+ONNX Runtime Web). El intercambio honesto es *cero instalación*.
+
+**Corroboración de la hipótesis de verificación:** ese mismo narrador ha
+construido un "Proof Listener" que compara la grabación con el manuscrito para
+detectar desviaciones. Es decir: alguien con el problema encima dedicó
+esfuerzo a **verificar**, no a generar. Refuerza lo anotado en RESEARCH.md §1b.
+
 ## Propuesta de valor (una frase)
 
 > Transcribe y subtitula cualquier audio o vídeo con IA, gratis y sin límites,
