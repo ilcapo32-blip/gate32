@@ -136,8 +136,52 @@ function showError(message: string, hint: string): void {
 
 // ── flujo principal ──
 
+/**
+ * Reabre una transcripción exportada en JSON. Permite transcribir en un equipo
+ * potente y revisar el resultado en otro (petición de un usuario en
+ * r/selfhosted).
+ */
+async function importJSON(file: File | Blob, name: string): Promise<boolean> {
+  try {
+    const parsed = JSON.parse(await file.text()) as { segments?: unknown };
+    const raw = parsed.segments;
+    if (!Array.isArray(raw) || raw.length === 0) return false;
+    const segments: Segment[] = [];
+    for (const item of raw) {
+      const s = item as Partial<Segment>;
+      if (typeof s.start !== "number" || typeof s.end !== "number" || typeof s.text !== "string") {
+        return false;
+      }
+      segments.push({ start: s.start, end: s.end, text: s.text });
+    }
+    current = {
+      id: `${Date.now()}`,
+      title: name.replace(/\.json$/i, ""),
+      minutes: Math.max(1, Math.round((segments[segments.length - 1]?.end ?? 0) / 60)),
+      segments,
+      device: "?",
+      fromHistory: true,
+    };
+    editTracked = false;
+    hide(errorBox);
+    track("json_import", { segments: segments.length });
+    renderResult(t("json_imported"));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function handleFile(file: File | Blob, name: string): Promise<void> {
   if (busy) return;
+
+  // Un JSON exportado por Gate32 se reabre en vez de transcribirse.
+  if (/\.json$/i.test(name) || file.type === "application/json") {
+    if (await importJSON(file, name)) return;
+    showError(t("json_invalid"), t("json_invalid_hint"));
+    return;
+  }
+
   busy = true;
   editTracked = false;
   hide(errorBox);

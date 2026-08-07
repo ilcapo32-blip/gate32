@@ -54,6 +54,9 @@ const dict = {
     attribution: "Transcrito con Gate32 · https://gate32.autoritasai.com",
     mobile_note:
       "📱 En el móvil funciona, pero va más lento que en un ordenador. Para probarlo ya, graba 30 segundos con el micrófono; para clases o entrevistas largas, mejor desde el portátil.",
+    json_imported: "abierto desde un JSON de Gate32 (sin audio)",
+    json_invalid: "Ese JSON no parece una transcripción de Gate32.",
+    json_invalid_hint: "Debe ser un archivo exportado con el botón JSON de Gate32.",
   },
   en: {
     reading: "Reading the audio…",
@@ -99,6 +102,9 @@ const dict = {
     attribution: "Transcribed with Gate32 · https://gate32.autoritasai.com",
     mobile_note:
       "📱 It works on phones, but slower than on a computer. For a quick try, record 30 seconds with the mic; for long lectures or interviews, use a laptop.",
+    json_imported: "opened from a Gate32 JSON file (no audio)",
+    json_invalid: "That JSON doesn't look like a Gate32 transcript.",
+    json_invalid_hint: "It should be a file exported with Gate32's JSON button.",
   },
 } as const;
 

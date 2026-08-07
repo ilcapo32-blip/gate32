@@ -1,152 +1,151 @@
-# Gate32 · Transcripción y subtítulos con IA, 100 % en tu navegador
+# Gate32 · AI transcription & subtitles, 100% in your browser
 
-**https://gate32.autoritasai.com**
+*[Versión en español](README.es.md)*
 
-Convierte audio y vídeo en texto o subtítulos SRT/VTT con Whisper ejecutándose
-**localmente en tu navegador**. Gratis, sin límites, sin registro y sin que tus
-archivos salgan de tu equipo.
+**https://gate32.autoritasai.com/en/**
+
+Turn audio and video into text or SRT/VTT subtitles with Whisper running
+**locally in your browser**. Free, no limits, no sign-up, and your files never
+leave your device.
 
 ![Gate32](public/og.png)
 
-## Qué problema resuelve
+## What problem it solves
 
-Los transcriptores "gratis" habituales imponen minutos de prueba, topes por
-archivo, muros de registro y — lo estructural — **suben tu audio a sus
-servidores**. Las alternativas privadas son apps de escritorio (a menudo solo
-macOS) o herramientas de terminal. Gate32 elimina el dilema: privacidad
-verificable con la comodidad de una web.
+Every "free" transcriber has a catch: trial minutes, per-file caps, sign-up
+walls and — structurally — **they upload your audio to their servers**
+(Otter's free plan allows 3 file imports, ever). The private alternatives are
+desktop apps, often macOS-only, or command-line tools.
 
-La investigación de mercado, la matriz de 20 oportunidades y los motivos de
-esta elección están en [`RESEARCH.md`](RESEARCH.md); la tesis de producto en
-[`PRODUCT.md`](PRODUCT.md); las métricas y umbrales en
-[`VALIDATION.md`](VALIDATION.md).
+Gate32 removes the trade-off: verifiable privacy with the convenience of a web
+page.
 
-## Cómo utilizarlo
+## How to use it
 
-1. Entra en la web y arrastra un archivo de audio/vídeo (o graba con el micro).
-2. La primera vez, el navegador descarga el modelo (≈50–250 MB según calidad)
-   y lo deja cacheado; después funciona incluso sin conexión.
-3. Whisper transcribe por bloques con progreso visible.
-4. Corrige el texto con el audio sincronizado y exporta TXT, Markdown, SRT,
-   VTT o JSON.
+1. Open the site and drop in an audio or video file (or record from your mic).
+2. On first run your browser downloads the model (~50–250 MB depending on
+   quality) and caches it. After that it works offline.
+3. Whisper transcribes in chunks with visible progress.
+4. Fix the text with synced audio playback, then export TXT, Markdown, SRT,
+   VTT or JSON.
 
-## Arquitectura
+You can re-open an exported JSON later — drop it back in — which lets you
+transcribe on a fast machine and review the result on another one.
+
+## Architecture
 
 ```
-index.html            landing + shell de la app (SEO, OG, JSON-LD, FAQ)
-src/main.ts           estados de la UI, edición, exports, historial
-src/styles.css        diseño claro/oscuro, responsive, accesible
+index.html            landing + app shell (SEO, OG, JSON-LD, FAQ)
+en/index.html         English landing + app
+src/main.ts           UI states, editing, exports, history
+src/styles.css        light/dark, responsive, accessible
 src/lib/
-  worker.ts           Whisper vía transformers.js (WebGPU → WASM fallback)
-  transcriber.ts      cliente tipado del worker (capa de IA sustituible)
-  audio.ts            decodificación a mono 16 kHz (OfflineAudioContext)
-  formats.ts          lógica pura: ventanas, fusión, TXT/MD/SRT/VTT/JSON
-  analytics.ts        eventos anónimos de validación (Vercel Web Analytics)
-  history.ts          historial local (localStorage, sin cuenta)
-  types.ts            tipos y protocolo del worker
-scripts/e2e.mjs       E2E de recorrido crítico (Playwright)
-src/lib/__tests__/    tests unitarios (vitest)
+  worker.ts           Whisper via transformers.js (WebGPU → WASM fallback)
+  transcriber.ts      typed worker client (swappable AI layer)
+  audio.ts            decoding to mono 16 kHz (OfflineAudioContext)
+  formats.ts          pure logic: windows, merging, TXT/MD/SRT/VTT/JSON
+  i18n.ts             strings for JS-generated UI (ES/EN)
+  analytics.ts        anonymous validation events
+  history.ts          local history (localStorage, no account)
+scripts/e2e.mjs       critical-journey E2E (Playwright)
+src/lib/__tests__/    unit tests (vitest)
 ```
 
-Decisiones clave:
+Key decisions:
 
-- **Sin backend de procesado.** El audio se decodifica y transcribe en el
-  cliente; el único tráfico es la descarga del modelo desde el CDN de
-  Hugging Face (cacheada por el navegador).
-- **Ventanas solapadas** de 30 s con 5 s de solape y fusión por punto medio:
-  progreso real, memoria acotada y lógica testeable.
-- **Capa de IA aislada** tras `transcriber.ts`: cambiar de modelo o añadir un
-  motor de servidor (plan Pro) no toca la UI.
-- **Coste marginal ≈ 0 €** por usuario: el proyecto escala en un plan gratuito.
+- **No processing backend.** Audio is decoded and transcribed client-side; the
+  only network traffic is the model download from the Hugging Face CDN
+  (browser-cached, and self-hostable — see below).
+- **Overlapping 30 s windows** with 5 s overlap, merged by midpoint: real
+  progress, bounded memory, testable logic.
+- **AI layer isolated** behind `transcriber.ts`: swapping models or adding a
+  server engine never touches the UI.
+- **~0 € marginal cost** per user: the project scales on a free plan.
 
-## Instalación local
+## Local development
 
 ```bash
 npm install
-npm run dev        # desarrollo
-npm test           # tests unitarios
-npm run build      # comprobación de tipos + build de producción
-npm run preview    # servir dist/
-npm run test:e2e   # E2E (CHROMIUM_PATH=/ruta/a/chromium si hace falta)
+npm run dev        # dev server
+npm test           # unit tests
+npm run build      # type-check + production build
+npm run preview    # serve dist/
+npm run test:e2e   # E2E (CHROMIUM_PATH=/path/to/chromium if needed)
 ```
 
-## Variables de entorno
+## Environment variables
 
-**Ninguna es obligatoria.** No hay claves ni secretos que proteger.
+**None are required.** There are no keys or secrets.
 
-| Variable | Para qué |
+| Variable | Purpose |
 |---|---|
-| `VITE_MODEL_HOST` | Origen alternativo de los pesos del modelo, con barra final (p. ej. `https://modelos.midominio.com/`). Sin definir, se usa el CDN de Hugging Face. Ver *Autoalojamiento*. |
+| `VITE_MODEL_HOST` | Alternative origin for the model weights, trailing slash included (e.g. `https://models.example.com/`). Unset, it uses the Hugging Face CDN. See *Self-hosting*. |
 
-La analítica usa Vercel Web Analytics (se activa gratis desde el panel del
-proyecto) y GoatCounter; ambas son anónimas y sin cookies.
+Analytics are Vercel Web Analytics + GoatCounter, both anonymous and
+cookie-free.
 
-## Autoalojamiento
+## Self-hosting
 
-Gate32 no tiene backend, así que autoalojarlo es servir ficheros estáticos:
+Gate32 has no backend, so self-hosting it means serving static files:
 
 ```bash
 git clone https://github.com/ilcapo32-blip/gate32
 cd gate32
 npm ci
-npm run build          # genera dist/
-# sirve dist/ con nginx, Caddy, Docker, python -m http.server…
+npm run build          # produces dist/
+# serve dist/ with nginx, Caddy, Docker, python -m http.server…
 ```
 
-**Para funcionar sin ninguna llamada externa** (aislado / air-gapped), aloja
-también los pesos del modelo. Descárgalos una vez de Hugging Face
-(`onnx-community/whisper-base` y los tamaños que quieras usar), sírvelos
-manteniendo la ruta `{modelo}/resolve/main/{fichero}` y compila con:
+**To run with zero external calls (air-gapped)**, host the model weights too.
+Download them once from Hugging Face (`onnx-community/whisper-base`, plus any
+other sizes you want), serve them keeping the `{model}/resolve/main/{file}`
+path, and build with:
 
 ```bash
-VITE_MODEL_HOST=https://modelos.tudominio.com/ npm run build
+VITE_MODEL_HOST=https://models.example.com/ npm run build
 ```
 
-A partir de ahí no se contacta con ningún tercero: ni modelos, ni analítica
-(bórrala si quieres), ni telemetría. El audio nunca salía de todos modos.
+From then on nothing contacts a third party: no models, no analytics (delete
+them if you like), no telemetry. The audio never left in the first place.
 
-> Nota honesta sobre terminología: la instancia pública de
-> gate32.autoritasai.com **no es "autoalojada"** — es una web estática que
-> alojamos nosotros y que procesa en tu navegador. Lo que sí es, es
-> **autoalojable**: cualquiera puede servirla desde su propia máquina con los
-> pasos de arriba.
+> Honest note on terminology: the public instance at gate32.autoritasai.com is
+> **not "self-hosted"** — it's a static site we host that processes in your
+> browser. What it *is* is **self-hostable**, with the steps above.
 
-## Despliegue
+## Deployment
 
-Vercel detecta Vite automáticamente: `npm install && npm run build` → `dist/`.
-Cada push a `main` publica en https://gate32.autoritasai.com.
+Vercel detects Vite automatically: `npm install && npm run build` → `dist/`.
+Every push to `main` publishes to https://gate32.autoritasai.com.
 
-## Limitaciones actuales
+## Current limitations
 
-- La velocidad depende del equipo del usuario: con WebGPU (Chrome/Edge
-  recientes) es varias veces más rápida que el tiempo real; sin WebGPU cae a
-  WASM, útil pero lento con el modelo Preciso.
-- Sin identificación de hablantes (diarización) ni resúmenes: son la capa Pro
-  propuesta, pendiente de señal de demanda (`pro_interest`).
-- Archivos muy largos (>~90 min) exigen memoria holgada; se avisa al usuario.
-- La transcripción en Safari/iOS funciona con WASM pero sin aceleración.
+- Speed depends on the user's machine: with WebGPU (recent Chrome/Edge) it's
+  several times faster than real time; without it, WASM works but is slow with
+  the Accurate model.
+- **No speaker diarization** and no summaries yet.
+- Very long files (>~90 min) need comfortable memory; the app warns you.
+- Safari/iOS works via WASM but without acceleration.
 
-## Roadmap basado en validación
+## Project docs
 
-Cada paso depende de los umbrales definidos en [`VALIDATION.md`](VALIDATION.md):
+- [`RESEARCH.md`](RESEARCH.md) — market research, 20 opportunities, scoring
+  matrix, competitive landscape and why this was chosen (Spanish).
+- [`PRODUCT.md`](PRODUCT.md) — product thesis (Spanish).
+- [`VALIDATION.md`](VALIDATION.md) — metrics, thresholds, experiments (Spanish).
+- [`MONETIZATION.md`](MONETIZATION.md) — revenue hypotheses (Spanish).
 
-1. **Señal de activación ≥ 10 %** → páginas SEO por caso de uso (entrevistas,
-   subtítulos, clases) y mejoras de rendimiento percibido.
-2. **`pro_interest` ≥ 5 % de activados** → capa 2: resúmenes/actas (BYOK
-   gratuito primero), lotes y diarización; lista de espera de pago.
-3. **Finalización < 25 %** → modo híbrido opcional (procesado en servidor con
-   consentimiento explícito) financiado por la capa Pro.
-4. **Sin tráfico** → iterar distribución (Plan-100), no producto.
+## How this was built
 
-## Licencia
+Gate32 was built by its owner working with Claude, Anthropic's coding agent:
+the owner drives product decisions, research and testing; the agent writes most
+of the implementation. The commit history is public and co-authored, so you can
+see exactly what that looked like.
 
-MIT — ver [`LICENSE`](LICENSE). El código es auditable a propósito: la promesa
-de privacidad ("tu audio no sale del dispositivo") solo vale si cualquiera
-puede comprobarla leyendo el código.
+The AI *inside* the product is OpenAI's Whisper (ONNX builds from
+onnx-community) running client-side through transformers.js.
 
-## Historia del proyecto
+## License
 
-La v1 de Gate32 fue un experimento estético (terminal de embarque generativa),
-archivado tras auditoría en el commit `8abfc19`
-([`docs/AUDIT-v1.md`](docs/AUDIT-v1.md)). La v2 nace de la investigación de
-mercado documentada en este repositorio.
+MIT — see [`LICENSE`](LICENSE). The code is auditable on purpose: the privacy
+promise ("your audio never leaves your device") is only worth something if
+anyone can check it by reading the source.

@@ -51,7 +51,7 @@ export async function decodeToMono16k(file: Blob): Promise<DecodedAudio> {
 
 /** Formatos que aceptamos en el selector de archivos. */
 export const ACCEPT =
-  "audio/*,video/mp4,video/webm,video/quicktime,.mp3,.wav,.m4a,.ogg,.oga,.opus,.flac,.aac,.mp4,.webm,.mov,.mkv";
+  "audio/*,video/mp4,video/webm,video/quicktime,.mp3,.wav,.m4a,.ogg,.oga,.opus,.flac,.aac,.mp4,.webm,.mov,.mkv,.json";
 
 /** Aviso para archivos muy largos (memoria del navegador). */
 export const LONG_FILE_WARN_MIN = 90;

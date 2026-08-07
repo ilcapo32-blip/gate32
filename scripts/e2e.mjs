@@ -144,6 +144,35 @@ try {
   await page.click(".pro-feature");
   check("CTA Pro registra la feature elegida", await page.locator("#pro-thanks").isVisible());
 
+  // 3c · reabrir un JSON exportado (transcribir en un equipo, revisar en otro)
+  const jsonPath = join(tmp, "transcripcion.json");
+  writeFileSync(
+    jsonPath,
+    JSON.stringify({
+      source: "gate32",
+      segments: [
+        { start: 0, end: 2, text: "Primera linea importada." },
+        { start: 2, end: 4, text: "Segunda linea importada." },
+      ],
+    }),
+  );
+  await page.click("#new-btn");
+  await page.setInputFiles("#file-input", jsonPath);
+  await page.waitForSelector("#result:not([hidden])", { timeout: 10000 });
+  check("JSON exportado se reabre", (await page.locator(".segment").count()) === 2);
+  check(
+    "JSON reabierto conserva el texto",
+    ((await page.locator(".seg-text").first().textContent()) ?? "").includes("Primera linea"),
+  );
+
+  const badJson = join(tmp, "otro.json");
+  writeFileSync(badJson, JSON.stringify({ hola: "mundo" }));
+  await page.click("#new-btn");
+  await page.setInputFiles("#file-input", badJson);
+  await page.waitForSelector("#error:not([hidden])", { timeout: 10000 });
+  check("JSON ajeno da error claro", await page.locator("#error").isVisible());
+  await page.click("#error-dismiss");
+
   // 3b · página inglesa: app completa operativa
   await page.goto(`${BASE}/en/?e2e=1`, { waitUntil: "load" });
   check("EN: h1 en inglés", /Transcribe audio/i.test((await page.locator("h1").textContent()) ?? ""));
