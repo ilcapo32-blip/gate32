@@ -69,6 +69,17 @@ if (!("gpu" in navigator)) {
   modelSelect.querySelector('option[value="max"]')?.remove();
 }
 
+// El tamaño anunciado en el explicador sigue al modelo elegido, para que la
+// expectativa sea siempre exacta.
+function syncFirstRunSize(): void {
+  const spec = MODELS[modelSelect.value as ModelQuality];
+  if (!spec) return;
+  document.querySelectorAll<HTMLElement>(".firstrun-size").forEach((el) => {
+    el.textContent = spec.sizeLabel;
+  });
+}
+modelSelect.addEventListener("change", syncFirstRunSize);
+
 // El tráfico social llega sobre todo desde el móvil, donde el procesado es
 // más lento: expectativas claras por delante para no quemar la visita.
 const onPhone =
@@ -81,6 +92,7 @@ if (onPhone) {
     note.hidden = false;
   }
 }
+syncFirstRunSize();
 
 // ── estado ──
 interface Current {

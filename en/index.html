@@ -140,12 +140,24 @@
           <span>or click to pick one · MP3, WAV, M4A, OGG, MP4, WEBM…</span>
         </div>
 
+        <div class="firstrun">
+          <ol class="firstrun-steps">
+            <li><b>1</b> Pick your file</li>
+            <li><b>2</b> <em>First time only:</em> the model downloads (<span class="firstrun-size">~80 MB</span>), a couple of minutes</li>
+            <li><b>3</b> It transcribes on your machine</li>
+          </ol>
+          <p class="firstrun-note">
+            ⚡ After that the model is cached: next times it starts instantly and works
+            <strong>even offline</strong>.
+          </p>
+        </div>
+
         <div class="alt-actions">
           <button id="record-btn" class="btn ghost" type="button">
             <span class="rec-dot" aria-hidden="true"></span>
             <span id="record-label">Record with the microphone</span>
           </button>
-          <span class="privacy-inline">🔒 Processing is 100% local. Only the model is downloaded, once.</span>
+          <span class="privacy-inline">🔒 Processing is 100% local: your file is never uploaded.</span>
         </div>
 
         <p id="mobile-note" class="mobile-note" hidden></p>

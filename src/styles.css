@@ -205,6 +205,54 @@ button { font-family: inherit; }
 
 .drop-icon { width: 34px; height: 34px; color: var(--accent); }
 
+/* Explicación de la primera ejecución: es donde perdíamos a la gente, porque
+   no sabían que la espera larga ocurre una sola vez. */
+.firstrun {
+  margin-top: 0.9rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.firstrun-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.4rem;
+  list-style: none;
+  font-size: 0.84rem;
+  color: var(--ink);
+}
+
+.firstrun-steps li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.firstrun-steps b {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.72rem;
+  align-self: center;
+}
+
+.firstrun-steps em { font-style: normal; font-weight: 600; }
+
+.firstrun-note {
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
 .alt-actions {
   display: flex;
   align-items: center;

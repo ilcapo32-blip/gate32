@@ -145,12 +145,24 @@
           <span>o haz clic para elegirlo · MP3, WAV, M4A, OGG, MP4, WEBM…</span>
         </div>
 
+        <div class="firstrun">
+          <ol class="firstrun-steps">
+            <li><b>1</b> Eliges tu archivo</li>
+            <li><b>2</b> <em>Solo la primera vez:</em> se descarga el modelo (<span class="firstrun-size">~80 MB</span>), un par de minutos</li>
+            <li><b>3</b> Transcribe en tu equipo</li>
+          </ol>
+          <p class="firstrun-note">
+            ⚡ Después el modelo queda guardado: las siguientes veces empieza al instante
+            y funciona <strong>incluso sin conexión</strong>.
+          </p>
+        </div>
+
         <div class="alt-actions">
           <button id="record-btn" class="btn ghost" type="button">
             <span class="rec-dot" aria-hidden="true"></span>
             <span id="record-label">Grabar con el micrófono</span>
           </button>
-          <span class="privacy-inline">🔒 El procesado es 100 % local. Solo se descarga el modelo la primera vez.</span>
+          <span class="privacy-inline">🔒 El procesado es 100 % local: el archivo no se sube a ningún servidor.</span>
         </div>
 
         <p id="mobile-note" class="mobile-note" hidden></p>

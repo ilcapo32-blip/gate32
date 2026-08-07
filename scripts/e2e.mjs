@@ -83,6 +83,13 @@ try {
   check("h1 visible", await page.locator("h1").isVisible());
   check("dropzone visible", await page.locator("#dropzone").isVisible());
   check("FAQ presente", (await page.locator("#faq details").count()) >= 5);
+  check("explicador de primera ejecución visible", await page.locator(".firstrun").isVisible());
+  await page.selectOption("#model-quality", "accurate");
+  check(
+    "el tamaño anunciado sigue al modelo elegido",
+    ((await page.locator(".firstrun-size").first().textContent()) ?? "").includes("250"),
+  );
+  await page.selectOption("#model-quality", "balanced");
 
   // 2 · decodificación + fase de modelo (éxito o error de red controlado)
   await page.setInputFiles("#file-input", tonePath);
