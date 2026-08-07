@@ -201,7 +201,10 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
   try {
     ({ audio, duration } = await decodeToMono16k(file));
   } catch (err) {
+    // El nombre del evento lleva la causa: GoatCounter (plan gratuito) solo
+    // registra el nombre, no las propiedades. Sin esto los fallos son opacos.
     track("transcribe_error", { stage: "decode", kind: "decode" });
+    track("transcribe_error_decode");
     showError(err instanceof Error ? err.message : t("unsupported"), t("decode_hint"));
     return;
   }
@@ -282,6 +285,8 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
         },
         onError(_stage, message) {
           track("transcribe_error", { stage: "transcribe", kind: "inference" });
+          track("transcribe_error_inference");
+          track(`transcribe_error_inference_${quality}`);
           transcriber.reset();
           showError(t("infer_error", { msg: message }), t("infer_hint"));
         },
@@ -292,6 +297,8 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
     },
     onError(_stage, message) {
       track("transcribe_error", { stage: "load", kind: "network" });
+      track("transcribe_error_load");
+      track(`transcribe_error_load_${quality}`);
       transcriber.reset();
       showError(t("load_error", { msg: message }), t("load_hint"));
     },
@@ -324,6 +331,8 @@ function finishTranscription(
     total_seconds: Math.round(totalSeconds),
     lang,
   });
+  track(`transcribe_done_${quality}`);
+  track(`transcribe_done_${current.device}`);
 
   saveToHistory({
     id: current.id,
@@ -572,7 +581,9 @@ recordBtn.addEventListener("click", async () => {
 
 cancelBtn.addEventListener("click", () => {
   transcriber.reset();
-  track("transcribe_error", { stage: "cancel", kind: "user" });
+  // Cancelar no es un error: mezclarlos impedía distinguir un fallo real de
+  // alguien que se cansó de esperar.
+  track("transcribe_cancel");
   resetToIdle();
 });
 $("#error-dismiss").addEventListener("click", () => hide(errorBox));
