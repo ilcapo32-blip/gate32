@@ -81,6 +81,17 @@ try {
   // 1 · landing
   await page.goto(`${BASE}/?e2e=1`, { waitUntil: "load" });
   check("h1 visible", await page.locator("h1").isVisible());
+  // Las cabeceras COOP/COEP dan hilos a WebAssembly, pero pueden bloquear
+  // recursos de terceros: si el aislamiento está activo y la página sigue sin
+  // errores, el modo `credentialless` está haciendo su trabajo.
+  check(
+    "aislamiento de origen cruzado activo (hilos WASM disponibles)",
+    await page.evaluate(() => window.crossOriginIsolated === true),
+  );
+  check(
+    "SharedArrayBuffer disponible",
+    await page.evaluate(() => typeof SharedArrayBuffer !== "undefined"),
+  );
   check("dropzone visible", await page.locator("#dropzone").isVisible());
   check("FAQ presente", (await page.locator("#faq details").count()) >= 5);
   check("explicador de primera ejecución visible", await page.locator(".firstrun").isVisible());

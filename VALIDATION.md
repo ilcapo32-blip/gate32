@@ -111,6 +111,27 @@ Contraste con diarización: aquella lleva **una** petición y un coste alto
 de una tarde. El criterio no es cuántas veces se pide, es la razón entre señal
 y coste — por eso esta se construye ya y la otra sigue esperando volumen.
 
+### Experimento abierto: hilos de WebAssembly (2026-08-08)
+
+Con las cabeceras `Cross-Origin-Opener-Policy: same-origin` y
+`Cross-Origin-Embedder-Policy: credentialless`, la página queda aislada, hay
+`SharedArrayBuffer` y ONNX Runtime puede repartir la inferencia entre núcleos.
+Es la única palanca que mejora el camino sin WebGPU, que hoy es inservible.
+
+Se elige `credentialless` y no `require-corp` porque los scripts de terceros se
+piden en modo no-cors y con `require-corp` quedarían bloqueados; los pesos del
+modelo van por `fetch` en modo CORS, que no necesita CORP en ninguno de los dos
+modos.
+
+**Riesgo asumido y cómo se vigila:** el entorno de desarrollo no tiene acceso
+al CDN de Hugging Face, así que la descarga real bajo aislamiento no está
+probada aquí — solo que la página se aísla y sigue sin errores. Si las
+cabeceras no llegaran en producción, `coi_off` se dispara en cada visita; si
+rompieran la descarga, `transcribe_error_load` sube. Revertir es un commit.
+
+**Qué mediría el éxito:** aparición de `transcribe_done_wasm`, que hoy es 0
+(los 3 éxitos han sido todos WebGPU).
+
 ### Por qué no sabemos para qué se usa (2026-08-07, corregido)
 
 La encuesta de caso de uso existía desde el principio, pero solo se mostraba
@@ -141,6 +162,9 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | (page view) | visita | automático de Vercel |
 | `wait_survey_shown` | la encuesta se muestra durante la descarga | — |
 | `no_webgpu` | el navegador no expone WebGPU (irá en WASM) | — |
+| `coi_off` | la página **no** quedó aislada: WASM vuelve a un hilo | — |
+| `storage_not_persisted` | el navegador no garantiza conservar el modelo | — |
+| `storage_full` | no cabe el modelo; se avisa antes de descargar | — |
 | `use_case_wait_*` / `use_case_export_*` | respuesta a la encuesta | `kind`, `when` |
 | `transcribe_start` | usuario lanza una transcripción | `model`, `device`, `source` (file/mic), `minutes` |
 | `model_ready` | pesos cargados | `model`, `seconds`, `cached` |

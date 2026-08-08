@@ -57,6 +57,8 @@ const dict = {
     attribution: "Transcrito con Gate32 · https://gate32.autoritasai.com",
     mobile_note:
       "📱 En el móvil funciona, pero va más lento que en un ordenador. Para probarlo ya, graba 30 segundos con el micrófono; para clases o entrevistas largas, mejor desde el portátil.",
+    storage_error: "No hay espacio suficiente en el navegador para guardar el modelo ({need}); libres: {free}.",
+    storage_hint: "Elige el modelo Rápido, libera espacio en el disco o borra datos de sitios que ya no uses.",
     gpu_note:
       "⚠️ Este navegador no tiene WebGPU, así que la IA correrá en modo compatible: mucho más lento. Un vídeo de 12 minutos puede pasar de una hora, cuando en Chrome o Edge recientes tarda un par de minutos. En Firefox se puede activar en about:config con dom.webgpu.enabled.",
     json_imported: "abierto desde un JSON de Gate32 (sin audio)",
@@ -110,6 +112,8 @@ const dict = {
     attribution: "Transcribed with Gate32 · https://gate32.autoritasai.com",
     mobile_note:
       "📱 It works on phones, but slower than on a computer. For a quick try, record 30 seconds with the mic; for long lectures or interviews, use a laptop.",
+    storage_error: "Not enough browser storage to keep the model ({need}); free: {free}.",
+    storage_hint: "Pick the Fast model, free up disk space, or clear data from sites you no longer use.",
     gpu_note:
       "⚠️ This browser has no WebGPU, so the AI runs in compatibility mode: much slower. A 12-minute video can take over an hour, versus a couple of minutes on recent Chrome or Edge. In Firefox you can enable it in about:config with dom.webgpu.enabled.",
     json_imported: "opened from a Gate32 JSON file (no audio)",

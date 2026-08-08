@@ -22,6 +22,18 @@ import {
 
 env.allowLocalModels = false;
 
+// Con aislamiento de origen cruzado hay SharedArrayBuffer y ONNX Runtime puede
+// repartir la inferencia entre núcleos. Es lo único que hace tolerable el
+// camino WASM; sin esto va a un solo hilo. Se deja un núcleo libre para que la
+// interfaz siga respondiendo y se limita a 4: por encima, el reparto de un
+// modelo pequeño cuesta más de lo que ahorra.
+const isolated = (self as unknown as { crossOriginIsolated?: boolean }).crossOriginIsolated;
+if (isolated) {
+  const cores = (navigator as unknown as { hardwareConcurrency?: number }).hardwareConcurrency ?? 2;
+  const wasmBackend = env.backends.onnx.wasm as { numThreads?: number } | undefined;
+  if (wasmBackend) wasmBackend.numThreads = Math.max(1, Math.min(4, cores - 1));
+}
+
 // Autoalojamiento: por defecto los pesos se descargan del CDN de Hugging Face,
 // pero VITE_MODEL_HOST permite servirlos desde tu propio dominio y ejecutar
 // Gate32 sin ninguna llamada externa (ver README, "Autoalojamiento").

@@ -18,6 +18,7 @@ import {
 import { MODELS, type ModelQuality, type Segment } from "./lib/types";
 import { t, lang, locale } from "./lib/i18n";
 import { initAnalytics, track, trackVisit } from "./lib/analytics";
+import { ensureStorage, humanBytes } from "./lib/storage";
 import {
   loadHistory,
   saveToHistory,
@@ -79,6 +80,13 @@ if (!hasWebGPU) {
     gpuNote.hidden = false;
   }
   track("no_webgpu");
+}
+
+// Solo se registra el fallo: con las cabeceras COOP/COEP puestas esto debería
+// estar siempre activo, así que cualquier `coi_off` en producción significa que
+// las cabeceras no llegaron y el camino WASM volvió a un solo hilo.
+if (!(window as unknown as { crossOriginIsolated?: boolean }).crossOriginIsolated) {
+  track("coi_off");
 }
 
 // El tamaño anunciado en el explicador sigue al modelo elegido, para que la
@@ -290,6 +298,25 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
     minutes,
     lang,
   });
+
+  // Antes de bajar 80 MB conviene saber que caben y que no los van a borrar:
+  // sin esto el fallo llega a mitad de descarga y como QuotaExceededError.
+  const spec0 = MODELS[quality];
+  const store = await ensureStorage(spec0.bytes);
+  // Solo se registra el caso malo: si el navegador no garantiza permanencia, el
+  // usuario que vuelva se comerá otra descarga completa.
+  if (!store.persisted) track("storage_not_persisted");
+  if (!store.ok) {
+    track("storage_full");
+    showError(
+      t("storage_error", {
+        need: humanBytes(spec0.bytes, locale),
+        free: humanBytes(store.freeBytes ?? 0, locale),
+      }),
+      t("storage_hint"),
+    );
+    return;
+  }
 
   const loadFiles = new Map<string, number>();
   const tLoad0 = performance.now();
