@@ -1,0 +1,53 @@
+name: Radar de Reddit
+
+# Busca conversaciones donde Gate32 sería una respuesta útil y abre una issue
+# con el resumen. GitHub manda un correo con cada issue nueva, así que no hay
+# que entrar a mirar nada. No publica en Reddit: eso lo hace una persona.
+
+on:
+  schedule:
+    - cron: "0 7,19 * * *" # dos pasadas al día (UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  radar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Buscar hilos
+        env:
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+        run: node scripts/radar.mjs
+
+      - name: Abrir issue si hay algo
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -s .radar-digest.md ]; then
+            gh issue create \
+              --title "Radar: hilos para responder ($(date -u +%d/%m))" \
+              --body-file .radar-digest.md \
+              --label radar || true
+          else
+            echo "Nada que reportar."
+          fi
+
+      - name: Recordar los hilos ya vistos
+        run: |
+          if ! git diff --quiet .radar-seen.json; then
+            git config user.name "gate32-radar"
+            git config user.email "radar@users.noreply.github.com"
+            git add .radar-seen.json
+            git commit -m "chore: radar seen list"
+            git push
+          fi
