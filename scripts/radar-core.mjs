@@ -21,12 +21,31 @@ export const QUERIES = [
 ];
 
 /**
+ * Competidores. Un hilo donde alguien compara o se queja de uno de estos es
+ * más valioso que cualquier búsqueda genérica: la persona ya tiene el problema
+ * identificado y está eligiendo. Idea tomada del "competitor monitoring" de
+ * RedditMaster, que es de lo poco de ese producto que no depende de engañar a
+ * nadie.
+ */
+export const COMPETITORS = [
+  "otter.ai",
+  "happyscribe",
+  "notta ai",
+  "descript transcription",
+  "trint",
+  "transcrisper",
+];
+
+/**
  * Señales que hacen que un hilo merezca respuesta. El peso alto va a la
  * intención (alguien pide ayuda), no al tema: un hilo de noticias sobre
  * transcripción no necesita nuestra respuesta.
  */
 const SIGNALS = [
   { re: /\b(recommend|suggestion|looking for|any tool|what do you use|alternativa|recomend|qué uso|que uso)\b/i, weight: 30, tag: "pregunta" },
+  // Alguien comparando herramientas ya está decidiendo: es el momento de más
+  // valor de todo el embudo.
+  { re: /\b(vs\.?|versus|alternative to|better than|switch from|migrar de|mejor que)\b/i, weight: 28, tag: "comparando" },
   { re: /\b(privacy|private|confidential|sensitive|hipaa|gdpr|privacidad|confidencial)\b/i, weight: 25, tag: "privacidad" },
   { re: /\b(free|gratis|cheap|budget|paywall|limit|límite|limite)\b/i, weight: 20, tag: "coste" },
   { re: /\b(subtitle|caption|srt|vtt|subtítulo|subtitulo)\b/i, weight: 18, tag: "subtítulos" },
@@ -38,7 +57,25 @@ const SIGNALS = [
 const PENALTIES = [
   { re: /\b(hiring|for hire|job|freelance|se busca|contrato)\b/i, weight: -40, tag: "oferta de empleo" },
   { re: /\b(i built|i made|my app|check out my|he creado|mi herramienta)\b/i, weight: -25, tag: "promo ajena" },
+  // Quien se desahoga no busca una recomendación: responderle con una
+  // herramienta es justo lo que hace que la gente odie el marketing en Reddit.
+  { re: /\b(rant|venting|so frustrated|hate that|me da rabia|estoy harto)\b/i, weight: -30, tag: "desahogo" },
 ];
+
+/** Palabras que en las normas de un subreddit anuncian problemas al promocionar. */
+const PROMO_RULE = /(promot|advertis|self.?promo|spam|referral|marketing|publicidad|autopromo)/i;
+
+/**
+ * Detecta si un subreddit restringe la autopromoción, leyendo sus normas. El
+ * aviso de r/podcasting llegó después de publicar; esto lo pone antes.
+ */
+export function promoRisk(rules = []) {
+  const hits = rules
+    .filter((r) => PROMO_RULE.test(`${r.short_name ?? ""} ${r.description ?? ""}`))
+    .map((r) => (r.short_name ?? "").trim())
+    .filter(Boolean);
+  return hits.length ? hits.slice(0, 2) : null;
+}
 
 /**
  * Puntúa un hilo. Devuelve la puntuación y las etiquetas que la explican, para
@@ -164,8 +201,16 @@ export function formatDigest(items, now = new Date()) {
       `r/${it.subreddit} · ${it.num_comments ?? 0} respuestas · hace ${it.hours} h · puntuación ${it.score}`,
       `Señales: ${it.tags.join(", ") || "—"}`,
       template ? `Plantilla sugerida: **${template}** (ver X_CAMPAIGN.md)` : "Sin plantilla clara: responde a lo que pregunten y ya está.",
-      "",
+      // Un enlace por subreddit permite saber después qué comunidad convierte,
+      // que es lo único que dice dónde vale la pena volver.
+      `Si acabas enlazando: \`gate32.autoritasai.com/?ref=r_${it.subreddit}\``,
     );
+    if (it.promoRules) {
+      lines.push(
+        `> ⚠️ **r/${it.subreddit} restringe la autopromoción** (${it.promoRules.join(", ")}). Responde sin enlace, o léete las normas antes.`,
+      );
+    }
+    lines.push("");
     const body = (it.selftext ?? "").trim().replace(/\s+/g, " ");
     if (body) lines.push(`> ${body.slice(0, 280)}${body.length > 280 ? "…" : ""}`, "");
   }

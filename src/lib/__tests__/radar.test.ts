@@ -7,6 +7,7 @@ import {
   formatDigest,
   newComments,
   formatReplies,
+  promoRisk,
 } from "../../../scripts/radar-core.mjs";
 
 const hoursAgo = (h: number) => Date.now() / 1000 - h * 3600;
@@ -33,6 +34,27 @@ describe("radar · puntuación", () => {
     });
     expect(job.tags).toContain("oferta de empleo");
     expect(job.score).toBeLessThan(45);
+  });
+
+  it("premia a quien está comparando herramientas", () => {
+    const r = scoreThread({
+      title: "Otter vs Descript for interview transcription?",
+      selftext: "Trying to decide, the free tier limits are killing me",
+      num_comments: 4,
+      created_utc: hoursAgo(2),
+    });
+    expect(r.tags).toContain("comparando");
+    expect(r.score).toBeGreaterThan(60);
+  });
+
+  it("se aparta de quien solo se está desahogando", () => {
+    const rant = scoreThread({
+      title: "Rant: I hate that every transcription app wants my email",
+      selftext: "Just venting, so frustrated with all of them",
+      num_comments: 3,
+      created_utc: hoursAgo(1),
+    });
+    expect(rant.tags).toContain("desahogo");
   });
 
   it("penaliza los hilos ya enterrados en respuestas", () => {
@@ -83,6 +105,22 @@ describe("radar · selección", () => {
   it("descarta lo irrelevante y lo ya visto", () => {
     expect(rank(threads).map((t: { id: string }) => t.id)).toEqual(["a"]);
     expect(rank(threads, ["a"])).toHaveLength(0);
+  });
+
+  it("avisa de las normas de autopromoción antes de responder", () => {
+    const rules = [
+      { short_name: "Be civil", description: "Respect others" },
+      { short_name: "No self-promotion", description: "Promotional posts only in the weekly thread" },
+    ];
+    expect(promoRisk(rules)).toEqual(["No self-promotion"]);
+    expect(promoRisk([{ short_name: "Be civil", description: "Respect others" }])).toBeNull();
+  });
+
+  it("el resumen incluye el aviso de normas y un enlace medible", () => {
+    const flagged = rank(threads).map((t: object) => ({ ...t, promoRules: ["No self-promotion"] }));
+    const digest = formatDigest(flagged);
+    expect(digest).toContain("restringe la autopromoción");
+    expect(digest).toContain("?ref=r_podcasting");
   });
 
   it("sugiere plantilla según la señal dominante", () => {

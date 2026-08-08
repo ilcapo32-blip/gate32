@@ -11,11 +11,13 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import {
   QUERIES,
+  COMPETITORS,
   rank,
   formatDigest,
   newComments,
   formatReplies,
   formatMentions,
+  promoRisk,
 } from "./radar-core.mjs";
 
 const SEEN_FILE = new URL("../.radar-seen.json", import.meta.url);
@@ -125,15 +127,30 @@ const mentions = (await search(access, { q: "gate32", sort: "new" })).filter(
 );
 await new Promise((r) => setTimeout(r, 1200));
 
-// 3 · Hilos nuevos donde tendría sentido aparecer.
+// 3 · Hilos nuevos donde tendría sentido aparecer, incluyendo a quien está
+// comparando competidores: ahí la persona ya está eligiendo.
 const found = [];
-for (const query of QUERIES) {
+for (const query of [...QUERIES, ...COMPETITORS.map((q) => ({ q, sort: "new" }))]) {
   found.push(...(await search(access, query)));
   // El plan gratuito de Reddit permite 100 peticiones por minuto: sobra, pero
   // no hay razón para ir al límite.
   await new Promise((r) => setTimeout(r, 1200));
 }
 const items = rank(found, seen);
+
+// Normas de cada subreddit implicado: saber si restringe la autopromoción
+// **antes** de responder, no después de que te avise un moderador.
+const rulesCache = new Map();
+for (const item of items.slice(0, 10)) {
+  const sub = item.subreddit;
+  if (!sub) continue;
+  if (!rulesCache.has(sub)) {
+    const data = await get(access, `/r/${sub}/about/rules`);
+    rulesCache.set(sub, promoRisk(data?.rules ?? []));
+    await new Promise((r) => setTimeout(r, 1200));
+  }
+  item.promoRules = rulesCache.get(sub);
+}
 
 const digest = [formatReplies(replies), formatMentions(mentions), formatDigest(items)]
   .filter(Boolean)

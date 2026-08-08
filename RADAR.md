@@ -20,6 +20,11 @@ por cada issue, así que no hay que entrar a mirar nada.
 El orden importa: alguien que te está hablando y lleva horas esperando pesa más
 que un hilo ajeno donde podrías aparecer.
 
+Además, de cada hilo dice **si el subreddit restringe la autopromoción** —
+leyendo sus normas antes de que respondas, no después de que te avise un
+moderador— y sugiere un enlace con `?ref=r_<subreddit>` para saber luego qué
+comunidad convierte de verdad.
+
 **No hace: publicar.** No es una limitación técnica, es una decisión, y hay
 tres razones:
 
@@ -36,6 +41,37 @@ tres razones:
 
 Un agente que responde solo daría más volumen y menos resultado. El objetivo no
 es aparecer en muchos hilos: es que quien lea la respuesta se fíe.
+
+### Qué se ha tomado de RedditMaster y qué no (2026-08-08)
+
+Revisado el producto de referencia (59,99 $/mes por modo, 79,99 $ los dos).
+
+**Adoptado**, porque no depende de disimular ante nadie:
+
+- **Vigilancia de competidores.** Un hilo donde alguien compara Otter con
+  Descript vale más que cualquier búsqueda genérica: esa persona ya está
+  eligiendo.
+- **Clasificación por intención.** Distinguir a quien pregunta de quien se
+  desahoga. A quien solo despotrica no se le responde con una herramienta.
+- **Lectura de las normas del subreddit** antes de responder.
+- **Bucle de aprendizaje** vía `?ref=r_<subreddit>`: saber qué comunidad
+  convierte.
+
+**Descartado:** el modo Karma y la publicación autónoma. Su logro técnico
+central es **no ser detectado**: escritura con *jitter*, "el agente duerme por
+la noche para que el patrón nunca parezca un bot", retrocesos automáticos
+cuando Reddit marca el comportamiento. Cultivar karma con comentarios
+generados para desbloquear la publicación en subreddits moderados es
+exactamente lo que esos moderadores intentan impedir. Un producto cuya
+funcionalidad estrella es la evasión no es una referencia para nosotros, que
+vendemos verificabilidad.
+
+**Lo más valioso del análisis no era el agente, sino la premisa:** los hilos de
+Reddit alimentan lo que ChatGPT, Claude, Gemini y Perplexity recomiendan. Ya
+tenemos una visita llegada desde chatgpt.com. Eso significa que una respuesta
+honesta y útil en un hilo que posiciona **no se mide en clics de esa tarde**,
+sino en meses de recomendaciones. Sube el valor de responder bien y baja el de
+responder mucho.
 
 ## Puesta en marcha (unos minutos, 0 €)
 
