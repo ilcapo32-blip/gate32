@@ -6,8 +6,19 @@ por cada issue, así que no hay que entrar a mirar nada.
 
 ## Lo que hace y lo que no hará nunca
 
-**Hace:** buscar, filtrar, puntuar, recordar lo ya visto y sugerir qué
-plantilla de `X_CAMPAIGN.md` encaja con cada hilo.
+**Hace tres cosas, en este orden de importancia:**
+
+1. **Respuestas pendientes en tus propios hilos.** Descubre solo lo que has
+   publicado a partir del perfil público de la cuenta (`REDDIT_ACCOUNT`, por
+   defecto `HpartidaB`) y avisa de los comentarios nuevos. No hace falta
+   mantener ninguna lista ni entregar las credenciales de la cuenta: basta con
+   las de la aplicación. Ignora tus propios comentarios y los de AutoModerator.
+2. **Menciones de Gate32** en cualquier parte de Reddit.
+3. **Hilos nuevos** donde tendría sentido aparecer: buscar, filtrar, puntuar,
+   recordar lo ya visto y sugerir qué plantilla de `X_CAMPAIGN.md` encaja.
+
+El orden importa: alguien que te está hablando y lleva horas esperando pesa más
+que un hilo ajeno donde podrías aparecer.
 
 **No hace: publicar.** No es una limitación técnica, es una decisión, y hay
 tres razones:

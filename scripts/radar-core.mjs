@@ -98,6 +98,54 @@ export function rank(threads, seen = [], minScore = 45) {
     .sort((a, b) => b.score - a.score);
 }
 
+/**
+ * Comentarios nuevos en hilos propios. Es la mitad del problema que el radar
+ * de búsqueda no cubría: encontrar dónde empezar una conversación no sirve de
+ * nada si las que ya tienes abiertas se quedan sin contestar un día entero.
+ */
+export function newComments(comments, seen = [], selfAuthor = "") {
+  const seenSet = new Set(seen);
+  const author = selfAuthor.toLowerCase();
+  return comments
+    .filter((c) => c.id && !seenSet.has(c.id))
+    // Los comentarios propios vuelven en la misma consulta: no son respuestas.
+    .filter((c) => (c.author ?? "").toLowerCase() !== author)
+    .filter((c) => !(c.author ?? "").toLowerCase().includes("automoderator"))
+    .sort((a, b) => (b.created_utc ?? 0) - (a.created_utc ?? 0));
+}
+
+/** Resumen de respuestas pendientes, lo primero que hay que leer del correo. */
+export function formatReplies(items, now = new Date()) {
+  if (items.length === 0) return "";
+  const lines = [
+    `## ${items.length} respuesta(s) sin leer en tus hilos`,
+    "",
+    "Esto va primero: alguien te está hablando y lleva esperando.",
+    "",
+  ];
+  for (const c of items.slice(0, 15)) {
+    const hours = c.created_utc ? Math.round((now.getTime() / 1000 - c.created_utc) / 3600) : 0;
+    const body = (c.body ?? "").trim().replace(/\s+/g, " ");
+    lines.push(
+      `- **u/${c.author}** en [${c.threadTitle ?? "tu hilo"}](https://reddit.com${c.permalink}) · hace ${hours} h`,
+      `  > ${body.slice(0, 320)}${body.length > 320 ? "…" : ""}`,
+      "",
+    );
+  }
+  return lines.join("\n");
+}
+
+/** Menciones sueltas de la marca, aunque no sea un hilo donde responder. */
+export function formatMentions(items) {
+  if (items.length === 0) return "";
+  const lines = ["## Alguien ha mencionado Gate32", ""];
+  for (const m of items.slice(0, 10)) {
+    lines.push(`- [${m.title ?? m.body?.slice(0, 80)}](https://reddit.com${m.permalink}) · r/${m.subreddit}`);
+  }
+  lines.push("");
+  return lines.join("\n");
+}
+
 /** Resumen en Markdown, pensado para leerse en el móvil sin abrir nada más. */
 export function formatDigest(items, now = new Date()) {
   if (items.length === 0) {

@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 // @ts-expect-error módulo JS puro compartido con los scripts
-import { scoreThread, rank, pickTemplate, formatDigest } from "../../../scripts/radar-core.mjs";
+import {
+  scoreThread,
+  rank,
+  pickTemplate,
+  formatDigest,
+  newComments,
+  formatReplies,
+} from "../../../scripts/radar-core.mjs";
 
 const hoursAgo = (h: number) => Date.now() / 1000 - h * 3600;
 
@@ -89,5 +96,42 @@ describe("radar · selección", () => {
     expect(digest).toContain("https://reddit.com/r/podcasting/a");
     expect(digest).toContain("tus palabras");
     expect(formatDigest([])).toContain("Sin hilos");
+  });
+});
+
+describe("radar · respuestas en hilos propios", () => {
+  const comments = [
+    { id: "c1", author: "MindFlayYourLunch", body: "Probé con un vídeo de 12 min", created_utc: hoursAgo(2) },
+    { id: "c2", author: "HpartidaB", body: "Gracias por probarlo", created_utc: hoursAgo(1) },
+    { id: "c3", author: "AutoModerator", body: "Recuerda las normas del sub", created_utc: hoursAgo(3) },
+  ];
+
+  it("ignora los comentarios propios y los del moderador automático", () => {
+    const out = newComments(comments, [], "HpartidaB");
+    expect(out.map((c: { id: string }) => c.id)).toEqual(["c1"]);
+  });
+
+  it("no repite lo ya reportado", () => {
+    expect(newComments(comments, ["c1"], "HpartidaB")).toHaveLength(0);
+  });
+
+  it("las respuestas pendientes van antes que nada en el resumen", () => {
+    const out = newComments(comments, [], "HpartidaB").map((c: object) => ({
+      ...c,
+      permalink: "/r/podcasting/a/c1",
+      threadTitle: "Hice un transcriptor",
+    }));
+    const text = formatReplies(out);
+    expect(text).toContain("u/MindFlayYourLunch");
+    expect(text).toContain("lleva esperando");
+    expect(formatReplies([])).toBe("");
+  });
+
+  it("las respuestas encabezan el resumen completo", () => {
+    const replies = formatReplies([
+      { id: "c1", author: "MindFlayYourLunch", body: "hola", created_utc: hoursAgo(2), permalink: "/r/x/c1" },
+    ]);
+    const full = [replies, formatDigest([])].join("\n");
+    expect(full.indexOf("sin leer")).toBeLessThan(full.indexOf("Sin hilos"));
   });
 });
