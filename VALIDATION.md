@@ -121,9 +121,15 @@ Insuficiente para decidir segmento, pero el mecanismo funciona: pasó de 0
 respuestas en una semana a 2 en unas horas.
 
 **Canales:** Reddit 42 visitas (33 %), Google 8, ChatGPT 1 — primera visita
-llegada desde un LLM, que valida el trabajo de GEO. **X: 0 visitas
-atribuibles** pese al hilo publicado. Con una cuenta sin alcance, publicar no
-mueve nada; responder en hilos ajenos, sí.
+llegada desde un LLM, que valida el trabajo de GEO.
+
+**Sobre X, corrección:** en la primera lectura de esta tabla di por hecho que
+las 0 visitas desde X medían el fracaso de la campaña. No medían nada: la
+campaña aún no había empezado y los enlaces con `?ref=x` todavía no se habían
+publicado. **Un canal sin publicar no es un canal fracasado**, y confundir
+"ausencia de datos" con "dato negativo" es el mismo error de método que el del
+denominador, cometido dos veces en el mismo informe. X queda sin medir hasta
+que haya publicaciones con `?ref=x` circulando.
 
 **Señal cualitativa sobre diarización — con la evidencia real:**
 - **1 petición explícita** de un usuario (r/podcasting, 2026-08-07).
