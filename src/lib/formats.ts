@@ -127,6 +127,8 @@ export interface CueOptions {
   maxChars?: number;
   /** Líneas máximas por rótulo. */
   maxLines?: number;
+  /** Duración mínima de un rótulo en segundos; se alarga sobre el silencio. */
+  minDuration?: number;
 }
 
 /** Reparte un texto en líneas de como mucho `maxChars`, sin partir palabras. */
@@ -157,6 +159,7 @@ export function wrapLines(text: string, maxChars: number): string[] {
 export function toCues(segments: Segment[], opts: CueOptions = {}): Segment[] {
   const maxChars = opts.maxChars ?? 0;
   const maxLines = Math.max(1, opts.maxLines ?? 2);
+  const minDuration = opts.minDuration ?? 1;
   if (maxChars <= 0) return segments;
 
   const out: Segment[] = [];
@@ -182,6 +185,16 @@ export function toCues(segments: Segment[], opts: CueOptions = {}): Segment[] {
       out.push({ start: cursor, end, text: g.join("\n") });
       cursor = end;
     });
+  }
+
+  // Un rótulo que dura menos de un segundo no da tiempo a leerlo. Se alarga
+  // sobre el silencio que venga después, nunca sobre el rótulo siguiente: si
+  // el habla es continua, el final se queda donde estaba.
+  for (let i = 0; i < out.length; i++) {
+    const cue = out[i];
+    if (!cue) continue;
+    const limit = out[i + 1]?.start ?? cue.start + minDuration;
+    cue.end = Math.min(Math.max(cue.end, cue.start + minDuration), Math.max(limit, cue.end));
   }
   return out;
 }

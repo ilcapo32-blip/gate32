@@ -151,6 +151,30 @@ describe("formato de subtítulos", () => {
     expect(cues.map((c) => c.text.replace(/\n/g, " ")).join(" ")).toBe(long);
   });
 
+  it("alarga un rótulo demasiado corto sobre el silencio siguiente", () => {
+    const cues = toCues(
+      [
+        { start: 0, end: 0.4, text: "Sí." },
+        { start: 5, end: 7, text: "Y entonces se fue." },
+      ],
+      { maxChars: 40, minDuration: 1 },
+    );
+    expect(cues[0]?.end).toBe(1); // 0,4 s → 1 s, sobre el silencio
+    expect(cues[1]?.start).toBe(5); // el siguiente no se toca
+  });
+
+  it("no invade el rótulo siguiente cuando el habla es continua", () => {
+    const cues = toCues(
+      [
+        { start: 0, end: 0.4, text: "Sí." },
+        { start: 0.4, end: 3, text: "Y entonces se fue." },
+      ],
+      { maxChars: 40, minDuration: 1 },
+    );
+    expect(cues[0]?.end).toBe(0.4);
+    expect(cues[1]?.start).toBe(0.4);
+  });
+
   it("sin límite devuelve los segmentos intactos", () => {
     const input = [{ start: 0, end: 3, text: "Una frase larguísima sin cortar" }];
     expect(toCues(input, { maxChars: 0 })).toEqual(input);
