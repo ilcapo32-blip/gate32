@@ -99,6 +99,35 @@ existía, y compite en las mismas comunidades.
      estructurados, llms.txt, IndexNow, sitemap): compone con el tiempo.
    - **Velocidad de iteración.**
 
+### 1d · MOSS-Transcribe-Diarize (2026-08-08)
+
+Difundido por @gptzone_net el 21/07 (1,9 K visualizaciones, 10 me gusta, 6
+respuestas): modelo de 0,9 B que hace transcripción, diarización y marcas de
+tiempo **en una sola pasada**, 50+ idiomas, etiquetas `[S01]`/`[S02]`.
+
+**Qué es y qué no es:** se prueba en un *Space* de Hugging Face, es decir,
+**el audio se sube a un servidor ajeno**, y la propia difusión advierte de que
+"la demo pública puede tener cola". No compite con nosotros en el eje que nos
+define; compite en funcionalidad.
+
+**Lo que sí cambia:** la diarización se está convirtiendo en expectativa por
+defecto, no en extra. Tres señales acumuladas: una petición directa de usuario,
+dos competidores que la regalan y ahora un modelo que la integra en el propio
+flujo de transcripción.
+
+**Y cambia el coste, que era mi razón para aplazarla.** Existe
+[`diarization-js`](https://www.npmjs.com/package/diarization-js) (Apache-2.0,
+245 KB, **sin dependencias**, puerto ONNX del pipeline
+`pyannote/speaker-diarization-community-1`, pensado para navegador con
+WebGPU/WASM). Yo había supuesto un coste alto —modelo grande, complejidad— y
+puede que la vía ligera exista.
+
+**Reservas, porque el paquete es v0.1.0 de un solo mantenedor:** no está
+verificado desde este entorno (el proxy bloquea Hugging Face) ni el tamaño real
+de los pesos, ni si se descargan sin autenticación, ni la calidad en audio
+español con ruido. **Decisión: una prueba de concepto acotada antes de
+comprometer nada**, no una funcionalidad prometida.
+
 **Señal cualitativa más valiosa del hilo de r/asklinguistics** (12 votos, el
 comentario más apoyado): *"Si los datos tienen que ser precisos, alguien tiene
 que hacerlo a mano. Simplemente no hay una forma real de evitarlo."*
