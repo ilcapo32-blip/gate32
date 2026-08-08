@@ -146,6 +146,22 @@ try {
   check("SRT bien formado", (await dl("srt")).startsWith("1\n00:00:00,000 --> 00:00:02,500"));
   check("VTT con cabecera", (await dl("vtt")).startsWith("WEBVTT"));
 
+  // Subtítulos con longitud de línea: petición de un usuario de r/podcasting
+  // que necesitaba 32 caracteres y tenía que reformatear con Subtitle Edit.
+  await page.selectOption("#cue-chars", "32");
+  const srt32 = await dl("srt");
+  const cueLines = srt32
+    .split("\n")
+    .filter((l) => l && !/^\d+$/.test(l) && !l.includes("-->"));
+  check("SRT respeta 32 caracteres por línea", cueLines.every((l) => l.length <= 32));
+  check("SRT a 32 no pierde texto", srt32.includes("EDITADO"));
+  await page.selectOption("#cue-chars", "0");
+  check(
+    "sin reformatear conserva la frase entera",
+    (await dl("srt")).includes("Hola, esto es una prueba. EDITADO"),
+  );
+  await page.selectOption("#cue-chars", "42");
+
   await page.click("#pro-btn");
   check("CTA Pro despliega funcionalidades", await page.locator("#pro-features").isVisible());
   await page.click(".pro-feature");

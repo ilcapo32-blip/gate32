@@ -115,9 +115,80 @@ export function toMD(
   return lines.join("\n");
 }
 
-export function toSRT(segments: Segment[]): string {
+/**
+ * Opciones de formato de subtítulo. Whisper devuelve frases enteras, que como
+ * subtítulo son inservibles: los estándares limitan los caracteres por línea
+ * (32 en redes verticales, 37 en la BBC, 42 en Netflix) y a dos líneas por
+ * rótulo. Sin esto hay que pasar el SRT por Subtitle Edit a mano, que es
+ * exactamente lo que nos contó un usuario de r/podcasting.
+ */
+export interface CueOptions {
+  /** Caracteres máximos por línea. 0 o ausente = sin reformatear. */
+  maxChars?: number;
+  /** Líneas máximas por rótulo. */
+  maxLines?: number;
+}
+
+/** Reparte un texto en líneas de como mucho `maxChars`, sin partir palabras. */
+export function wrapLines(text: string, maxChars: number): string[] {
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let line = "";
+  for (const w of words) {
+    if (!line) {
+      line = w;
+    } else if (line.length + 1 + w.length <= maxChars) {
+      line += ` ${w}`;
+    } else {
+      lines.push(line);
+      line = w;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+/**
+ * Convierte segmentos de transcripción en rótulos de subtítulo. Cuando un
+ * segmento no cabe, se parte en varios rótulos y su duración se reparte en
+ * proporción al texto de cada uno, de modo que el último termina exactamente
+ * donde terminaba el segmento original.
+ */
+export function toCues(segments: Segment[], opts: CueOptions = {}): Segment[] {
+  const maxChars = opts.maxChars ?? 0;
+  const maxLines = Math.max(1, opts.maxLines ?? 2);
+  if (maxChars <= 0) return segments;
+
+  const out: Segment[] = [];
+  for (const s of segments) {
+    const text = s.text.trim();
+    if (!text) continue;
+    const lines = wrapLines(text, maxChars);
+    const groups: string[][] = [];
+    for (let i = 0; i < lines.length; i += maxLines) {
+      groups.push(lines.slice(i, i + maxLines));
+    }
+    if (groups.length <= 1) {
+      out.push({ start: s.start, end: s.end, text: lines.join("\n") });
+      continue;
+    }
+    const weights = groups.map((g) => g.join(" ").length);
+    const total = weights.reduce((a, b) => a + b, 0) || 1;
+    const duration = Math.max(0, s.end - s.start);
+    let cursor = s.start;
+    groups.forEach((g, i) => {
+      const last = i === groups.length - 1;
+      const end = last ? s.end : cursor + (duration * (weights[i] ?? 0)) / total;
+      out.push({ start: cursor, end, text: g.join("\n") });
+      cursor = end;
+    });
+  }
+  return out;
+}
+
+export function toSRT(segments: Segment[], opts: CueOptions = {}): string {
   return (
-    segments
+    toCues(segments, opts)
       .map(
         (s, i) =>
           `${i + 1}\n${timecode(s.start, ",")} --> ${timecode(s.end, ",")}\n${s.text}`,
@@ -126,10 +197,10 @@ export function toSRT(segments: Segment[]): string {
   );
 }
 
-export function toVTT(segments: Segment[]): string {
+export function toVTT(segments: Segment[], opts: CueOptions = {}): string {
   return (
     "WEBVTT\n\n" +
-    segments
+    toCues(segments, opts)
       .map(
         (s) => `${timecode(s.start, ".")} --> ${timecode(s.end, ".")}\n${s.text}`,
       )

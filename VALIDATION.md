@@ -89,6 +89,28 @@ construirla no puede apoyarse en demanda observada — solo en el argumento de
 que nuestros segmentos objetivo (entrevistas, podcasts) generan audio
 multi-hablante.
 
+### Segunda petición real de usuario (2026-08-08, r/podcasting)
+
+Un usuario probó la herramienta y midió: **vídeo de 12 min en 2:15** con una
+NVIDIA 3050 en Chrome, y **más de una hora estimada en Firefox**, donde no
+había WebGPU y cae a WASM. Dos conclusiones, las dos accionadas el mismo día:
+
+1. **Subtítulos con longitud de línea.** Pedía 32 caracteres por línea y tenía
+   que pasar nuestro SRT por Subtitle Edit para reformatearlo. Es una petición
+   concreta, barata (función pura, sin servidor) y del segmento que más tráfico
+   nos trae. **Construida**: selector de 32/37/42 caracteres, máximo dos
+   líneas, con el tiempo repartido en proporción al texto.
+2. **La caída a WASM es una mala primera experiencia, no un matiz.** 2:15 vs.
+   más de una hora es la diferencia entre usar el producto y abandonarlo.
+   **Construido**: aviso previo cuando el navegador no expone WebGPU, con la
+   comparación de tiempos y cómo activarlo en Firefox. Evento `no_webgpu` para
+   medir qué proporción del tráfico llega en esas condiciones.
+
+Contraste con diarización: aquella lleva **una** petición y un coste alto
+(modelo adicional, pesos, complejidad). Esta llevaba **una** petición y coste
+de una tarde. El criterio no es cuántas veces se pide, es la razón entre señal
+y coste — por eso esta se construye ya y la otra sigue esperando volumen.
+
 ### Por qué no sabemos para qué se usa (2026-08-07, corregido)
 
 La encuesta de caso de uso existía desde el principio, pero solo se mostraba
@@ -118,6 +140,7 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 |---|---|---|
 | (page view) | visita | automático de Vercel |
 | `wait_survey_shown` | la encuesta se muestra durante la descarga | — |
+| `no_webgpu` | el navegador no expone WebGPU (irá en WASM) | — |
 | `use_case_wait_*` / `use_case_export_*` | respuesta a la encuesta | `kind`, `when` |
 | `transcribe_start` | usuario lanza una transcripción | `model`, `device`, `source` (file/mic), `minutes` |
 | `model_ready` | pesos cargados | `model`, `seconds`, `cached` |

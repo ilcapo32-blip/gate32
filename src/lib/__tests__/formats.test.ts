@@ -6,9 +6,11 @@ import {
   mergeWindows,
   timecode,
   toMD,
+  toCues,
   toSRT,
   toTXT,
   toVTT,
+  wrapLines,
   ATTRIBUTION_LINE,
 } from "../formats";
 import type { RawChunk, Segment } from "../types";
@@ -110,6 +112,66 @@ describe("exports", () => {
     const md = toMD(segs, "entrevista.mp3", false);
     expect(md).toContain("# entrevista.mp3");
     expect(md).toContain("**[00:00]** Hola mundo.");
+  });
+});
+
+describe("formato de subtítulos", () => {
+  it("no parte palabras al ajustar la línea", () => {
+    const lines = wrapLines("Esto es una frase razonablemente larga de prueba", 20);
+    expect(lines.every((l) => l.length <= 20)).toBe(true);
+    expect(lines.join(" ")).toBe("Esto es una frase razonablemente larga de prueba");
+  });
+
+  it("deja sola una palabra más larga que el límite en vez de cortarla", () => {
+    expect(wrapLines("hola electroencefalografista adiós", 10)).toEqual([
+      "hola",
+      "electroencefalografista",
+      "adiós",
+    ]);
+  });
+
+  it("agrupa en rótulos de dos líneas y reparte el tiempo", () => {
+    const long = "uno dos tres cuatro cinco seis siete ocho nueve diez once doce";
+    const cues = toCues([{ start: 0, end: 12, text: long }], { maxChars: 20, maxLines: 2 });
+    expect(cues.length).toBeGreaterThan(1);
+    // el último rótulo termina donde terminaba el segmento original
+    expect(cues[cues.length - 1]?.end).toBe(12);
+    // los rótulos son contiguos y crecientes
+    for (let i = 1; i < cues.length; i++) {
+      expect(cues[i]?.start).toBe(cues[i - 1]?.end);
+      expect(cues[i]?.end).toBeGreaterThan(cues[i]?.start ?? 0);
+    }
+    // ninguna línea excede el límite y ninguna cue pasa de dos líneas
+    for (const c of cues) {
+      const ls = c.text.split("\n");
+      expect(ls.length).toBeLessThanOrEqual(2);
+      expect(ls.every((l) => l.length <= 20)).toBe(true);
+    }
+    // el texto completo se conserva
+    expect(cues.map((c) => c.text.replace(/\n/g, " ")).join(" ")).toBe(long);
+  });
+
+  it("sin límite devuelve los segmentos intactos", () => {
+    const input = [{ start: 0, end: 3, text: "Una frase larguísima sin cortar" }];
+    expect(toCues(input, { maxChars: 0 })).toEqual(input);
+  });
+
+  it("SRT respeta la longitud de línea pedida", () => {
+    const srt = toSRT([{ start: 0, end: 4, text: "uno dos tres cuatro cinco seis" }], {
+      maxChars: 12,
+      maxLines: 2,
+    });
+    const textLines = srt
+      .split("\n")
+      .filter((l) => l && !/^\d+$/.test(l) && !l.includes("-->"));
+    expect(textLines.every((l) => l.length <= 12)).toBe(true);
+  });
+
+  it("VTT mantiene la cabecera al reformatear", () => {
+    const vtt = toVTT([{ start: 0, end: 4, text: "uno dos tres cuatro cinco seis" }], {
+      maxChars: 12,
+    });
+    expect(vtt.startsWith("WEBVTT\n\n")).toBe(true);
   });
 });
 

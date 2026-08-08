@@ -57,6 +57,8 @@ const dict = {
     attribution: "Transcrito con Gate32 · https://gate32.autoritasai.com",
     mobile_note:
       "📱 En el móvil funciona, pero va más lento que en un ordenador. Para probarlo ya, graba 30 segundos con el micrófono; para clases o entrevistas largas, mejor desde el portátil.",
+    gpu_note:
+      "⚠️ Este navegador no tiene WebGPU, así que la IA correrá en modo compatible: mucho más lento. Un vídeo de 12 minutos puede pasar de una hora, cuando en Chrome o Edge recientes tarda un par de minutos. En Firefox se puede activar en about:config con dom.webgpu.enabled.",
     json_imported: "abierto desde un JSON de Gate32 (sin audio)",
     json_invalid: "Ese JSON no parece una transcripción de Gate32.",
     json_invalid_hint: "Debe ser un archivo exportado con el botón JSON de Gate32.",
@@ -108,6 +110,8 @@ const dict = {
     attribution: "Transcribed with Gate32 · https://gate32.autoritasai.com",
     mobile_note:
       "📱 It works on phones, but slower than on a computer. For a quick try, record 30 seconds with the mic; for long lectures or interviews, use a laptop.",
+    gpu_note:
+      "⚠️ This browser has no WebGPU, so the AI runs in compatibility mode: much slower. A 12-minute video can take over an hour, versus a couple of minutes on recent Chrome or Edge. In Firefox you can enable it in about:config with dom.webgpu.enabled.",
     json_imported: "opened from a Gate32 JSON file (no audio)",
     json_invalid: "That JSON doesn't look like a Gate32 transcript.",
     json_invalid_hint: "It should be a file exported with Gate32's JSON button.",

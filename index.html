@@ -166,6 +166,7 @@
         </div>
 
         <p id="mobile-note" class="mobile-note" hidden></p>
+        <p id="gpu-note" class="mobile-note" hidden></p>
 
         <!-- estado: cargando / transcribiendo / error -->
         <div id="status" class="status" role="status" aria-live="polite" hidden>
@@ -230,6 +231,15 @@
         <label class="attribution">
           <input type="checkbox" id="attribution" checked />
           <span>Incluir "Transcrito con Gate32" en TXT/MD</span>
+        </label>
+        <label class="cue-len">
+          <span>Línea de subtítulo</span>
+          <select id="cue-chars">
+            <option value="32">32 caracteres (vertical, TikTok/Reels)</option>
+            <option value="37">37 caracteres (BBC)</option>
+            <option value="42" selected>42 caracteres (Netflix, estándar)</option>
+            <option value="0">Sin reformatear (frase entera)</option>
+          </select>
         </label>
       </div>
 

@@ -13,6 +13,7 @@ import {
   toJSON,
   clock,
   exportName,
+  type CueOptions,
 } from "./lib/formats";
 import { MODELS, type ModelQuality, type Segment } from "./lib/types";
 import { t, lang, locale } from "./lib/i18n";
@@ -52,6 +53,7 @@ const resultMeta = $("#result-meta");
 const player = $<HTMLAudioElement>("#player");
 const segmentsBox = $("#segments");
 const attributionCheck = $<HTMLInputElement>("#attribution");
+const cueCharsSelect = document.querySelector<HTMLSelectElement>("#cue-chars");
 const newBtn = $<HTMLButtonElement>("#new-btn");
 const proBtn = $<HTMLButtonElement>("#pro-btn");
 const proThanks = $("#pro-thanks");
@@ -64,10 +66,19 @@ fileInput.accept = ACCEPT;
 
 // Sin WebGPU la inferencia cae a WASM (lenta): el modelo pequeño es mejor
 // primera experiencia en esos equipos, y el modelo grande deja de ofrecerse
-// porque sería inviable.
-if (!("gpu" in navigator)) {
+// porque sería inviable. El aviso va por delante porque la diferencia no es
+// de matiz: un usuario de r/podcasting midió 2:15 en Chrome y más de una hora
+// en Firefox con el mismo vídeo de 12 minutos.
+const hasWebGPU = "gpu" in navigator;
+if (!hasWebGPU) {
   modelSelect.value = "fast";
   modelSelect.querySelector('option[value="max"]')?.remove();
+  const gpuNote = document.querySelector<HTMLElement>("#gpu-note");
+  if (gpuNote) {
+    gpuNote.textContent = t("gpu_note");
+    gpuNote.hidden = false;
+  }
+  track("no_webgpu");
 }
 
 // El tamaño anunciado en el explicador sigue al modelo elegido, para que la
@@ -501,6 +512,16 @@ function download(content: string, filename: string, mime: string): void {
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }
 
+/**
+ * Longitud de línea para SRT/VTT. Whisper devuelve frases enteras y eso, como
+ * subtítulo, obliga a reformatear a mano en Subtitle Edit; el desplegable trae
+ * los tres estándares habituales y por defecto el de Netflix (42/2 líneas).
+ */
+function cueOptions(): CueOptions {
+  const value = Number(cueCharsSelect?.value ?? 42);
+  return { maxChars: Number.isFinite(value) ? value : 42, maxLines: 2 };
+}
+
 document.querySelectorAll<HTMLButtonElement>("[data-export]").forEach((btn) => {
   btn.addEventListener("click", async () => {
     if (!current || current.segments.length === 0) return;
@@ -526,10 +547,10 @@ document.querySelectorAll<HTMLButtonElement>("[data-export]").forEach((btn) => {
         download(toMD(segs, title, attribution, t("attribution")), exportName(title, "md"), "text/markdown;charset=utf-8");
         break;
       case "srt":
-        download(toSRT(segs), exportName(title, "srt"), "application/x-subrip;charset=utf-8");
+        download(toSRT(segs, cueOptions()), exportName(title, "srt"), "application/x-subrip;charset=utf-8");
         break;
       case "vtt":
-        download(toVTT(segs), exportName(title, "vtt"), "text/vtt;charset=utf-8");
+        download(toVTT(segs, cueOptions()), exportName(title, "vtt"), "text/vtt;charset=utf-8");
         break;
       case "json":
         download(toJSON(segs), exportName(title, "json"), "application/json;charset=utf-8");

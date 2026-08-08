@@ -161,6 +161,7 @@
         </div>
 
         <p id="mobile-note" class="mobile-note" hidden></p>
+        <p id="gpu-note" class="mobile-note" hidden></p>
 
         <div id="status" class="status" role="status" aria-live="polite" hidden>
           <div class="status-row">
@@ -224,6 +225,15 @@
         <label class="attribution">
           <input type="checkbox" id="attribution" checked />
           <span>Include "Transcribed with Gate32" in TXT/MD</span>
+        </label>
+        <label class="cue-len">
+          <span>Subtitle line length</span>
+          <select id="cue-chars">
+            <option value="32">32 characters (vertical, TikTok/Reels)</option>
+            <option value="37">37 characters (BBC)</option>
+            <option value="42" selected>42 characters (Netflix, standard)</option>
+            <option value="0">Don't reflow (whole sentence)</option>
+          </select>
         </label>
       </div>
 

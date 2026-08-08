@@ -499,6 +499,30 @@ button { font-family: inherit; }
   margin-left: auto;
 }
 
+/* Longitud de línea del subtítulo: control secundario, solo relevante para
+   quien exporta SRT/VTT, así que no compite con los botones de export. */
+.cue-len {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.cue-len select {
+  font: inherit;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.2rem 0.35rem;
+  max-width: 100%;
+}
+
+@media (max-width: 720px) {
+  .attribution { margin-left: 0; }
+}
+
 .edit-hint {
   font-size: 0.8rem;
   color: var(--muted);
