@@ -166,6 +166,9 @@ function setProgress(pct: number | null): void {
 // único momento en el que el usuario ya está comprometido pero no puede hacer
 // nada. Aprovecharlo para preguntar no cuesta conversión, siempre que la barra
 // de progreso siga mandando: la pregunta va debajo y es opcional.
+// Fase actual del proceso, para atribuir las cancelaciones.
+let phase: "idle" | "download" | "inference" = "idle";
+
 let waitSurveyShown = false;
 function showWaitSurvey(bytesDone: number): void {
   // Solo con descarga real en curso; una carga desde caché no llega aquí.
@@ -177,6 +180,7 @@ function showWaitSurvey(bytesDone: number): void {
 
 function resetToIdle(): void {
   busy = false;
+  phase = "idle";
   hide(waitSurvey);
   hide(statusBox);
   hide(errorBox);
@@ -262,8 +266,12 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
   } catch (err) {
     // El nombre del evento lleva la causa: GoatCounter (plan gratuito) solo
     // registra el nombre, no las propiedades. Sin esto los fallos son opacos.
-    track("transcribe_error", { stage: "decode", kind: "decode" });
+    // La extensión va incluida porque "no se pudo decodificar" sin saber de qué
+    // formato no permite arreglar nada.
+    const ext = (/\.([a-z0-9]{1,5})$/i.exec(name)?.[1] ?? "sin-extension").toLowerCase();
+    track("transcribe_error", { stage: "decode", kind: "decode", ext });
     track("transcribe_error_decode");
+    track(`transcribe_error_decode_${ext}`);
     showError(err instanceof Error ? err.message : t("unsupported"), t("decode_hint"));
     return;
   }
@@ -321,6 +329,7 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
   const loadFiles = new Map<string, number>();
   const tLoad0 = performance.now();
 
+  phase = "download";
   statusText.textContent = t("preparing");
   transcriber.load(quality, {
     onDevice(device) {
@@ -351,6 +360,7 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
     },
     onReady(cached, seconds) {
       hide(waitSurvey);
+      phase = "inference";
       track("model_ready", {
         model: quality,
         seconds: Math.round(seconds),
@@ -706,8 +716,10 @@ recordBtn.addEventListener("click", async () => {
 cancelBtn.addEventListener("click", () => {
   transcriber.reset();
   // Cancelar no es un error: mezclarlos impedía distinguir un fallo real de
-  // alguien que se cansó de esperar.
+  // alguien que se cansó de esperar. La fase va en el nombre porque cansarse
+  // de la descarga y cansarse de la transcripción piden arreglos distintos.
   track("transcribe_cancel");
+  track(`transcribe_cancel_${phase}`);
   resetToIdle();
 });
 $("#error-dismiss").addEventListener("click", () => hide(errorBox));

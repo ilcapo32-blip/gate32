@@ -49,6 +49,13 @@ abandonar la tesis por un artefacto de medición, no por falta de demanda.
 
 Lo que sí es comparable entre fuentes: la **tendencia** y los **referrers**.
 
+**Segunda trampa, y esta la pisé yo (2026-08-08):** en GoatCounter los eventos
+se almacenan como rutas, así que el número grande de "Totals" **suma páginas
+vistas y eventos**. Dividir transcripciones entre ese total infla el
+denominador con nuestros propios eventos y hunde la activación: así reporté un
+5 % que en realidad era un 8 %. El denominador correcto es la **suma de las
+filas de página** (`/` + `/en` + landings), nunca el total.
+
 ### Verificación del cableado
 
 `scripts/e2e.mjs` intercepta el script de GoatCounter con un doble y comprueba
@@ -76,6 +83,47 @@ embudo. Cualquier medición posterior se compara contra este punto cero.
 **Aviso de interpretación:** parte de esas transcripciones son pruebas del
 propietario. El dato limpio llegará cuando haya volumen suficiente para que su
 propio uso sea despreciable.
+
+**Corrección (2026-08-08):** la activación de esa tabla estaba mal calculada.
+Las "58 visitas" eran el total de GoatCounter, que incluye los eventos; las
+páginas vistas reales eran 36. La activación de aquel día fue **8,3 %**
+(3 ÷ 36), no el 5 % que reporté.
+
+### Segunda medición (2026-08-08, 17:39) · ventana 01–08/08
+
+Denominador correcto: 66 páginas vistas (54 en `/en`, 12 en `/`). El total de
+127 que muestra GoatCounter incluye 61 eventos y no debe usarse.
+
+| Paso | Valor | Lectura |
+|---|---|---|
+| Páginas vistas | 66 | 82 % en inglés: el tráfico es anglosajón (US 27 %, CA 20 %) |
+| Archivos soltados | 12 | `transcribe_start` (10) + fallos de decodificación (2) |
+| **Intento** (soltados/visitas) | **18 %** | Antes 11 %. El explicador de primera ejecución parece estar funcionando |
+| Fallo de decodificación | 2 | 17 % de los archivos ni siquiera se pudieron leer |
+| Modelo listo | 9 | 3 de ellos **desde caché**: hay reutilización |
+| Cancelaciones | 3 | 30 % de quien empieza se cansa y para |
+| Otros errores | 1 | |
+| `transcribe_done` | 6 | |
+| **Finalización** (done/start) | **60 %** | Antes 75 %; baja al entrar hardware más variado |
+| **Activación** (done/visitas) | **9,1 %** | Umbral de continuar ≥ 10 %: estamos justo debajo |
+| `export` | 3 | La mitad de quien termina se lleva el archivo |
+| Dispositivo de los éxitos | **6/6 WebGPU** | Sigue sin haber ni un solo éxito en WASM |
+
+**Dónde se pierde la gente ahora:** ya no en la portada, sino **después de
+soltar el archivo**. De 12 intentos, 6 no llegan a texto: 2 por formato
+ilegible, 3 por cansancio, 1 por error. Ese es el cuello, y por eso los eventos
+pasan a llevar la causa dentro del nombre (`transcribe_error_decode_<ext>`,
+`transcribe_cancel_download` vs `_inference`).
+
+**Encuesta de espera:** 6 apariciones, 2 respuestas → **33 % de respuesta**, el
+primer día. Respuestas: 1 "clase", 1 "otro" (más 1 "otro" del formato antiguo).
+Insuficiente para decidir segmento, pero el mecanismo funciona: pasó de 0
+respuestas en una semana a 2 en unas horas.
+
+**Canales:** Reddit 42 visitas (33 %), Google 8, ChatGPT 1 — primera visita
+llegada desde un LLM, que valida el trabajo de GEO. **X: 0 visitas
+atribuibles** pese al hilo publicado. Con una cuenta sin alcance, publicar no
+mueve nada; responder en hilos ajenos, sí.
 
 **Señal cualitativa sobre diarización — con la evidencia real:**
 - **1 petición explícita** de un usuario (r/podcasting, 2026-08-07).
