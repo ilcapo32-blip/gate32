@@ -151,6 +151,31 @@ export function wrapLines(text: string, maxChars: number): string[] {
 }
 
 /**
+ * Reequilibra un rótulo de dos líneas. El reparto voraz deja cosas como
+ * "…treinta y dos caracteres justos" arriba y una palabra suelta debajo; el
+ * subtitulado profesional busca dos líneas de longitud parecida, que se leen
+ * de un golpe de vista. Solo aplica cuando el texto **no** cabe en una línea.
+ */
+export function balanceTwoLines(text: string, maxChars: number): string[] {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length < 2 || text.length <= maxChars) return [text];
+
+  let best: [string, string] | null = null;
+  let bestDiff = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const top = words.slice(0, i).join(" ");
+    const bottom = words.slice(i).join(" ");
+    if (top.length > maxChars || bottom.length > maxChars) continue;
+    const diff = Math.abs(top.length - bottom.length);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      best = [top, bottom];
+    }
+  }
+  return best ? [best[0], best[1]] : wrapLines(text, maxChars);
+}
+
+/**
  * Convierte segmentos de transcripción en rótulos de subtítulo. Cuando un
  * segmento no cabe, se parte en varios rótulos y su duración se reparte en
  * proporción al texto de cada uno, de modo que el último termina exactamente
@@ -172,7 +197,10 @@ export function toCues(segments: Segment[], opts: CueOptions = {}): Segment[] {
       groups.push(lines.slice(i, i + maxLines));
     }
     if (groups.length <= 1) {
-      out.push({ start: s.start, end: s.end, text: lines.join("\n") });
+      // Cabe en un solo rótulo: se reparte equilibrado en vez de dejar una
+      // línea llena y otra con una palabra.
+      const balanced = maxLines >= 2 ? balanceTwoLines(text, maxChars) : lines;
+      out.push({ start: s.start, end: s.end, text: balanced.join("\n") });
       continue;
     }
     const weights = groups.map((g) => g.join(" ").length);
@@ -182,7 +210,8 @@ export function toCues(segments: Segment[], opts: CueOptions = {}): Segment[] {
     groups.forEach((g, i) => {
       const last = i === groups.length - 1;
       const end = last ? s.end : cursor + (duration * (weights[i] ?? 0)) / total;
-      out.push({ start: cursor, end, text: g.join("\n") });
+      const balanced = maxLines >= 2 ? balanceTwoLines(g.join(" "), maxChars) : g;
+      out.push({ start: cursor, end, text: balanced.join("\n") });
       cursor = end;
     });
   }

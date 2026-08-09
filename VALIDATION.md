@@ -186,6 +186,46 @@ rompieran la descarga, `transcribe_error_load` sube. Revertir es un commit.
 **Qué mediría el éxito:** aparición de `transcribe_done_wasm`, que hoy es 0
 (los 3 éxitos han sido todos WebGPU).
 
+### Tercera medición (2026-08-10) · el umbral de continuar, superado
+
+Denominador correcto: 81 páginas vistas (68 en `/en`, 13 en `/`). El total de
+202 incluye eventos.
+
+| Paso | Valor | Antes | Lectura |
+|---|---|---|---|
+| Páginas vistas | 81 | 66 | |
+| Archivos soltados | 20 | 12 | `transcribe_start` 15 + 5 fallos de lectura |
+| **Intento** | **24,7 %** | 18 % | Sigue subiendo desde el explicador de primera ejecución |
+| **Finalización** (done/start) | **67 %** | 60 % | |
+| **Activación** (done/visitas) | **12,3 %** | 9,1 % | ✅ **Por encima del umbral de continuar (≥ 10 %)** |
+| `export` | 5 | 3 | La mitad de quien termina se lleva el archivo |
+| `return_visit` | 2 | 0 | Primeros usuarios que vuelven |
+
+**Tres resultados de experimentos abiertos, todos verificados:**
+
+1. **`transcribe_done_wasm` = 2.** Primeras transcripciones completadas **sin
+   WebGPU**, después de una semana con cero. Es la señal que se esperaba de los
+   hilos de WebAssembly.
+2. **`coi_off` = 3** sobre 81 visitas: las cabeceras COOP/COEP llegan en el
+   96 % de los casos y **no han roto la descarga del modelo** (13
+   `model_ready`). El riesgo asumido al desplegarlas sin poder probarlas se
+   resuelve a favor.
+3. **`storage_not_persisted` = 5** de 15 intentos: un tercio de los navegadores
+   no garantiza conservar el modelo. Esos usuarios se enfrentarán a otra
+   descarga completa al volver.
+
+**El cuello ha vuelto a moverse: ahora es la lectura del archivo.** 5 de 20
+archivos (25 %) no se pudieron ni abrir, y **2 de ellos eran MP3**, el formato
+más estándar que existe. Con audiencia de r/podcasting la hipótesis es el
+tamaño, no el formato: `decodeAudioData` carga el archivo entero descomprimido
+en memoria y un episodio de una hora pasa del gigabyte.
+
+Acciones tomadas: el contexto de audio se crea ya a 16 kHz, lo que reduce la
+memoria del audio decodificado casi tres veces; se reintenta con el ritmo
+nativo si el navegador rechaza el forzado; y el evento separa
+`transcribe_error_decode_grande` de `_formato` para confirmar o descartar la
+hipótesis en la próxima medición.
+
 ### Por qué no sabemos para qué se usa (2026-08-07, corregido)
 
 La encuesta de caso de uso existía desde el principio, pero solo se mostraba

@@ -3,7 +3,7 @@
 // i18n (el idioma lo fija el atributo lang de cada página).
 
 import "./styles.css";
-import { decodeToMono16k, ACCEPT, LONG_FILE_WARN_MIN } from "./lib/audio";
+import { decodeToMono16k, DecodeError, ACCEPT, LONG_FILE_WARN_MIN } from "./lib/audio";
 import { Transcriber } from "./lib/transcriber";
 import {
   toTXT,
@@ -269,10 +269,17 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
     // La extensión va incluida porque "no se pudo decodificar" sin saber de qué
     // formato no permite arreglar nada.
     const ext = (/\.([a-z0-9]{1,5})$/i.exec(name)?.[1] ?? "sin-extension").toLowerCase();
-    track("transcribe_error", { stage: "decode", kind: "decode", ext });
+    // El tamaño va en el nombre del evento porque separa las dos causas: un
+    // formato que el navegador no entiende y un archivo que no le cabe.
+    const big = err instanceof DecodeError && err.big;
+    track("transcribe_error", { stage: "decode", kind: "decode", ext, big });
     track("transcribe_error_decode");
     track(`transcribe_error_decode_${ext}`);
-    showError(err instanceof Error ? err.message : t("unsupported"), t("decode_hint"));
+    track(big ? "transcribe_error_decode_grande" : "transcribe_error_decode_formato");
+    showError(
+      err instanceof Error ? err.message : t("unsupported"),
+      big ? t("decode_hint_big") : t("decode_hint"),
+    );
     return;
   }
 

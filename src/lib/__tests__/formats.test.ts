@@ -6,6 +6,7 @@ import {
   mergeWindows,
   timecode,
   toMD,
+  balanceTwoLines,
   toCues,
   toSRT,
   toTXT,
@@ -149,6 +150,29 @@ describe("formato de subtítulos", () => {
     }
     // el texto completo se conserva
     expect(cues.map((c) => c.text.replace(/\n/g, " ")).join(" ")).toBe(long);
+  });
+
+  it("equilibra las dos líneas en vez de dejar una palabra suelta", () => {
+    // Voraz daría ["Esto es una frase de prueba", "larga"]; equilibrado parte
+    // por el medio.
+    const [top, bottom] = balanceTwoLines("Esto es una frase de prueba larga", 28);
+    expect(top && bottom).toBeTruthy();
+    expect(Math.abs((top?.length ?? 0) - (bottom?.length ?? 0))).toBeLessThanOrEqual(6);
+    expect(`${top} ${bottom}`).toBe("Esto es una frase de prueba larga");
+  });
+
+  it("no parte lo que cabe en una sola línea", () => {
+    expect(balanceTwoLines("Frase corta", 32)).toEqual(["Frase corta"]);
+  });
+
+  it("el rótulo equilibrado respeta el límite de caracteres", () => {
+    const cues = toCues([{ start: 0, end: 3, text: "uno dos tres cuatro cinco seis siete" }], {
+      maxChars: 20,
+      maxLines: 2,
+    });
+    for (const c of cues) {
+      for (const line of c.text.split("\n")) expect(line.length).toBeLessThanOrEqual(20);
+    }
   });
 
   it("alarga un rótulo demasiado corto sobre el silencio siguiente", () => {

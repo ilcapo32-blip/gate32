@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-// @ts-expect-error módulo JS puro compartido con los scripts
+// Núcleo JS puro compartido con los scripts (tipado en radar-core.d.ts).
 import {
   scoreThread,
   rank,
@@ -103,7 +103,7 @@ describe("radar · selección", () => {
   ];
 
   it("descarta lo irrelevante y lo ya visto", () => {
-    expect(rank(threads).map((t: { id: string }) => t.id)).toEqual(["a"]);
+    expect(rank(threads).map((t) => t.id)).toEqual(["a"]);
     expect(rank(threads, ["a"])).toHaveLength(0);
   });
 
@@ -117,7 +117,7 @@ describe("radar · selección", () => {
   });
 
   it("el resumen incluye el aviso de normas y un enlace medible", () => {
-    const flagged = rank(threads).map((t: object) => ({ ...t, promoRules: ["No self-promotion"] }));
+    const flagged = rank(threads).map((t) => ({ ...t, promoRules: ["No self-promotion"] }));
     const digest = formatDigest(flagged);
     expect(digest).toContain("restringe la autopromoción");
     expect(digest).toContain("?ref=r_podcasting");
@@ -146,7 +146,7 @@ describe("radar · respuestas en hilos propios", () => {
 
   it("ignora los comentarios propios y los del moderador automático", () => {
     const out = newComments(comments, [], "HpartidaB");
-    expect(out.map((c: { id: string }) => c.id)).toEqual(["c1"]);
+    expect(out.map((c) => c.id)).toEqual(["c1"]);
   });
 
   it("no repite lo ya reportado", () => {
@@ -154,7 +154,7 @@ describe("radar · respuestas en hilos propios", () => {
   });
 
   it("las respuestas pendientes van antes que nada en el resumen", () => {
-    const out = newComments(comments, [], "HpartidaB").map((c: object) => ({
+    const out = newComments(comments, [], "HpartidaB").map((c) => ({
       ...c,
       permalink: "/r/podcasting/a/c1",
       threadTitle: "Hice un transcriptor",
