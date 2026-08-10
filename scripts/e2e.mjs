@@ -102,6 +102,11 @@ try {
   );
   await page.selectOption("#model-quality", "balanced");
 
+  check(
+    "contacto visible en el pie",
+    (await page.locator('a[href^="mailto:"]').count()) > 0,
+  );
+
   // 2 · decodificación + fase de modelo (éxito o error de red controlado)
   await page.setInputFiles("#file-input", tonePath);
   await page.waitForSelector("#status:not([hidden])", { timeout: 10000 });

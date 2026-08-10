@@ -543,6 +543,16 @@ body.embed .toolbar { position: static; }
 
 :root[data-brand="off"] .embed-credit { display: none; }
 
+/* Contacto en el pie: una persona identificable importa más de lo que parece
+   en un producto que se vende como verificable, y es lo primero que busca una
+   empresa que se plantea integrarlo. */
+.contact {
+  margin: 0.4rem 0;
+  font-size: 0.85rem;
+}
+
+.contact a { color: var(--accent); }
+
 .persist-note {
   margin: 0.5rem 0 0;
   max-width: 60ch;
