@@ -523,6 +523,26 @@ button { font-family: inherit; }
   .attribution { margin-left: 0; }
 }
 
+/* ── Modo integración (/embed/) ────────────────────────────────────────────
+   La misma aplicación sin nada de la web: sin cabecera, sin secciones de
+   marketing y sin llamadas a Pro. Pensada para ir dentro de un iframe en el
+   panel de otra plataforma, donde el marco lo pone el anfitrión. */
+body.embed { padding: 0; }
+body.embed main { max-width: none; padding: 1rem; }
+body.embed .hero { padding: 0; text-align: left; }
+body.embed .panel { margin: 0; }
+body.embed .toolbar { position: static; }
+.embed-hidden { display: none; }
+
+.embed-credit {
+  margin: 1.2rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+:root[data-brand="off"] .embed-credit { display: none; }
+
 .persist-note {
   margin: 0.5rem 0 0;
   max-width: 60ch;

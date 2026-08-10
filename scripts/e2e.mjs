@@ -227,6 +227,26 @@ try {
   const barAfter = await page.locator("#progress-wrap").boundingBox();
   check("la barra no se mueve al responder", Math.abs(barAfter.y - barBox.y) < 1);
 
+  // 3e · página de integración: la misma app sin la web alrededor. Si algún
+  // elemento que la aplicación exige faltara, main.ts lanzaría al arrancar y
+  // esto lo detecta antes que un cliente.
+  await page.goto(`${BASE}/embed/?e2e=1&model=fast`, { waitUntil: "load" });
+  check("embed: dropzone operativo", await page.locator("#dropzone").isVisible());
+  check("embed: sin cabecera de la web", (await page.locator(".site-header").count()) === 0);
+  check(
+    "embed: el modelo se puede fijar por URL",
+    (await page.locator("#model-quality").inputValue()) === "fast",
+  );
+  await page.evaluate(() => {
+    window.__g32.showResult([{ start: 0, end: 2, text: "Embedded run." }]);
+  });
+  await page.waitForSelector("#result:not([hidden])");
+  check("embed: exporta igual que la web", (await page.locator("[data-export]").count()) >= 5);
+  check("embed: la atribución se puede quitar", await page.locator(".embed-credit").isVisible());
+  const brandOff = await page.goto(`${BASE}/embed/?e2e=1&brand=0`, { waitUntil: "load" });
+  check("embed: responde 200", (brandOff?.status() ?? 0) === 200);
+  check("embed: sin marca con brand=0", await page.locator(".embed-credit").isHidden());
+
   // 3b · página inglesa: app completa operativa
   await page.goto(`${BASE}/en/?e2e=1`, { waitUntil: "load" });
   check("EN: h1 en inglés", /Transcribe audio/i.test((await page.locator("h1").textContent()) ?? ""));

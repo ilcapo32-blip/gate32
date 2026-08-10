@@ -30,6 +30,7 @@ export default defineConfig({
         subtitulos: page("subtitulos/index.html"),
         entrevistas: page("entrevistas/index.html"),
         clases: page("clases/index.html"),
+        embed: page("embed/index.html"),
       },
     },
   },

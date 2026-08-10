@@ -89,6 +89,14 @@ if (!(window as unknown as { crossOriginIsolated?: boolean }).crossOriginIsolate
   track("coi_off");
 }
 
+// Una integración puede fijar el modelo por URL (?model=fast) para que sus
+// usuarios no elijan: quien monta Gate32 dentro de su panel sabe mejor que
+// nosotros qué compromiso entre calidad y espera le encaja.
+const requestedModel = new URLSearchParams(location.search).get("model");
+if (requestedModel && requestedModel in MODELS) {
+  modelSelect.value = requestedModel;
+}
+
 // El tamaño anunciado en el explicador sigue al modelo elegido, para que la
 // expectativa sea siempre exacta.
 function syncFirstRunSize(): void {
@@ -134,13 +142,14 @@ let objectUrl: string | null = null;
 // la descarga del modelo solo ocurre una vez, pero el usuario puede exportar
 // muchas veces y no hay que convertir la pregunta en un peaje.
 const USECASE_KEY = "gate32.usecase";
-let usecaseAnswered = (() => {
+function storedUsecase(): boolean {
   try {
     return localStorage.getItem(USECASE_KEY) !== null;
   } catch {
     return false;
   }
-})();
+}
+let usecaseAnswered = storedUsecase();
 
 // ── utilidades de UI ──
 
@@ -149,6 +158,15 @@ function show(el: HTMLElement): void {
 }
 function hide(el: HTMLElement): void {
   el.hidden = true;
+}
+/**
+ * Oculta un elemento que puede no existir. La página de integración (/embed/)
+ * no lleva las piezas de marketing, y la aplicación no debe depender de ellas
+ * para funcionar: si falta una, no es motivo para romper una transcripción.
+ */
+function hideIfPresent(selector: string): void {
+  const el = document.querySelector<HTMLElement>(selector);
+  if (el) el.hidden = true;
 }
 
 function setProgress(pct: number | null): void {
@@ -532,11 +550,13 @@ function renderResult(metaText: string): void {
   });
 
   hide(proThanks);
-  hide($("#usecase"));
-  usecaseAnswered = false;
+  hideIfPresent("#usecase");
+  hideIfPresent("#pro-features");
+  // Antes se ponía a false aquí, lo que reabría la encuesta a quien ya la
+  // había contestado y anulaba la memoria por dispositivo.
+  usecaseAnswered = storedUsecase();
   proBtn.disabled = false;
   show(proBtn);
-  hide($("#pro-features"));
   show(resultSection);
   resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
   renderRecents();
@@ -619,7 +639,8 @@ document.querySelectorAll<HTMLButtonElement>("[data-export]").forEach((btn) => {
         return;
     }
     track("export", { format, lang });
-    if (!usecaseAnswered) show($("#usecase"));
+    const usecase = document.querySelector<HTMLElement>("#usecase");
+    if (!usecaseAnswered && usecase) usecase.hidden = false;
   });
 });
 
@@ -759,7 +780,8 @@ proBtn.addEventListener("click", () => {
   track("pro_interest");
   proBtn.disabled = true;
   hide(proBtn);
-  show($("#pro-features"));
+  const features = document.querySelector<HTMLElement>("#pro-features");
+  if (features) features.hidden = false;
 });
 
 document.querySelectorAll<HTMLButtonElement>(".pro-feature").forEach((btn) => {
