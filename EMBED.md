@@ -77,6 +77,22 @@ Face, o **desde tu propio dominio** si prefieres no depender de terceros
 - **Archivos muy largos pueden fallar por memoria** del navegador: un episodio
   de más de una hora en un equipo modesto es el límite práctico.
 
+## Quién hay detrás, y por qué eso no es un riesgo para ti
+
+Gate32 lo construye y lo mantiene **una sola persona**. Conviene decirlo antes
+de que lo preguntes, porque para quien va a apoyar una funcionalidad de su
+producto en algo ajeno es la primera duda razonable: *¿y si mañana desaparece?*
+
+La respuesta es la licencia. **MIT, código completo y público, sin backend.**
+Si esto se abandonara, tu equipo se queda con un build estático que sigue
+funcionando, que podéis clonar, servir desde vuestro dominio y modificar sin
+pedir permiso a nadie. No hay servidor que apagar, ni API que se pueda cortar,
+ni claves que caduquen.
+
+Compáralo con integrar un servicio de transcripción en la nube: ahí el riesgo
+de que cierre o suba precios **sí** te deja sin funcionalidad. Aquí el peor
+escenario es que dejes de recibir actualizaciones de algo que ya tienes.
+
 ## Licencia y soporte
 
 El código es MIT: puedes clonarlo, servirlo tú y modificarlo sin pedir permiso
