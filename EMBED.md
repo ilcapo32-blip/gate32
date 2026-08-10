@@ -84,5 +84,5 @@ ni pagar nada. Lo que ofrecemos a cambio de dinero es lo que la licencia no da:
 una versión mantenida y probada contra los cambios de navegadores y modelos,
 soporte de integración, y prioridad en las funcionalidades que necesites.
 
-Contacto: a través de [GitHub](https://github.com/ilcapo32-blip/gate32/issues)
-o del sitio.
+Contacto: **hpartida@autoritasai.com**, o a través de
+[GitHub](https://github.com/ilcapo32-blip/gate32/issues).
