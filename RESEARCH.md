@@ -128,6 +128,34 @@ de los pesos, ni si se descargan sin autenticación, ni la calidad en audio
 español con ruido. **Decisión: una prueba de concepto acotada antes de
 comprometer nada**, no una funcionalidad prometida.
 
+### 1e · El alojamiento de podcasts como cliente (2026-08-10)
+
+Podnews, el boletín diario del sector, reseñó Gate32 sin que se lo pidiéramos.
+De esa edición salen dos cosas, y **la valiosa no es la que parecía**.
+
+**Lo que parecía:** el editor añadió *"(¿podría ser útil para las empresas de
+alojamiento de podcasts?)"*. Lo tomé como una validación externa del modelo
+B2B. **Corrección: no lo es.** El mismo editor usa idéntica fórmula con la
+herramienta del punto siguiente (*"¿podría esto alimentar las notas del
+episodio?"*). Es un recurso de estilo aplicado a las herramientas que reseña.
+Atribuirle intención fue inflar la evidencia.
+
+**Lo valioso, dos párrafos antes:** Barry Krantz, **CEO de Blubrry** —una de
+las plataformas grandes de alojamiento—, entrevistado en The New Media Show:
+el alojamiento, el almacenamiento y la distribución *"se han convertido en
+materias primas. La diferencia competitiva viene ahora de las herramientas,
+servicios, soporte, analítica, flujos de trabajo, opciones de distribución y
+experiencia humana construidos alrededor de la infraestructura"*.
+
+Eso sí es evidencia: el problema de negocio del cliente potencial, enunciado
+por el cliente potencial. Nosotros somos una de esas herramientas, y la única
+cuyo coste marginal para la plataforma es cero.
+
+**Contexto que conviene tener presente:** el editor de Podnews declara estar en
+el consejo asesor de RSS.com, y la sección donde nos mencionaron la patrocina
+RSS.com. Lo declara abiertamente. No invalida la mención —es editorial—, pero
+sí explica por qué RSS.com es el primer destinatario natural del pitch.
+
 **Señal cualitativa más valiosa del hilo de r/asklinguistics** (12 votos, el
 comentario más apoyado): *"Si los datos tienen que ser precisos, alguien tiene
 que hacerlo a mano. Simplemente no hay una forma real de evitarlo."*

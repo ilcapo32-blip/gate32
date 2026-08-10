@@ -6,12 +6,28 @@ navegador de cada usuario.
 
 ## Por qué existe esta página
 
-Podnews lo planteó en una línea el 10/08/2026, al reseñar Gate32: *"Could be
-handy for podcast hosting companies?"*. La observación es correcta y describe
-el único encaje donde este producto tiene un modelo de negocio: quien aloja
-podcasts quiere ofrecer transcripción, pero la factura por minuto de ASR le
-come el margen y guardar audio ajeno le añade responsabilidad legal. Aquí no
-hay ni una cosa ni la otra.
+Quien aloja podcasts quiere ofrecer transcripción, pero la factura por minuto
+de ASR le come el margen y guardar audio ajeno le añade responsabilidad legal.
+Con Gate32 integrado no hay ni una cosa ni la otra: el trabajo ocurre en el
+equipo de cada usuario final.
+
+**La evidencia de que eso importa, en orden de peso:**
+
+1. **Barry Krantz, CEO de Blubrry**, en The New Media Show (recogido por
+   Podnews el 10/08/2026): el alojamiento, el almacenamiento y la distribución
+   *"se han convertido en materias primas; la diferencia competitiva viene
+   ahora de las herramientas, servicios, soporte, analítica y flujos de trabajo
+   construidos alrededor de la infraestructura"*. Es el problema de negocio del
+   cliente, dicho por el cliente.
+2. **Un empleado de Riverside**, en r/podcasting: el formateo de subtítulos es
+   *"una brecha real"* y merece ser una opción nativa de exportación.
+3. Podnews, al reseñar Gate32, añadió *"(¿podría ser útil para las empresas de
+   alojamiento de podcasts?)"*. **Peso bajo, y conviene decirlo:** el editor
+   usa la misma fórmula especulativa con la herramienta del punto siguiente
+   (*"¿podría esto alimentar las notas del episodio?"*). Es un recurso de
+   estilo, no una validación.
+
+La hipótesis se sostiene por el punto 1, no por el 3.
 
 ## Integración
 
