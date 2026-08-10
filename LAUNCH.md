@@ -324,6 +324,45 @@ Prioridad: **RSS.com** (asesorada por el editor que nos mencionó) y **Blubrry**
 (su CEO es quien dijo que el alojamiento es una materia prima y la diferencia
 está en las herramientas).
 
+### Direcciones y orden de envío (2026-08-11)
+
+Recopiladas por búsqueda externa. **No verificadas desde este repositorio** (el
+entorno de desarrollo no tiene salida a internet): pueden rebotar.
+
+**Primera tanda — cuatro correos, no trece:**
+
+| Plataforma | Dirección | Motivo |
+|---|---|---|
+| RSS.com | `support@rss.com` | La asesora el editor de Podnews |
+| Blubrry | `support@blubrry.com` | Su CEO enunció el problema que resolvemos |
+| Awesound | `mark@awesound.com`, `team@awesound.com` | Marca blanca; correo de fundador |
+| Transistor | `support@transistor.fm` | Equipo pequeño: el soporte llega a quien decide |
+
+Segunda tanda **solo si alguna contesta**: Buzzsprout (`support@buzzsprout.com`),
+Ausha (`hello@ausha.co`), SoundStack (`sales@soundstack.com`).
+
+**Descartadas y por qué:** correos de personas concretas sacados de
+documentación (parecen scraping y suelen ser del rol equivocado); direcciones
+de sistema que aparecen en feeds RSS; departamentos ajenos (inversores,
+publicidad, integraciones de comercio); y cualquier dirección *reconstruida* a
+partir de una versión ofuscada, que es una suposición, no un dato.
+
+**Regla de fondo:** `support@` es un buzón para cerrar incidencias, no para
+evaluar alianzas. Si no queda otra que usarlo, el asunto y la primera línea
+tienen que decirle a quien abra el correo qué hacer con él:
+
+> **Asunto:** Not a support ticket: transcription your users could run at zero
+> cost to you
+>
+> Sorry for using the support address — it's the only public one I could find.
+> If someone there handles partnerships or product, I'd be grateful if you
+> passed this along.
+
+Trece correos casi idénticos a buzones de soporte es spam, y en un sector
+pequeño donde todos leen el mismo boletín diario, quemarse cuesta más que el
+beneficio de cualquier envío masivo. Si los cuatro primeros no responden, el
+problema es el mensaje o la propuesta: mandar nueve más no lo arregla.
+
 ---
 
 ## Qué medir tras cada acción (ver VALIDATION.md)
