@@ -226,6 +226,43 @@ nativo si el navegador rechaza el forzado; y el evento separa
 `transcribe_error_decode_grande` de `_formato` para confirmar o descartar la
 hipótesis en la próxima medición.
 
+### Cuarta medición (2026-08-10, 19:10) · misma ventana, 18 horas después
+
+| Paso | 00:58 | 19:10 | Lectura |
+|---|---|---|---|
+| Páginas vistas | 81 | **124** | +53 % en menos de un día |
+| Archivos soltados | 20 | 32 | |
+| **Intento** | 24,7 % | **25,8 %** | Estable: el explicador aguanta con más tráfico |
+| **Finalización** | 67 % | **56 %** | 🔻 Baja al ensancharse el público |
+| **Activación** | 12,3 % | **11,3 %** | Sigue por encima del umbral, pero ya no sube |
+| `return_visit` | 2 | 4 | |
+| `export` | 5 | 7 | La mitad de quien termina, constante |
+
+**Primer canal que no es Reddit: `podnews.net`, 15 visitas**, con parámetro de
+campaña propio. Podnews es el boletín diario de la industria del podcasting:
+es el público exacto, y llegó sin que lo buscáramos. Google sube de 8 a 15.
+
+**Hipótesis del tamaño, confirmada:** `transcribe_error_decode_grande` = 2 en
+las pocas horas desde que existe el evento. Los archivos que no se pueden leer
+fallan por memoria, no por formato. La corrección a 16 kHz acaba de entrar y su
+efecto se medirá en la próxima ventana.
+
+**Dos cosas empeoran, y las dos apuntan a Apple:**
+
+- `storage_not_persisted` pasa de 5 a **14** (más de la mitad de los intentos).
+  Safari borra el almacenamiento tras unos días sin visitas, así que más de la
+  mitad de quien vuelva se comerá otra descarga completa.
+- `coi_off` pasa de 3 a **12**: Safari no soporta `COEP: credentialless`, y su
+  cuota ha subido al 22 % (30 % del tráfico es Apple).
+
+Sobre lo primero se ha actuado: al terminar una transcripción, si el navegador
+no garantiza permanencia, se sugiere **instalar Gate32 como aplicación**, que
+es la única vía real para que Safari conserve el modelo. Sobre lo segundo no se
+actúa: cambiar a `require-corp` daría hilos a Safari pero bloquearía el script
+de analítica —y perderíamos la capacidad de detectar que lo hemos roto—, y
+además `no_webgpu` sigue siendo residual, así que esos usuarios ya van por GPU
+y los hilos les aportarían poco.
+
 ### Por qué no sabemos para qué se usa (2026-08-07, corregido)
 
 La encuesta de caso de uso existía desde el principio, pero solo se mostraba

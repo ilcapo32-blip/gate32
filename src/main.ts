@@ -169,6 +169,11 @@ function setProgress(pct: number | null): void {
 // Fase actual del proceso, para atribuir las cancelaciones.
 let phase: "idle" | "download" | "inference" = "idle";
 
+// Más de la mitad de los navegadores medidos no garantizan conservar el modelo
+// (Safari lo borra tras unos días sin visitas). A quien esté en ese caso se le
+// ofrece la única salida real: instalar la web como aplicación.
+let storagePersisted = true;
+
 let waitSurveyShown = false;
 function showWaitSurvey(bytesDone: number): void {
   // Solo con descarga real en curso; una carga desde caché no llega aquí.
@@ -320,6 +325,7 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
   const store = await ensureStorage(spec0.bytes);
   // Solo se registra el caso malo: si el navegador no garantiza permanencia, el
   // usuario que vuelva se comerá otra descarga completa.
+  storagePersisted = store.persisted;
   if (!store.persisted) track("storage_not_persisted");
   if (!store.ok) {
     track("storage_full");
@@ -478,6 +484,16 @@ function renderResult(metaText: string): void {
   resultMeta.textContent = `${current.minutes} min · ${metaText}`;
   if (!current.fromHistory) show(player);
   else hide(player);
+
+  // El aviso va aquí y no antes: durante la espera solo añadiría ruido, y en
+  // este punto el usuario ya sabe si le ha merecido la pena volver.
+  const persistNote = document.querySelector<HTMLElement>("#persist-note");
+  if (persistNote && !current.fromHistory && !storagePersisted) {
+    persistNote.textContent = t("persist_note");
+    persistNote.hidden = false;
+  } else if (persistNote) {
+    persistNote.hidden = true;
+  }
 
   segmentsBox.replaceChildren();
   current.segments.forEach((seg, i) => {

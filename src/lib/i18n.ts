@@ -59,6 +59,8 @@ const dict = {
     attribution: "Transcrito con Gate32 · https://gate32.autoritasai.com",
     mobile_note:
       "📱 En el móvil funciona, pero va más lento que en un ordenador. Para probarlo ya, graba 30 segundos con el micrófono; para clases o entrevistas largas, mejor desde el portátil.",
+    persist_note:
+      "💾 Tu navegador no garantiza conservar el modelo, así que puede que vuelva a descargarse en tu próxima visita. Si instalas Gate32 como aplicación (menú del navegador → «Instalar» o «Añadir a pantalla de inicio») el modelo se queda para siempre y arranca al instante.",
     storage_error: "No hay espacio suficiente en el navegador para guardar el modelo ({need}); libres: {free}.",
     storage_hint: "Elige el modelo Rápido, libera espacio en el disco o borra datos de sitios que ya no uses.",
     gpu_note:
@@ -116,6 +118,8 @@ const dict = {
     attribution: "Transcribed with Gate32 · https://gate32.autoritasai.com",
     mobile_note:
       "📱 It works on phones, but slower than on a computer. For a quick try, record 30 seconds with the mic; for long lectures or interviews, use a laptop.",
+    persist_note:
+      "💾 Your browser won't guarantee keeping the model, so it may download again on your next visit. Installing Gate32 as an app (browser menu → \"Install\" or \"Add to Home Screen\") keeps it for good and starts instantly.",
     storage_error: "Not enough browser storage to keep the model ({need}); free: {free}.",
     storage_hint: "Pick the Fast model, free up disk space, or clear data from sites you no longer use.",
     gpu_note:

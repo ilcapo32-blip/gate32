@@ -523,6 +523,14 @@ button { font-family: inherit; }
   .attribution { margin-left: 0; }
 }
 
+.persist-note {
+  margin: 0.5rem 0 0;
+  max-width: 60ch;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
 .edit-hint {
   font-size: 0.8rem;
   color: var(--muted);
