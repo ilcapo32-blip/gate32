@@ -271,6 +271,61 @@ podcasting en español. Mensaje base:
 
 ---
 
+## 8 · Prensa del sector: Podnews (2026-08-10)
+
+Podnews, el boletín diario del podcasting, mencionó Gate32 sin que se lo
+pidiéramos. Sus normas de envío son públicas, y **explican por qué la mención
+salió con una foto de archivo genérica: no les dimos nada**.
+
+**Contacto:** `editor@podnews.net` · Editor: **James Cridland**.
+Se escribe **Podnews**, nunca "PodNews". Lo piden expresamente.
+
+**No cobran por cubrir nada.** Cuando van cortos de espacio priorizan a sus
+*supporters*, pero la cobertura editorial es gratuita.
+
+**Lo que piden en un envío, literalmente:**
+
+- **Fotografías de personas**, grandes y apaisadas. **No logotipos** ni carátulas
+  cuadradas: *"la gente los confunde con anuncios"*. Y avisan: *"si no nos das
+  material gráfico, puede que hagamos algún juego visual malo"* — que es
+  exactamente lo que nos pasó.
+- **Todo lo necesario en un solo correo.** Trabajan en otro huso horario: un
+  "os mando fotos si os interesa" añade 24 horas de retraso y probablemente el
+  descarte.
+- Nota de prensa en DOC o PDF con **texto copiable** (DOC algo mejor).
+- Embargos en mayúsculas al principio. Publican a las **11:00 GMT**.
+
+**Lo que buscan activamente, y nos incluye:** equilibrio de género, **noticias
+de fuera de Estados Unidos**, **podcasters y proyectos independientes** y voces
+poco representadas. *"No dudes en señalarlo en tu correo si encajas en alguno
+de estos grupos."* Somos un proyecto independiente hecho por una persona desde
+España: se dice, sin adornarlo.
+
+**Lo que no cubren:** nada que esté detrás de un muro de captura de datos
+(formularios que piden correo para desbloquear contenido). Gate32 no tiene
+ninguno, y eso conviene mencionarlo porque encaja con su política.
+
+**Conflicto declarado:** James Cridland es asesor de Eurowaves, Northflow, The
+Podcast Show London, Poductivity, The Podcast Broker y **RSS.com**. Lo declara
+abiertamente en cada edición donde aparece alguna.
+
+### Lista de destinatarios B2B, verificada
+
+La página de *supporters* de Podnews es un directorio de quién está activo en
+el sector. Plataformas de alojamiento y servicios donde el embed tiene sentido:
+
+**Alojamiento:** Buzzsprout, PodBean, Libsyn, Simplecast, Acast, Audioboom,
+RedCircle, Ausha, Blubrry, Transistor, iono.fm, SoundStack, RSS.com.
+
+**Marca blanca y webs para podcasters:** Awesound (*"white-label premium
+podcasting"*), Podpage, CoHost, Podscribe.
+
+Prioridad: **RSS.com** (asesorada por el editor que nos mencionó) y **Blubrry**
+(su CEO es quien dijo que el alojamiento es una materia prima y la diferencia
+está en las herramientas).
+
+---
+
 ## Qué medir tras cada acción (ver VALIDATION.md)
 
 - Pico de visitas por canal (referrers en Vercel Analytics).
