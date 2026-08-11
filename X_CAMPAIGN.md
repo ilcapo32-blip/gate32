@@ -1,4 +1,39 @@
-# X_CAMPAIGN.md · Banco de tuits para @AutoritasAI
+# X_CAMPAIGN.md · Banco de tuits para @Hpartida32
+
+## Corrección (2026-08-11): la cuenta empieza de cero
+
+Este banco se escribió suponiendo una cuenta con algo de alcance. La cuenta
+real (**@Hpartida32**) se estrena vacía, y eso invierte el orden de todo: una
+cuenta sin seguidores que publica cincuenta tuits no la lee nadie, porque X
+apenas distribuye lo que publica una cuenta nueva.
+
+**Orden correcto para arrancar:**
+
+1. **Perfil completo antes de nada.** Nadie sigue a un huevo sin biografía. Foto
+   (la misma que se envió a Podnews), cabecera, biografía, enlace y un tuit
+   fijado.
+2. **Seguir a 30-50 cuentas del nicho** y leerlas unos días. Sin un timeline
+   relevante no hay dónde responder.
+3. **Responder en hilos ajenos.** Con cero seguidores es *la única* forma de que
+   te lea alguien. Cuatro de cada cinco acciones deberían ser respuestas.
+4. **Publicar lo propio**, poco y bueno, para que quien llegue al perfil desde
+   una respuesta encuentre algo.
+
+**Nada de enlaces externos las primeras semanas.** Una cuenta nueva publicando
+enlaces es el patrón exacto de un bot, y X lo entierra. El enlace vive en la
+biografía; en un tuit solo cuando alguien lo pida.
+
+### El idioma: decisión consciente
+
+El tráfico de Gate32 es 82 % anglosajón y los destinatarios B2B son todos
+angloparlantes, así que en abstracto convendría el inglés. **Pero quien maneja
+la cuenta no lee inglés**, y responder en hilos que no entiendes acaba en un
+comentario fuera de lugar tarde o temprano.
+
+Decisión: **la cuenta funciona en español.** Es la comunidad donde se puede
+conversar de verdad, España es solo el 7 % del tráfico (hay margen), y hay
+cuentas activas de IA en español con audiencia real. Para hilos en inglés que
+merezcan respuesta, se traducen y se redactan aparte antes de contestar.
 
 ## Reglas tácticas (leer antes de programar nada)
 
