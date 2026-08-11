@@ -263,6 +263,61 @@ de analítica —y perderíamos la capacidad de detectar que lo hemos roto—, y
 además `no_webgpu` sigue siendo residual, así que esos usuarios ya van por GPU
 y los hilos les aportarían poco.
 
+### Quinta medición (2026-08-11) · el arreglo de decodificación **no ha funcionado**
+
+Ventana 04–11/08. Denominador: 146 páginas vistas (129 en `/en`, 17 en `/`).
+
+| Paso | Valor | Antes | |
+|---|---|---|---|
+| Páginas vistas | 146 | 124 | |
+| Archivos soltados | 40 | 32 | |
+| **Intento** | **27,4 %** | 25,8 % | Cuarta subida consecutiva |
+| **Finalización** | 58 % | 56 % | |
+| **Activación** | **12,3 %** | 11,3 % | Por encima del umbral |
+| `export` | 9 | 7 | La mitad de quien termina |
+| `return_visit` | 9 | 4 | Se duplica |
+
+**El resultado negativo, que es el importante:** `transcribe_error_decode` = 9
+sobre 40 archivos = **22,5 %**. Exactamente la misma proporción que antes de
+decodificar a 16 kHz. Y `transcribe_error_decode_grande` = **4**, todos
+posteriores al despliegue del arreglo.
+
+Conclusión: reducir la memoria del audio decodificado casi tres veces **no es
+suficiente**. Un episodio estéreo de una hora a 16 kHz sigue ocupando ~460 MB,
+y `decodeAudioData` necesita el archivo entero en memoria antes de devolver
+nada. La hipótesis del tamaño está confirmada; la solución era insuficiente.
+
+**Lo hecho hoy:** avisar **antes** de decodificar cuando el archivo supera los
+60 MB, con mensaje más duro en móvil (24 % del tráfico, memoria mucho más
+justa). No arregla el fallo: evita esperar dos minutos para nada y dice qué
+hacer. Eventos `big_file_prompt` y `big_file_cancel` para saber cuántos siguen
+adelante y si el aviso ahuyenta a alguien.
+
+**El arreglo de verdad** es decodificar por trozos con **WebCodecs**
+(`AudioDecoder`), que mantiene la memoria constante. Requiere demultiplexar los
+contenedores a mano y es un proyecto en sí mismo: queda anotado, no
+improvisado.
+
+**Primera señal clara de caso de uso:** `use_case_wait_subtitulos` = 3, el
+único `use_case_*` que asoma entre los veinte eventos más frecuentes, sobre 10
+respuestas totales. Coincide con las dos peticiones profesionales que ya
+teníamos sobre formato de subtítulos. **Los subtítulos son el caso de uso**, y
+esta es la primera evidencia cuantitativa de ello.
+
+**Dos motores de IA envían tráfico ya:** `gemini.google.com` 6 y `chatgpt.com`
+1. Google 24, Bing 6, Podnews 24, `Email` 14. Reddit sigue siendo el mayor con
+~165 entre sus tres formas.
+
+**Calibración entre fuentes (no para ratios):** Vercel cuenta 261 páginas
+vistas donde GoatCounter ve 146. GoatCounter ve el **56 %**, porque su script
+es de terceros y lo bloquean. Sirve para estimar tráfico real; **los ratios
+siguen calculándose dentro de una sola fuente**.
+
+**Sigue empeorando lo de Apple:** `storage_not_persisted` 20 sobre 31 intentos
+(65 %) y `coi_off` 19 sobre 146 (13 %). macOS ha subido al 20 % y Safari al
+26 %: el tráfico de Podnews es de industria del podcasting, y esa industria usa
+Mac.
+
 ### Por qué no sabemos para qué se usa (2026-08-07, corregido)
 
 La encuesta de caso de uso existía desde el principio, pero solo se mostraba

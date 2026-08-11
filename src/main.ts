@@ -3,7 +3,13 @@
 // i18n (el idioma lo fija el atributo lang de cada página).
 
 import "./styles.css";
-import { decodeToMono16k, DecodeError, ACCEPT, LONG_FILE_WARN_MIN } from "./lib/audio";
+import {
+  decodeToMono16k,
+  DecodeError,
+  ACCEPT,
+  LONG_FILE_WARN_MIN,
+  BIG_FILE_BYTES,
+} from "./lib/audio";
 import { Transcriber } from "./lib/transcriber";
 import {
   toTXT,
@@ -269,6 +275,24 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
     if (await importJSON(file, name)) return;
     showError(t("json_invalid"), t("json_invalid_hint"));
     return;
+  }
+
+  // El aviso por tamaño va **antes** de decodificar. Un 22 % de los archivos
+  // que se sueltan no se pueden leer, y la causa confirmada es la memoria del
+  // navegador: enterarse después de dos minutos de espera es la peor versión
+  // de ese fallo.
+  const bytes = file instanceof File ? file.size : file.size;
+  if (bytes > BIG_FILE_BYTES) {
+    track("big_file_prompt");
+    const go = confirm(
+      t(onPhone ? "big_file_confirm_phone" : "big_file_confirm", {
+        size: humanBytes(bytes, locale),
+      }),
+    );
+    if (!go) {
+      track("big_file_cancel");
+      return;
+    }
   }
 
   busy = true;
