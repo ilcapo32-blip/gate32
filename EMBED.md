@@ -11,6 +11,23 @@ de ASR le come el margen y guardar audio ajeno le añade responsabilidad legal.
 Con Gate32 integrado no hay ni una cosa ni la otra: el trabajo ocurre en el
 equipo de cada usuario final.
 
+**Corrección tras el primer contacto real (2026-08-11):** Transistor respondió
+que *"no vamos a hacer cambios en nuestra herramienta de transcripción ahora
+mismo"*. Es decir: **ya la tienen**. El primer envío daba por hecho que
+faltaba, y eso era falso para cualquier plataforma establecida.
+
+El argumento correcto no es *"os falta transcripción"* sino **"la que tenéis os
+cuesta por minuto y obliga a que el audio de vuestros clientes pase por
+vuestros servidores; esta no hace ninguna de las dos cosas"**. Sustituir algo
+que ya funciona es una venta más difícil que rellenar un hueco, pero es la
+situación real y fingir lo contrario se nota en la primera respuesta.
+
+**Contexto temporal que ayuda:** en agosto de 2026 el sector está lanzando
+vídeo (RSS.com con vídeo para Apple Podcasts, Transistor con su propio
+lanzamiento). El vídeo dispara la demanda de subtítulos, y ahí Gate32 tiene
+algo concreto: SRT y VTT con longitud de línea a estándar de emisión, sin
+coste por minuto.
+
 **La evidencia de que eso importa, en orden de peso:**
 
 1. **Barry Krantz, CEO de Blubrry**, en The New Media Show (recogido por
