@@ -1,10 +1,13 @@
 // Decodificación de audio/vídeo a mono 16 kHz, todo en el navegador.
 
 import { t } from "./i18n";
+import { chunkRanges } from "./mp3";
 
 export interface DecodedAudio {
   audio: Float32Array;
   duration: number; // segundos
+  /** Se decodificó por trozos (MP3 grande) en vez de de una sola vez. */
+  chunked?: boolean;
 }
 
 const TARGET_RATE = 16000;
@@ -27,10 +30,66 @@ export class DecodeError extends Error {
   }
 }
 
+/** Mezcla los canales de un buffer ya remuestreado y lo escribe en `out`. */
+function mixInto(decoded: AudioBuffer, out: Float32Array, offset: number): number {
+  const channels = decoded.numberOfChannels;
+  const frames = Math.min(decoded.length, out.length - offset);
+  if (frames <= 0) return 0;
+  const first = decoded.getChannelData(0);
+  for (let i = 0; i < frames; i++) out[offset + i] = first[i] ?? 0;
+  for (let c = 1; c < channels; c++) {
+    const data = decoded.getChannelData(c);
+    for (let i = 0; i < frames; i++) out[offset + i] = (out[offset + i] ?? 0) + (data[i] ?? 0);
+  }
+  if (channels > 1) {
+    for (let i = 0; i < frames; i++) out[offset + i] = (out[offset + i] ?? 0) / channels;
+  }
+  return frames;
+}
+
+/**
+ * Decodifica un MP3 largo trozo a trozo, cortando por límites de trama. Evita
+ * el pico de memoria que tumbaba uno de cada cuatro archivos: en vez de pedir
+ * el episodio entero descomprimido de golpe, se pide de diez en diez minutos.
+ *
+ * Devuelve `null` si el archivo no se puede trocear, para seguir por el camino
+ * de siempre.
+ */
+async function decodeChunked(
+  ctx: AudioContext,
+  bytes: Uint8Array,
+): Promise<DecodedAudio | null> {
+  const ranges = chunkRanges(bytes, 600);
+  if (!ranges || ranges.length < 2) return null;
+
+  const totalSeconds = ranges.reduce((a, r) => a + r.seconds, 0);
+  // Una sola reserva del tamaño final: concatenar trozos duplicaría memoria
+  // justo en el momento en el que no sobra.
+  const out = new Float32Array(Math.ceil(totalSeconds * TARGET_RATE) + TARGET_RATE);
+  let written = 0;
+
+  for (const range of ranges) {
+    const slice = bytes.slice(range.start, range.end);
+    let decoded: AudioBuffer;
+    try {
+      decoded = await ctx.decodeAudioData(slice.buffer as ArrayBuffer);
+    } catch {
+      // Un trozo ilegible no debe tirar el archivo entero: se salta su hueco
+      // para que los tiempos del resto no se desplacen.
+      written += Math.round(range.seconds * TARGET_RATE);
+      continue;
+    }
+    written += mixInto(decoded, out, written);
+  }
+
+  if (written === 0) return null;
+  return { audio: out.subarray(0, written), duration: written / TARGET_RATE, chunked: true };
+}
+
 /**
  * Decodifica cualquier archivo de audio/vídeo soportado por el navegador y lo
- * remuestrea a mono 16 kHz (lo que espera Whisper). Usa OfflineAudioContext
- * para que el remuestreo sea correcto en todos los navegadores.
+ * deja en mono a 16 kHz, que es lo que espera Whisper. Los MP3 grandes van por
+ * el camino troceado; el resto, por el de siempre.
  */
 export async function decodeToMono16k(file: Blob): Promise<DecodedAudio> {
   const buf = await file.arrayBuffer();
@@ -48,6 +107,20 @@ export async function decodeToMono16k(file: Blob): Promise<DecodedAudio> {
     ctx = new AC({ sampleRate: TARGET_RATE });
   } catch {
     ctx = new AC();
+  }
+
+  // Los archivos grandes van primero por el camino troceado, que es el único
+  // que no depende de que quepa el episodio entero en memoria.
+  if (buf.byteLength > BIG_FILE_BYTES) {
+    try {
+      const chunked = await decodeChunked(ctx, new Uint8Array(buf.slice(0)));
+      if (chunked && chunked.duration >= 0.5) {
+        void ctx.close();
+        return chunked;
+      }
+    } catch {
+      /* si el troceado falla, queda el camino de siempre */
+    }
   }
 
   // decodeAudioData vacía el ArrayBuffer que recibe: sin una copia no hay

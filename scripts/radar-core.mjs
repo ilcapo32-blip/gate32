@@ -53,6 +53,14 @@ const SIGNALS = [
   { re: /\b(interview|podcast|lecture|meeting|entrevista|clase|reunión|reunion)\b/i, weight: 10, tag: "caso de uso" },
 ];
 
+/**
+ * "Transcripción" también se dice de documentos manuscritos, y ahí no tenemos
+ * nada que ofrecer: aparecer en esos hilos es exactamente el spam que evitamos.
+ * Apareció un caso real en X (Historia Social, transcribiendo manuscritos con
+ * Gemini) que a simple vista parecía nuestro y no lo era.
+ */
+const NOT_AUDIO = /\b(handwrit|manuscript|palaeograph|paleograph|OCR|Transkribus|manuscrito|paleograf|caligraf)/i;
+
 /** Restas: cosas que hacen que responder sea mala idea. */
 const PENALTIES = [
   { re: /\b(hiring|for hire|job|freelance|se busca|contrato)\b/i, weight: -40, tag: "oferta de empleo" },
@@ -83,6 +91,9 @@ export function promoRisk(rules = []) {
  */
 export function scoreThread(thread) {
   const text = `${thread.title ?? ""}\n${thread.selftext ?? ""}`;
+  // Descarte duro: si va de texto manuscrito u OCR, no es nuestro problema por
+  // mucho que aparezca la palabra "transcripción".
+  if (NOT_AUDIO.test(text)) return { score: -100, tags: ["no es audio"], hours: 0 };
   let score = 0;
   const tags = [];
   for (const s of [...SIGNALS, ...PENALTIES]) {

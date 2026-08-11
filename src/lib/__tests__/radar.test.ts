@@ -57,6 +57,17 @@ describe("radar · puntuación", () => {
     expect(rant.tags).toContain("desahogo");
   });
 
+  it("descarta la transcripción de manuscritos, que no es nuestro problema", () => {
+    const r = scoreThread({
+      title: "Best tool to transcribe handwritten archive documents?",
+      selftext: "Gemini hallucinates words, is Transkribus worth it?",
+      num_comments: 3,
+      created_utc: hoursAgo(2),
+    });
+    expect(r.tags).toContain("no es audio");
+    expect(r.score).toBeLessThan(0);
+  });
+
   it("penaliza los hilos ya enterrados en respuestas", () => {
     const base = {
       title: "Best free transcription tool? Looking for recommendations",

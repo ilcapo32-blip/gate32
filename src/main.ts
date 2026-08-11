@@ -308,8 +308,12 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
 
   let audio: Float32Array;
   let duration: number;
+  let chunked: boolean | undefined;
   try {
-    ({ audio, duration } = await decodeToMono16k(file));
+    ({ audio, duration, chunked } = await decodeToMono16k(file));
+    // Se mide aparte: es el camino nuevo y hay que saber si de verdad salva
+    // archivos que antes se perdían.
+    if (chunked) track("decode_chunked");
   } catch (err) {
     // El nombre del evento lleva la causa: GoatCounter (plan gratuito) solo
     // registra el nombre, no las propiedades. Sin esto los fallos son opacos.
