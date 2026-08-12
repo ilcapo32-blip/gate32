@@ -9,10 +9,10 @@ por cada issue, así que no hay que entrar a mirar nada.
 **Hace tres cosas, en este orden de importancia:**
 
 1. **Respuestas pendientes en tus propios hilos.** Descubre solo lo que has
-   publicado a partir del perfil público de la cuenta (`REDDIT_ACCOUNT`, por
-   defecto `HpartidaB`) y avisa de los comentarios nuevos. No hace falta
-   mantener ninguna lista ni entregar las credenciales de la cuenta: basta con
-   las de la aplicación. Ignora tus propios comentarios y los de AutoModerator.
+   publicado a partir del feed público del perfil (`REDDIT_ACCOUNT`, por
+   defecto `HpartidaB`) y avisa de los comentarios nuevos. Sin listas que
+   mantener y sin credenciales de ningún tipo. Ignora tus propios comentarios y
+   los de AutoModerator.
 2. **Menciones de Gate32** en cualquier parte de Reddit.
 3. **Hilos nuevos** donde tendría sentido aparecer: buscar, filtrar, puntuar,
    recordar lo ya visto y sugerir qué plantilla de `X_CAMPAIGN.md` encaja.
@@ -105,8 +105,9 @@ Cada hilo llega con:
 - **Puntuación**: por debajo de 45 no se reporta.
 - **Señales** que explican por qué aparece (`privacidad`, `coste`,
   `subtítulos`, `fricción`, `pregunta`…).
-- **Antigüedad y número de respuestas**: por encima de 40 respuestas la nuestra
-  queda enterrada; por debajo de 12 horas es cuando responder rinde.
+- **Antigüedad**: por debajo de 12 horas es cuando responder rinde. El número
+  de respuestas solo se tiene en cuenta si se conoce, cosa que los feeds RSS no
+  aportan.
 - **Plantilla sugerida** de `X_CAMPAIGN.md`, como punto de partida.
 
 La plantilla **no se pega tal cual**. Se responde primero a lo que preguntan,
@@ -126,7 +127,7 @@ así que se puede tocar el criterio sin romper nada a ciegas.
 ## Ejecución manual
 
 ```bash
-REDDIT_CLIENT_ID=... REDDIT_CLIENT_SECRET=... node scripts/radar.mjs
+node scripts/radar.mjs
 ```
 
 O desde GitHub: pestaña *Actions* → *Radar de Reddit* → *Run workflow*.
