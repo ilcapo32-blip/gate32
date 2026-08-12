@@ -365,6 +365,26 @@ problema es el mensaje o la propuesta: mandar nueve más no lo arregla.
 
 ---
 
+## 9 · Directorios de pago: la respuesta es no (2026-08-11)
+
+Patrón que se repetirá: un directorio del sector te añade **sin pedírtelo**,
+te avisa por correo y a continuación te ofrece destacar por dinero. The
+Podosphere lo hizo el 11/08 tras vernos en Podnews: 299 $/mes por la portada,
+79 $/mes por encabezar la categoría, mitad de precio los tres primeros meses.
+
+**Reclamar la ficha: sí.** Es gratis, deja poner descripción y categorías —una
+ficha vacía es peor que ninguna— y aporta un enlace y presencia donde buscan
+los profesionales del sector.
+
+**Pagar por destacar: no**, y no es cuestión de tacañería. A 79 $/mes son
+948 $ al año contra un producto con 0 € de ingresos y ~150 páginas vistas
+semanales. Antes de pagar por visibilidad hay que saber que la visibilidad
+convierte, y eso todavía no lo sabemos: la señal de monetización sigue en cero.
+Cuando alguien pague por Gate32, se reconsidera.
+
+El presupuesto es 0 € y solo se reinvierte lo que el propio producto genere.
+Esa regla no admite excepciones por buen precio.
+
 ## Qué medir tras cada acción (ver VALIDATION.md)
 
 - Pico de visitas por canal (referrers en Vercel Analytics).
