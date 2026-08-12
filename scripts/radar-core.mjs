@@ -103,9 +103,13 @@ export function scoreThread(thread) {
     }
   }
   // Un hilo con muchas respuestas ya está resuelto y la nuestra queda enterrada.
-  const comments = thread.num_comments ?? 0;
-  if (comments > 40) score -= 25;
-  else if (comments < 8) score += 10;
+  // Los feeds RSS no traen el número de comentarios: sin el dato no se ajusta
+  // nada, porque suponer "pocos" sería premiar hilos que no hemos mirado.
+  const comments = thread.num_comments;
+  if (typeof comments === "number") {
+    if (comments > 40) score -= 25;
+    else if (comments < 8) score += 10;
+  }
 
   // Frescura: por debajo de un día es cuando responder rinde.
   const hours = thread.created_utc ? (Date.now() / 1000 - thread.created_utc) / 3600 : 999;
@@ -227,4 +231,62 @@ export function formatDigest(items, now = new Date()) {
   }
   lines.push("---", "_Radar de Gate32. No publica nada: solo busca._");
   return lines.join("\n");
+}
+
+/**
+ * Extrae entradas de un feed Atom de Reddit. Se escribe a mano en vez de
+ * añadir una dependencia de XML: el formato que sirve Reddit es fijo y solo
+ * hacen falta cinco campos.
+ *
+ * Usar RSS en vez de la API elimina el registro de aplicación, la aceptación
+ * de políticas y los secretos en el repositorio. A cambio no viene el número
+ * de comentarios, que la puntuación ya sabe tratar como desconocido.
+ */
+export function parseAtom(xml) {
+  const out = [];
+  const entries = String(xml).split("<entry>").slice(1);
+  for (const raw of entries) {
+    const body = raw.split("</entry>")[0] ?? "";
+    const pick = (tag) => {
+      const m = body.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`));
+      return m?.[1]?.trim() ?? "";
+    };
+    const href = body.match(/<link[^>]*href="([^"]+)"/)?.[1] ?? "";
+    const id = pick("id").replace(/^.*[/:]/, "") || href;
+    const permalink = href.replace(/^https?:\/\/(www\.)?reddit\.com/, "").split("?")[0] ?? "";
+    const subreddit = permalink.match(/^\/r\/([^/]+)/)?.[1] ?? "";
+    const updated = pick("updated") || pick("published");
+    out.push({
+      id,
+      title: decodeEntities(pick("title")),
+      // El cuerpo viene con el HTML escapado dentro del XML: hay que
+      // descodificar, quitar etiquetas y volver a descodificar lo que quedaba
+      // escapado dos veces (&amp;#39; → &#39; → ').
+      selftext: decodeEntities(stripTags(decodeEntities(pick("content")))),
+      author: decodeEntities(pick("name")),
+      permalink,
+      subreddit,
+      created_utc: updated ? Date.parse(updated) / 1000 : undefined,
+    });
+  }
+  return out;
+}
+
+function stripTags(html) {
+  return html
+    .replace(/<!\[CDATA\[|\]\]>/g, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function decodeEntities(text) {
+  return text
+    .replace(/<!\[CDATA\[|\]\]>/g, "")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&")
+    .trim();
 }

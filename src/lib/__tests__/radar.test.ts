@@ -8,6 +8,7 @@ import {
   newComments,
   formatReplies,
   promoRisk,
+  parseAtom,
 } from "../../../scripts/radar-core.mjs";
 
 const hoursAgo = (h: number) => Date.now() / 1000 - h * 3600;
@@ -182,5 +183,51 @@ describe("radar · respuestas en hilos propios", () => {
     ]);
     const full = [replies, formatDigest([])].join("\n");
     expect(full.indexOf("sin leer")).toBeLessThan(full.indexOf("Sin hilos"));
+  });
+});
+
+describe("radar · feeds RSS de Reddit", () => {
+  const feed = `<?xml version="1.0"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+<entry>
+  <author><name>/u/Serious6Reason</name></author>
+  <content type="html">&lt;p&gt;I&amp;#39;ve been using Rev but the per minute cost adds up&lt;/p&gt;</content>
+  <id>t3_abc123</id>
+  <link href="https://www.reddit.com/r/podcasting/comments/abc123/best_rev_alternatives/" />
+  <updated>2026-08-11T10:00:00+00:00</updated>
+  <title>Best Rev alternatives for transcribing podcasts?</title>
+</entry>
+</feed>`;
+
+  it("extrae los campos que necesita la puntuación", () => {
+    const [entry] = parseAtom(feed);
+    expect(entry?.id).toBe("t3_abc123");
+    expect(entry?.subreddit).toBe("podcasting");
+    expect(entry?.permalink).toBe("/r/podcasting/comments/abc123/best_rev_alternatives/");
+    expect(entry?.author).toBe("/u/Serious6Reason");
+    expect(typeof entry?.created_utc).toBe("number");
+  });
+
+  it("descodifica el HTML escapado dos veces del cuerpo", () => {
+    const [entry] = parseAtom(feed);
+    expect(entry?.selftext).toBe("I've been using Rev but the per minute cost adds up");
+    expect(entry?.selftext).not.toContain("<p>");
+    expect(entry?.selftext).not.toContain("&#39;");
+  });
+
+  it("un feed vacío no revienta", () => {
+    expect(parseAtom("<feed></feed>")).toEqual([]);
+    expect(parseAtom("")).toEqual([]);
+  });
+
+  it("sin número de comentarios no se inventa que el hilo esté tranquilo", () => {
+    const base = {
+      title: "Any free tool to transcribe an interview?",
+      selftext: "",
+      created_utc: hoursAgo(2),
+    };
+    const unknown = scoreThread(base);
+    const quiet = scoreThread({ ...base, num_comments: 2 });
+    expect(quiet.score).toBeGreaterThan(unknown.score);
   });
 });

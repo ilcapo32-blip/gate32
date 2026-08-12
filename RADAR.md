@@ -73,19 +73,30 @@ honesta y útil en un hilo que posiciona **no se mide en clics de esa tarde**,
 sino en meses de recomendaciones. Sube el valor de responder bien y baja el de
 responder mucho.
 
-## Puesta en marcha (unos minutos, 0 €)
+## Puesta en marcha: ninguna
 
-1. **Crear la app de Reddit** en <https://www.reddit.com/prefs/apps> → *create
-   another app* → tipo **script**. El nombre da igual; en *redirect uri* vale
-   `http://localhost`.
-2. Apuntar el **client id** (bajo el nombre de la app) y el **secret**.
-3. En GitHub: *Settings → Secrets and variables → Actions → New repository
-   secret*, y crear `REDDIT_CLIENT_ID` y `REDDIT_CLIENT_SECRET`.
+**No hace falta configurar nada.** El radar usa los feeds RSS públicos de
+Reddit: sin registro de aplicación, sin aceptar políticas de desarrollador y
+sin secretos que guardar.
 
-Las credenciales viven solo ahí. **Nunca en el repositorio**, que es público.
+La primera versión usaba la API con OAuth y se quedó atascada en el formulario
+de alta de aplicación. Una herramienta interna que depende de un trámite no es
+una herramienta: es una intención. Los feeds dan casi lo mismo sin ese peaje.
 
-Sin los secretos configurados el workflow no falla: no busca y termina en
-silencio.
+**Lo que se pierde frente a la API:** el número de comentarios de cada hilo. La
+puntuación lo trata como desconocido y no ajusta nada, en vez de suponer que el
+hilo está tranquilo. Las normas de autopromoción se siguen leyendo, desde el
+endpoint público `/r/<sub>/about/rules.json`.
+
+**Riesgo conocido:** Reddit bloquea a veces las IP de los centros de datos, y
+los ejecutores de GitHub Actions lo son. Si ocurre, el resumen **lo dice** en
+lugar de callar: un informe vacío por bloqueo es indistinguible de "no hay
+nada", y confundir una cosa con la otra es el error que ya cometimos con las
+métricas. Si se repite, se ejecuta a mano desde tu equipo:
+
+```bash
+node scripts/radar.mjs
+```
 
 ## Cómo se lee el resumen
 

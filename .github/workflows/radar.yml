@@ -23,10 +23,8 @@ jobs:
         with:
           node-version: 22
 
+      # Sin credenciales: usa los feeds RSS públicos de Reddit.
       - name: Buscar hilos
-        env:
-          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
-          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
         run: node scripts/radar.mjs
 
       - name: Abrir issue si hay algo
