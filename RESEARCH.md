@@ -156,6 +156,27 @@ el consejo asesor de RSS.com, y la sección donde nos mencionaron la patrocina
 RSS.com. Lo declara abiertamente. No invalida la mención —es editorial—, pero
 sí explica por qué RSS.com es el primer destinatario natural del pitch.
 
+### 1f · La corrección, otra vez (2026-08-12)
+
+Hilo de r/podcasting de hace tres meses (12 votos, 49 comentarios), sin
+responder por nuestra parte: está muerto y ya nos avisaron ahí de la norma de
+autopromoción. Vale como investigación, no como canal.
+
+Lo que pide quien pregunta, textual: precisión inconsistente **con acentos y
+ruido de fondo**, herramientas **lentas**, y sobre todo *"idealmente algo que
+no necesite un montón de limpieza después"*.
+
+Es la tercera vez que aparece la misma idea —tras el comentario de
+r/asklinguistics y las dos peticiones sobre formato de subtítulos— y coincide
+con la hipótesis escrita el primer día y **todavía sin validar**: el dolor no
+es generar el borrador, es el pase de corrección. Cuatro señales
+independientes empiezan a ser demasiadas para seguir ignorándola.
+
+**Competidor nuevo sin verificar: `prismascribe`.** Recomendado en el
+comentario más votado por rapidez y precisión *"sin tener que ajustar el
+texto"*. No comprobado (el entorno bloquea la salida a internet): falta saber
+si es local o de servidor y si cobra por minuto.
+
 **Señal cualitativa más valiosa del hilo de r/asklinguistics** (12 votos, el
 comentario más apoyado): *"Si los datos tienen que ser precisos, alguien tiene
 que hacerlo a mano. Simplemente no hay una forma real de evitarlo."*
