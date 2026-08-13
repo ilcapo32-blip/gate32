@@ -156,6 +156,50 @@ el consejo asesor de RSS.com, y la sección donde nos mencionaron la patrocina
 RSS.com. Lo declara abiertamente. No invalida la mención —es editorial—, pero
 sí explica por qué RSS.com es el primer destinatario natural del pitch.
 
+### 1g · PrismaScribe, el competidor que nos recomiendan encima (2026-08-13)
+
+Aparecía recomendado en el comentario más votado del hilo de r/podcasting.
+Verificado sobre su propia web (impresa a PDF, porque el entorno no tiene
+salida a internet).
+
+**Qué es:** servicio **de servidor**. *"Tus archivos están encriptados durante
+la carga y el procesamiento"* — es decir, el archivo sube. Nuestro eje sigue
+intacto.
+
+**Lo que tienen y nosotros no:** diarización de hasta 32 hablantes, resúmenes
+con IA, traducción a 99+ idiomas, vocabulario personalizado con paquetes para
+medicina, derecho y finanzas, eliminación de ruido, modos limpio y literal,
+etiquetas de eventos de audio, importación por URL. Es un producto maduro.
+
+**Velocidad:** dicen 1 hora de audio en 2 minutos. Nosotros, ~9 minutos en
+1:33 con WebGPU, o sea unos 10 minutos por hora. **Son unas cinco veces más
+rápidos** y es lógico: GPU de servidor contra la del usuario. Eso se dice, no
+se esconde.
+
+**Precios:** gratis 0,5 h/mes con archivos de 15 minutos como máximo; de ahí,
+planes desde ~10-12,5 $/mes hasta ~20-25 $/mes según horas (5, 20 o 40 al
+mes), con horas extra comprables que no caducan.
+
+**Tres consecuencias:**
+
+1. **Su plan gratuito confirma nuestro argumento con un ejemplo fresco:** media
+   hora al mes y archivos de 15 minutos. Un episodio de podcast no cabe. Es
+   exactamente la trampa que describimos, verificable y con fecha.
+2. **Compran búsqueda de pago.** La URL trae `gclid` y `gad_campaignid`: están
+   en Google Ads sobre las palabras que nosotros intentamos ganar en orgánico.
+   Con presupuesto 0 € no competimos ahí; el SEO/GEO tarda más pero no se puja.
+3. **Los subtítulos configurables (SRT/VTT) aparecen en su tabla de planes de
+   pago.** No he podido leer con certeza en qué nivel entran, pero que estén en
+   la comparativa de pago es la **primera evidencia de que lo que construimos
+   la semana pasada tiene precio de mercado**, y coincide con las dos peticiones
+   profesionales y con la encuesta.
+
+**Dónde queda nuestro terreno defendible, más estrecho de lo que suponía:** no
+es "IA local en el navegador" (Transcrisper también), ni las funciones
+(PrismaScribe gana), ni la velocidad. Es la combinación de **sin límites, sin
+subida, verificable y gratis de verdad** — que es literalmente lo que pedía el
+podcaster que se quejaba del coste por minuto.
+
 ### 1f · La corrección, otra vez (2026-08-12)
 
 Hilo de r/podcasting de hace tres meses (12 votos, 49 comentarios), sin

@@ -32,6 +32,16 @@ Todas ejecutables en el navegador → coste marginal ≈ 0 → margen ≈ 100 %:
 - Lanzamiento: 50 % primer año para los primeros 50 clientes ("fundadores").
 - Referencia de mercado: Otter Pro ≈ 8–17 $/mes con topes; cobramos la mitad
   sin topes → posicionamiento coherente con la marca.
+- **Segunda referencia, verificada (PrismaScribe, 13/08/2026):** 10-12,5 $/mes
+  por 5-20 h y 20-25 $/mes por 40 h, con plan gratuito de **media hora al mes y
+  archivos de 15 minutos como máximo**. Confirma la horquilla y confirma que
+  todos los planes gratuitos del sector son de prueba, no de uso.
+- **Y una señal de precio sobre lo que ya hemos construido:** los subtítulos
+  configurables SRT/VTT figuran en su comparativa de **planes de pago**. Es la
+  primera evidencia de que el formateo de subtítulos —lo que nos pidieron dos
+  profesionales y lo que dice la encuesta— tiene precio de mercado. Si algún
+  día hay Pro, ese es el candidato con más respaldo, por delante de la
+  diarización.
 - Escenarios MRR: 50 clientes ≈ 200 €/mes · 250 ≈ 1.000 €/mes · 1.000 ≈ 4.000 €/mes.
 
 ## 3 · Rail de pago (decidido, pendiente de trigger)
