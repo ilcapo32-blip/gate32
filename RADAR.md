@@ -88,15 +88,63 @@ puntuación lo trata como desconocido y no ajusta nada, en vez de suponer que el
 hilo está tranquilo. Las normas de autopromoción se siguen leyendo, desde el
 endpoint público `/r/<sub>/about/rules.json`.
 
-**Riesgo conocido:** Reddit bloquea a veces las IP de los centros de datos, y
-los ejecutores de GitHub Actions lo son. Si ocurre, el resumen **lo dice** en
-lugar de callar: un informe vacío por bloqueo es indistinguible de "no hay
+**Riesgo conocido, ya materializado:** Reddit limita las IP de los centros de
+datos, y los ejecutores de GitHub Actions lo son. El 14/08/2026 la primera
+petición dio 403 y las quince siguientes 429 seguidas. El resumen **lo dice**
+en lugar de callar: un informe vacío por bloqueo es indistinguible de "no hay
 nada", y confundir una cosa con la otra es el error que ya cometimos con las
-métricas. Si se repite, se ejecuta a mano desde tu equipo:
+métricas.
+
+Mitigaciones puestas (14/08/2026): reintentos con espera creciente respetando
+`Retry-After`, pausa base de 4 s en vez de 2 s, y un cortacircuitos que
+abandona tras cinco fallos seguidos — cuando la IP viene limitada, insistir
+veinte minutos da el mismo informe que rendirse en uno.
+
+**Puede que no baste.** Si el bloqueo persiste, la vía fiable es ejecutarlo
+desde un equipo propio, con IP doméstica:
 
 ```bash
 node scripts/radar.mjs
 ```
+
+El resumen sale por pantalla. Si se repite varios días, la alternativa es
+volver a la API con credenciales.
+
+## El fallo del 13/08/2026: cuatro días de silencio
+
+Merece quedar escrito porque es el modo de fallo que este archivo decía
+querer evitar, y ocurrió igual.
+
+El radar llevaba desde el día 10 ejecutándose dos veces al día, siempre con
+resultado *success*. No abrió ni una sola issue. El 13 por la tarde encontró
+una respuesta real en un hilo propio, la apuntó como vista y no la reportó.
+Esa conversación se perdió.
+
+La cadena fue esta:
+
+1. La etiqueta `radar` no existía en el repositorio.
+2. `gh issue create --label radar` aborta **sin crear la issue** si la
+   etiqueta no existe.
+3. El comando llevaba `|| true`, así que el paso terminaba en verde.
+4. El paso siguiente hacía commit de la lista de vistos igualmente.
+
+Cada eslabón por separado parecía prudente. Juntos convertían el radar en un
+sistema que olvida lo que no ha contado, en silencio y con el semáforo en
+verde.
+
+**Lo que se ha cambiado, y por qué en ese orden:**
+
+- La etiqueta se crea antes de usarla.
+- Se ha quitado el `|| true`: si el aviso no sale, el trabajo falla y GitHub
+  manda el correo de siempre. Un radar que calla es peor que no tener radar.
+- **La lista de vistos solo se guarda si el aviso ha salido.** Es la regla de
+  fondo (`nextSeen` en `radar-core.mjs`, con pruebas): marcar como visto es
+  una promesa de haber avisado. Repetir un hilo cuesta un vistazo; perder una
+  respuesta cuesta la conversación.
+- Cuando Reddit bloquea la pasada no se recuerda nada, ni siquiera lo poco que
+  llegó: el resumen de esa pasada es el aviso de bloqueo, así que esos hilos
+  tampoco están contados.
+- La lista se ha vaciado para que vuelva a aparecer lo que se tragó.
 
 ## Cómo se lee el resumen
 

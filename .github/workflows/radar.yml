@@ -27,19 +27,32 @@ jobs:
       - name: Buscar hilos
         run: node scripts/radar.mjs
 
+      # Si esto falla, el trabajo falla y GitHub avisa. Antes llevaba `|| true`
+      # y durante cuatro días el radar no reportó nada: la etiqueta `radar` no
+      # existía en el repositorio, `gh issue create` abortaba sin crear la
+      # issue, el error se tragaba y el paso siguiente daba por vistos hilos
+      # que nadie había leído. Un radar que calla es peor que no tener radar.
       - name: Abrir issue si hay algo
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ -s .radar-digest.md ]; then
-            gh issue create \
-              --title "Radar: hilos para responder ($(date -u +%d/%m))" \
-              --body-file .radar-digest.md \
-              --label radar || true
-          else
+          if [ ! -s .radar-digest.md ]; then
             echo "Nada que reportar."
+            exit 0
           fi
+          gh label create radar \
+            --color BFD4F2 \
+            --description "Resúmenes automáticos del radar de Reddit" \
+            2>/dev/null || true
+          gh issue create \
+            --title "Radar: hilos para responder ($(date -u +%d/%m))" \
+            --body-file .radar-digest.md \
+            --label radar
 
+      # Sin `if:` explícito: solo corre si el paso anterior ha ido bien. Es
+      # justo lo que se quiere — se olvida un hilo únicamente después de
+      # haberlo contado. Repetir un hilo cuesta un vistazo; perder una
+      # respuesta cuesta la conversación.
       - name: Recordar los hilos ya vistos
         run: |
           if ! git diff --quiet .radar-seen.json; then

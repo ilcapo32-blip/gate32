@@ -21,6 +21,7 @@ import {
   rank,
   formatDigest,
   newComments,
+  nextSeen,
   formatReplies,
   formatMentions,
   promoRisk,
@@ -41,26 +42,56 @@ const USER_AGENT = `web:gate32-radar:2.0 (by /u/${ACCOUNT})`;
 let attempts = 0;
 let failures = 0;
 
-/** Descarga un recurso de Reddit, devolviendo null en vez de reventar. */
-async function fetchText(url) {
+// Cortacircuitos. El 14/08/2026 la IP del ejecutor venía ya limitada: la
+// primera petición dio 403 y las quince siguientes 429, una detrás de otra.
+// Cuando eso pasa, reintentar durante veinte minutos produce exactamente el
+// mismo informe que rendirse en uno. Se abandona pronto y se dice por qué.
+const GIVE_UP_AFTER = 5;
+let streak = 0;
+const givenUp = () => streak >= GIVE_UP_AFTER;
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Descarga un recurso de Reddit, devolviendo null en vez de reventar.
+ *
+ * Un 429 desde un centro de datos no es un "no" definitivo: la IP del ejecutor
+ * es compartida y la cuota se recupera sola. Por eso se reintenta con espera
+ * creciente, respetando `Retry-After` si Reddit lo manda.
+ */
+async function fetchText(url, tries = 3) {
   attempts++;
-  try {
-    const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
-    if (!res.ok) {
-      failures++;
-      console.warn(`${url} → ${res.status}`);
-      return null;
-    }
-    return await res.text();
-  } catch (err) {
+  if (givenUp()) {
     failures++;
-    console.warn(`${url} → ${String(err)}`);
     return null;
   }
+  for (let i = 0; i < tries; i++) {
+    try {
+      const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+      if (res.ok) {
+        streak = 0;
+        return await res.text();
+      }
+      const retriable = res.status === 429 || res.status >= 500;
+      const last = !retriable || i === tries - 1;
+      console.warn(`${url} → ${res.status}${last ? "" : " (reintento)"}`);
+      if (last) break;
+      const after = Number(res.headers.get("retry-after"));
+      await sleep(after > 0 ? Math.min(after, 60) * 1000 : 10000 * 2 ** i);
+    } catch (err) {
+      console.warn(`${url} → ${String(err)}`);
+      if (i === tries - 1) break;
+      await sleep(10000 * 2 ** i);
+    }
+  }
+  failures++;
+  streak++;
+  if (givenUp()) console.warn(`${GIVE_UP_AFTER} fallos seguidos: la IP está limitada, se abandona.`);
+  return null;
 }
 
 /** Pausa entre peticiones: los feeds públicos también tienen límites. */
-const pause = () => new Promise((r) => setTimeout(r, 2000));
+const pause = () => sleep(4000);
 
 async function search(query) {
   const url = new URL("https://www.reddit.com/search.rss");
@@ -121,6 +152,7 @@ const mentions = (await search("gate32")).filter((m) => !seen.includes(m.id));
 // 3 · Hilos nuevos donde tendría sentido aparecer, competidores incluidos.
 const found = [];
 for (const query of [...QUERIES.map((q) => q.q), ...COMPETITORS]) {
+  if (givenUp()) break;
   await pause();
   found.push(...(await search(query)));
 }
@@ -141,7 +173,7 @@ for (const item of items.slice(0, 10)) {
 // indistinguible de "no hay nada" es peor que un error.
 const blocked = attempts > 0 && failures / attempts > 0.8;
 const digest = blocked
-  ? `## El radar no ha podido consultar Reddit\n\nReddit rechazó ${failures} de ${attempts} peticiones. Suele ser bloqueo de la IP del ejecutor de GitHub Actions, no un problema del código.\n\n**Esto no significa que no haya hilos: significa que no hemos podido mirar.** Si se repite, hay que ejecutarlo desde un equipo propio (\`node scripts/radar.mjs\`) o volver a la API con credenciales.`
+  ? `## El radar no ha podido consultar Reddit\n\nReddit rechazó ${failures} de ${attempts} peticiones (429 = cuota agotada para esta IP), incluso reintentando con esperas crecientes. Es el límite de las IP compartidas de GitHub Actions, no un problema del código.\n\n**Esto no significa que no haya hilos: significa que no hemos podido mirar.** Mientras dure, la forma fiable es ejecutarlo desde tu propio equipo, donde la IP es doméstica y Reddit no la limita:\n\n\`\`\`bash\ngit clone https://github.com/ilcapo32-blip/gate32 && cd gate32\nnode scripts/radar.mjs\n\`\`\`\n\nEl resumen sale por pantalla. Si esto se repite varios días seguidos, la alternativa es volver a la API con credenciales.`
   : [formatReplies(replies), formatMentions(mentions), formatDigest(items)]
       .filter(Boolean)
       .join("\n");
@@ -149,10 +181,12 @@ const worthReporting = blocked || replies.length > 0 || mentions.length > 0 || i
 writeFileSync(OUT_FILE, worthReporting ? digest : "");
 console.log(digest);
 
-const updated = [
-  ...seen,
-  ...items.map((i) => i.id),
-  ...replies.map((r) => r.id),
-  ...mentions.map((m) => m.id),
-].slice(-1500);
+// Solo se olvida lo que se ha llegado a contar (ver `nextSeen`). En CI el
+// aviso es la issue, así que el flujo de trabajo solo hace commit de este
+// archivo cuando la issue se ha creado de verdad; en local el aviso es esta
+// misma salida por pantalla.
+const updated = nextSeen(seen, {
+  blocked,
+  ids: [...items.map((i) => i.id), ...replies.map((r) => r.id), ...mentions.map((m) => m.id)],
+});
 writeFileSync(SEEN_FILE, JSON.stringify(updated, null, 0));

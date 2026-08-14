@@ -166,6 +166,26 @@ export function newComments(comments, seen = [], selfAuthor = "") {
     .sort((a, b) => (b.created_utc ?? 0) - (a.created_utc ?? 0));
 }
 
+/**
+ * Qué se marca como visto tras una pasada.
+ *
+ * La regla es una sola y no admite matices: **solo se olvida lo que se ha
+ * llegado a contar.** El 13/08/2026 el radar encontró una respuesta real en un
+ * hilo propio, la apuntó como vista y no la reportó nunca —el `gh issue create`
+ * había fallado por una etiqueta inexistente y un `|| true` se comió el error—.
+ * Esa respuesta quedó invisible para siempre. Marcar como visto es una promesa
+ * de haber avisado, así que aquí se rompe la promesa a propósito cuando no ha
+ * habido aviso: se prefiere repetir un hilo a perder una conversación.
+ *
+ * Por eso, si Reddit bloqueó la pasada, no se recuerda nada: lo poco que llegó
+ * no aparece en el resumen (que es el aviso de bloqueo), así que tampoco puede
+ * darse por contado.
+ */
+export function nextSeen(seen, { blocked = false, reported = true, ids = [] } = {}) {
+  if (blocked || !reported) return [...seen];
+  return [...seen, ...ids.filter(Boolean)].slice(-1500);
+}
+
 /** Resumen de respuestas pendientes, lo primero que hay que leer del correo. */
 export function formatReplies(items, now = new Date()) {
   if (items.length === 0) return "";

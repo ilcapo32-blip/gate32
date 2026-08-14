@@ -6,6 +6,7 @@ import {
   pickTemplate,
   formatDigest,
   newComments,
+  nextSeen,
   formatReplies,
   promoRisk,
   parseAtom,
@@ -229,5 +230,41 @@ describe("radar · feeds RSS de Reddit", () => {
     const unknown = scoreThread(base);
     const quiet = scoreThread({ ...base, num_comments: 2 });
     expect(quiet.score).toBeGreaterThan(unknown.score);
+  });
+});
+
+// El 13/08/2026 el radar encontró una respuesta real, la apuntó como vista y
+// no la reportó: `gh issue create` había fallado por una etiqueta inexistente
+// y un `|| true` se comió el error. Estos casos fijan la regla que faltaba.
+describe("radar · solo se olvida lo que se ha contado", () => {
+  it("recuerda lo reportado en una pasada normal", () => {
+    expect(nextSeen(["t3_viejo"], { ids: ["t3_nuevo", "t1_abc"] })).toEqual([
+      "t3_viejo",
+      "t3_nuevo",
+      "t1_abc",
+    ]);
+  });
+
+  it("no recuerda nada si el aviso no ha salido", () => {
+    expect(nextSeen(["t3_viejo"], { reported: false, ids: ["t1_respuesta"] })).toEqual([
+      "t3_viejo",
+    ]);
+  });
+
+  it("con Reddit bloqueado no da por visto lo poco que llegó", () => {
+    // El resumen de una pasada bloqueada es el aviso de bloqueo: los hilos que
+    // sí se descargaron no aparecen en él, así que no están contados.
+    expect(nextSeen([], { blocked: true, ids: ["t3_a", "t3_b"] })).toEqual([]);
+  });
+
+  it("descarta ids vacíos en vez de guardar huecos", () => {
+    expect(nextSeen([], { ids: ["t3_a", undefined, ""] })).toEqual(["t3_a"]);
+  });
+
+  it("no crece sin límite", () => {
+    const muchos = Array.from({ length: 1600 }, (_, i) => `t3_${i}`);
+    const out = nextSeen(muchos, { ids: ["t3_ultimo"] });
+    expect(out.length).toBe(1500);
+    expect(out.at(-1)).toBe("t3_ultimo");
   });
 });

@@ -48,6 +48,10 @@ export function newComments(
   seen?: string[],
   selfAuthor?: string,
 ): RedditComment[];
+export function nextSeen(
+  seen: string[],
+  opts?: { blocked?: boolean; reported?: boolean; ids?: (string | undefined)[] },
+): string[];
 export function formatReplies(items: RedditComment[], now?: Date): string;
 export function formatMentions(items: RedditThread[]): string;
 export function formatDigest(items: ScoredThread[], now?: Date): string;

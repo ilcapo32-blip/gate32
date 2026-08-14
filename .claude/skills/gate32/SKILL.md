@@ -71,12 +71,29 @@ El radar busca, puntúa y avisa. **No publica.** Automatizar respuestas
 promocionales incumple las normas de la mayoría de subreddits, arriesga la
 cuenta y contradice el motivo por el que alguien nos creería.
 
-## 7. Secretos fuera del repositorio
+## 7. Un aviso automático que falla en silencio no existe
+
+El radar estuvo cuatro días ejecutándose dos veces al día, siempre en verde,
+sin abrir una sola issue. Encontró una respuesta real en un hilo propio, la
+apuntó como vista y no la reportó: `gh issue create --label radar` abortaba
+porque la etiqueta no existía, y un `|| true` se comía el error.
+
+De ahí tres reglas que se aplican a cualquier automatización del proyecto:
+
+- **Nada de `|| true` en el paso que avisa.** Si el aviso no sale, el trabajo
+  debe fallar y hacer ruido.
+- **No se marca como hecho lo que no se ha entregado.** Guardar "ya visto"
+  antes de confirmar el aviso convierte un fallo puntual en una pérdida
+  permanente. En el radar esto vive en `nextSeen`, con pruebas.
+- **Verde no es prueba de nada.** Al tocar un flujo programado, se mira una
+  ejecución real y su salida, no el color del semáforo.
+
+## 8. Secretos fuera del repositorio
 
 Es público. Las credenciales van en variables de entorno o en *secrets* de
 GitHub. Nunca en un archivo.
 
-## 8. Commits
+## 9. Commits
 
 Mensajes en inglés. El asunto dice qué cambia; el cuerpo, **por qué** y qué
 evidencia lo motivó. Sin emojis, sin firmas de herramientas, sin identificador
@@ -84,14 +101,14 @@ de modelo. Si el mensaje lleva caracteres especiales, `git commit -F fichero`.
 
 La firma con GPG falla en este entorno: `git -c commit.gpgsign=false commit`.
 
-## 9. Antes de dar algo por terminado
+## 10. Antes de dar algo por terminado
 
 `npx tsc --noEmit`, `npm test`, `npm run build` y
 `CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node scripts/e2e.mjs`.
 
 El E2E ya ha detectado defectos reales que los tests unitarios no veían.
 
-## 10. Dónde está el contexto
+## 11. Dónde está el contexto
 
 - `VALIDATION.md` — métricas, umbrales y todas las mediciones con sus
   correcciones.
