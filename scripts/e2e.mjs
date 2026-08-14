@@ -254,6 +254,12 @@ try {
     "el botón pasa a confirmar",
     ((await page.locator("#meeting-label").textContent()) ?? "").includes("empezar"),
   );
+  // Dos grabaciones a la vez dejarían dos cronómetros y dos archivos de la
+  // misma voz: mientras una corre, la otra no se puede empezar.
+  await page.evaluate(() => window.__g32.micRecording(true));
+  check("grabando con el micro, la reunión no se puede empezar", await page.locator("#meeting-btn").isDisabled());
+  await page.evaluate(() => window.__g32.micRecording(false));
+  check("al parar el micro vuelve a poder grabarse una reunión", await page.locator("#meeting-btn").isEnabled());
 
   await page.addInitScript(() => {
     // Pestaña compartida sin marcar «compartir audio»: el caso que falla.

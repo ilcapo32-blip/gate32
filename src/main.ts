@@ -764,6 +764,10 @@ let recTimer: number | undefined;
 
 recordBtn.addEventListener("click", async () => {
   if (busy && !recorder) return;
+  // Con una reunión grabándose, el micrófono ya está dentro de la mezcla:
+  // abrir una segunda grabación dejaría dos cronómetros corriendo y dos
+  // archivos distintos de la misma voz.
+  if (meetingRec) return;
   if (recorder) {
     recorder.stop();
     return;
@@ -779,6 +783,7 @@ recordBtn.addEventListener("click", async () => {
       stream.getTracks().forEach((tr) => tr.stop());
       window.clearInterval(recTimer);
       recordBtn.classList.remove("recording");
+      if (meetingBtn) meetingBtn.disabled = false;
       recordLabel.textContent = t("record");
       const blob = new Blob(recChunks, { type: recorder?.mimeType ?? "audio/webm" });
       recorder = null;
@@ -790,6 +795,7 @@ recordBtn.addEventListener("click", async () => {
     recorder.start();
     const t0 = Date.now();
     recordBtn.classList.add("recording");
+    if (meetingBtn) meetingBtn.disabled = true;
     recordLabel.textContent = t("stop_rec", { t: "00:00" });
     recTimer = window.setInterval(() => {
       recordLabel.textContent = t("stop_rec", { t: clock((Date.now() - t0) / 1000) });
@@ -820,6 +826,7 @@ let meetingArmed = false;
 
 function resetMeetingBtn(): void {
   meetingArmed = false;
+  recordBtn.disabled = false;
   meetingBtn?.classList.remove("recording");
   if (meetingLabel) meetingLabel.textContent = t("meeting_btn");
   if (meetingHint) hide(meetingHint);
@@ -833,6 +840,7 @@ if (meetingBtn && canCaptureTab()) {
       meetingRec.stop();
       return;
     }
+    if (recorder) return;
     if (!meetingArmed) {
       meetingArmed = true;
       if (meetingHint) {
@@ -868,6 +876,7 @@ if (meetingBtn && canCaptureTab()) {
       meetingRec.start();
       const t0 = Date.now();
       if (meetingHint) hide(meetingHint);
+      recordBtn.disabled = true;
       meetingBtn.classList.add("recording");
       if (meetingLabel) meetingLabel.textContent = t("meeting_stop", { t: "00:00" });
       meetingTimer = window.setInterval(() => {
@@ -1025,6 +1034,11 @@ if (new URLSearchParams(location.search).has("e2e")) {
     waitSurvey(): void {
       show(statusBox);
       showWaitSurvey(9e6);
+    },
+    // No se puede conceder el micrófono desde Playwright, así que la exclusión
+    // entre las dos grabaciones se comprueba desde su efecto observable.
+    micRecording(on: boolean): void {
+      if (meetingBtn) meetingBtn.disabled = on;
     },
   };
 }
