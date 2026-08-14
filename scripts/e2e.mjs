@@ -220,8 +220,15 @@ try {
   await page.evaluate(() => window.__g32.waitSurvey());
   check("encuesta de espera visible al descargar", await page.locator("#wait-survey").isVisible());
   check("progreso visible junto a la encuesta", await page.locator("#progress-wrap").isVisible());
-  const barBox = await page.locator("#progress-wrap").boundingBox();
+  // En coordenadas del documento, no de la ventana: Playwright desplaza la
+  // página para poder pulsar, y ese desplazamiento no es que la barra se mueva.
+  const barTop = () =>
+    page.evaluate(
+      () => document.querySelector("#progress-wrap").getBoundingClientRect().top + window.scrollY,
+    );
+  const barY = await barTop();
   const surveyBox = await page.locator("#wait-survey").boundingBox();
+  const barBox = await page.locator("#progress-wrap").boundingBox();
   check("la barra de progreso queda por encima de la encuesta", barBox.y < surveyBox.y);
   await page.click("#wait-survey .usecase-opt");
   check(
@@ -229,8 +236,55 @@ try {
     (await page.locator("#wait-survey .wait-survey-thanks").isVisible()) &&
       (await page.locator("#progress-wrap").isVisible()),
   );
-  const barAfter = await page.locator("#progress-wrap").boundingBox();
-  check("la barra no se mueve al responder", Math.abs(barAfter.y - barBox.y) < 1);
+  check("la barra no se mueve al responder", Math.abs((await barTop()) - barY) < 1);
+
+  // 3f · captura de reunión. No se puede conceder compartir pantalla desde
+  // Playwright, así que se valida lo que sí depende de nosotros: que el botón
+  // aparezca donde el navegador sabe capturar una pestaña, que el primer clic
+  // avise antes de abrir el diálogo, y que una pestaña compartida sin audio
+  // termine en un error explicativo en vez de grabar media reunión.
+  await page.goto(`${BASE}/?e2e=1`, { waitUntil: "load" });
+  check("botón de reunión visible en Chromium", await page.locator("#meeting-btn").isVisible());
+  check("aviso de reunión oculto de inicio", await page.locator("#meeting-hint").isHidden());
+  await page.click("#meeting-btn");
+  const meetingHint = (await page.locator("#meeting-hint").textContent()) ?? "";
+  check("el primer clic explica la casilla de audio", /audio de la pestaña/i.test(meetingHint));
+  check("el primer clic recuerda pedir consentimiento", /consentimiento/i.test(meetingHint));
+  check(
+    "el botón pasa a confirmar",
+    ((await page.locator("#meeting-label").textContent()) ?? "").includes("empezar"),
+  );
+
+  await page.addInitScript(() => {
+    // Pestaña compartida sin marcar «compartir audio»: el caso que falla.
+    navigator.mediaDevices.getDisplayMedia = () =>
+      Promise.resolve({
+        getTracks: () => [{ stop() {} }],
+        getAudioTracks: () => [],
+        getVideoTracks: () => [],
+      });
+  });
+  await page.goto(`${BASE}/?e2e=1`, { waitUntil: "load" });
+  await page.click("#meeting-btn");
+  await page.click("#meeting-btn");
+  await page.waitForSelector("#error:not([hidden])", { timeout: 10000 });
+  check(
+    "pestaña sin audio: error que dice cómo arreglarlo",
+    /casilla/i.test((await page.locator("#error-hint").textContent()) ?? ""),
+  );
+  check(
+    "tras el fallo el botón vuelve a su estado inicial",
+    ((await page.locator("#meeting-label").textContent()) ?? "").includes("Grabar una reunión"),
+  );
+  await page.click("#error-dismiss");
+
+  const reuniones = await page.goto(`${BASE}/reuniones/`, { waitUntil: "load" });
+  check("/reuniones/ responde 200", (reuniones?.status() ?? 0) === 200);
+  check(
+    "/reuniones/ explica el problema de los auriculares",
+    /auriculares/i.test((await page.locator("main").textContent()) ?? ""),
+  );
+  check("/reuniones/ lleva al transcriptor", (await page.locator('a[href="/"]').count()) > 0);
 
   // 3e · página de integración: la misma app sin la web alrededor. Si algún
   // elemento que la aplicación exige faltara, main.ts lanzaría al arrancar y

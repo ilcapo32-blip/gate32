@@ -32,6 +32,20 @@ page.
 You can re-open an exported JSON later — drop it back in — which lets you
 transcribe on a fast machine and review the result on another one.
 
+### Recording a meeting
+
+On desktop Chrome or Edge there's a **Record a meeting** button. It captures
+the audio your meeting tab is *playing* (`getDisplayMedia({audio: true})`) and
+mixes it with your microphone, so it picks up everyone even when you're
+wearing headphones — an ambient recorder in that setup only ever captures you.
+
+No bot joins the call: Gate32 is a browser tab listening to another browser
+tab, so it never appears in the participant list and the audio is never
+uploaded. If the shared tab arrives with no audio track — the user didn't tick
+"Also share tab audio" — capture **aborts with an explanation** instead of
+silently recording half the meeting. Recording other people requires their
+consent; the app says so before it starts.
+
 ## Architecture
 
 ```
@@ -43,6 +57,7 @@ src/lib/
   worker.ts           Whisper via transformers.js (WebGPU → WASM fallback)
   transcriber.ts      typed worker client (swappable AI layer)
   audio.ts            decoding to mono 16 kHz (OfflineAudioContext)
+  meeting.ts          tab-audio + mic capture for video calls
   formats.ts          pure logic: windows, merging, TXT/MD/SRT/VTT/JSON
   i18n.ts             strings for JS-generated UI (ES/EN)
   analytics.ts        anonymous validation events
@@ -123,6 +138,9 @@ Every push to `main` publishes to https://gate32.autoritasai.com.
   several times faster than real time; without it, WASM works but is slow with
   the Accurate model.
 - **No speaker diarization** and no summaries yet.
+- Meeting capture needs desktop Chrome or Edge; Firefox and Safari don't allow
+  capturing a tab's audio, and mobile browsers don't either. The button is
+  hidden where it wouldn't work.
 - Very long files (>~90 min) need comfortable memory; the app warns you.
 - Safari/iOS works via WASM but without acceleration.
 

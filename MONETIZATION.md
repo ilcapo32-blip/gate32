@@ -63,6 +63,37 @@ buildmvpfast.com/blog/lemon-squeezy-vs-polar-paddle-merchant-of-record-2026.
 4. Riesgo de pirateo asumido conscientemente: a esta escala es irrelevante y
    el free ya es generoso; no se invierte en DRM.
 
+## 3b · Lo que cambia con la captura de reuniones (2026-08-14)
+
+La función de grabar videollamadas (ver PRODUCT.md) mueve una pieza del plan,
+y conviene decir cuál exactamente para no sobreinterpretarla.
+
+**No cambia:** el núcleo sigue gratis, y la función de captura también. Cobrar
+por grabar la reunión sería cobrar por `getDisplayMedia`, que es del navegador
+y no nuestro.
+
+**Sí cambia el orden de la escalera B2B.** El paso 3 de §5 ("capa B2B: actas de
+reuniones para equipos") estaba planteado como algo lejano que requeriría
+infraestructura propia. Ahora la mitad difícil —**meter el audio de la reunión
+dentro del producto**— ya está hecha y sin coste de servidor. Lo que falta
+para un producto de reuniones vendible es la capa de entregable: acta,
+acuerdos, tareas y quién dijo qué.
+
+**Y cambia el argumento de venta, que era el eslabón débil.** Contra Otter o
+Fireflies no íbamos a ganar por funciones. Contra "vuestra política prohíbe
+meter bots en las reuniones" sí hay conversación, porque ahí no hay
+competencia de producto: hay una prohibición y una necesidad sin cubrir.
+
+**Sigue sin haber señal de pago de ningún usuario final.** Esto es una hipótesis
+mejor situada, no un ingreso. El orden se mantiene: medir primero
+(`transcribe_start_meeting`), construir después.
+
+| Señal | Qué desbloquea |
+|---|---|
+| `transcribe_start_meeting` ≥ 15 % de `transcribe_start` | Las reuniones son un caso de uso real → actas con IA pasan a ser la primera feature Pro candidata, por delante de las herramientas de corrección |
+| Alguien pregunta por equipos o por varias personas | Conversación B2B directa: es la única vía a un plan por asiento sin construirlo a ciegas |
+| `meeting_no_audio` / `meeting_start` > 30 % | No es problema de monetización sino de explicación: arreglar el flujo antes de construir nada encima |
+
 ## 4 · Triggers (no construir antes de la señal)
 
 | Señal (GoatCounter) | Acción |
@@ -80,7 +111,9 @@ buildmvpfast.com/blog/lemon-squeezy-vs-polar-paddle-merchant-of-record-2026.
    MoR (creadores que recomiendan la herramienta con comisión).
 3. **1.000 € →** · capa B2B: actas de reuniones para equipos (planes por
    asiento) y/o API de transcripción privada; ahí sí, infraestructura propia
-   financiada por el MRR existente.
+   financiada por el MRR existente. **Desde 2026-08-14 la captura de la
+   reunión ya está construida y no cuesta servidor** (§3b): lo que falta es el
+   entregable, no la entrada de audio.
 
 ## 6 · Instrumentación de esta hoja de ruta
 

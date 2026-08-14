@@ -88,6 +88,59 @@ construido un "Proof Listener" que compara la grabación con el manuscrito para
 detectar desviaciones. Es decir: alguien con el problema encima dedicó
 esfuerzo a **verificar**, no a generar. Refuerza lo anotado en RESEARCH.md §1b.
 
+## Reuniones: la primera función que un competidor de servidor no puede copiar (2026-08-14)
+
+Origen: una pregunta del propietario, no una hipótesis de escritorio. Quería
+transcribir sus videoconferencias de Meet y había estado grabando con la
+grabadora del móvil. Y traía el diagnóstico hecho: *"si estás usando cascos y
+micrófono de los cascos, claro, solo yo a través del casco escucho el audio
+del otro conferenciante"*. Es exacto. Con auriculares, el micrófono ambiente
+capta media conversación, y la mitad que capta es la que menos falta hace.
+
+**La salida es `getDisplayMedia` con `audio: true`.** Al compartir la pestaña
+de la videollamada, el navegador entrega el sonido que esa pestaña
+**reproduce**, tomado antes de los altavoces. Se mezcla con el micrófono en un
+`AudioContext` y sale una sola pista con la reunión entera.
+
+**Por qué esto cambia la posición competitiva y no solo añade un botón:**
+
+1. **Un servicio de servidor no puede hacerlo.** Otter, Fireflies, tl;dv y
+   Fathom resuelven el mismo problema **metiendo un bot en la llamada**: un
+   participante más, con nombre, visible para todos, que sube el audio a sus
+   servidores. Nosotros no nos conectamos a la reunión: somos una pestaña
+   escuchando a otra pestaña. Para la llamada no existimos.
+2. **El bot es un veto, no una molestia.** Muchas organizaciones prohíben
+   asistentes externos en sus reuniones, y en otras el invitado desconocido en
+   la lista de participantes es socialmente caro. Ahí no competimos por
+   precio: competimos contra "no se puede".
+3. **Es la primera vez que "local" no es solo una promesa de privacidad, sino
+   una capacidad.** Hasta hoy nuestro argumento local era defensivo (*tu audio
+   no sale*). Este es ofensivo: hay algo que solo se puede hacer desde dentro
+   del navegador del usuario.
+
+**Lo que cuesta, dicho sin adornos:**
+
+- **Solo Chrome y Edge de escritorio.** Firefox y Safari no permiten capturar
+  el audio de una pestaña, y en el móvil no existe. El botón no aparece donde
+  no funciona, en vez de fallar al pulsarlo.
+- **Depende de una casilla que el usuario tiene que marcar** («compartir
+  también el audio de la pestaña»). Si no la marca, el navegador entrega la
+  pestaña muda. Por eso el flujo tiene dos pasos: el primer clic explica la
+  casilla, y si aun así llega sin audio **se aborta con un mensaje** en vez de
+  grabar media reunión sin avisar. Un fallo silencioso aquí sería peor que no
+  tener la función: el usuario se enteraría al terminar la reunión.
+- **Consentimiento.** Grabar a otras personas lo exige. El aviso va antes de
+  empezar, no en la letra pequeña. Que sea técnicamente privado no lo hace
+  legal.
+
+**Qué medir antes de invertir más aquí** (`transcribe_start_meeting`,
+`meeting_click`, `meeting_no_audio`): si el ratio `meeting_no_audio` /
+`meeting_start` es alto, el problema no es la función sino la explicación. Y
+si `transcribe_start_meeting` pesa de forma apreciable sobre el total,
+entonces las actas y resúmenes de MONETIZATION.md §1 dejan de ser una capa
+Pro genérica y pasan a ser el producto de reuniones — que es, además, donde
+el mercado ya paga por asiento.
+
 ## Propuesta de valor (una frase)
 
 > Transcribe y subtitula cualquier audio o vídeo con IA, gratis y sin límites,
@@ -101,6 +154,7 @@ esfuerzo a **verificar**, no a generar. Refuerza lo anotado en RESEARCH.md §1b.
 | Sin instalar nada | ✅ | ✅ | ❌ | ✅ |
 | Sin registro / sin topes | ✅ | ❌ | ✅ | ✅ |
 | Editor sincronizado + SRT/VTT/TXT/MD | ✅ | ✅ (de pago) | Parcial | ❌ |
+| Graba reuniones **sin bot en la llamada** | ✅ (Chrome/Edge) | ❌ (bot participante) | Parcial (audio del sistema) | ❌ |
 | UX en español | ✅ | Parcial | ❌ | ❌ |
 
 ## Papel de la IA y costes

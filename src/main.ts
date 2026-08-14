@@ -23,6 +23,7 @@ import {
 } from "./lib/formats";
 import { MODELS, type ModelQuality, type Segment } from "./lib/types";
 import { t, lang, locale } from "./lib/i18n";
+import { canCaptureTab, captureMeeting, NoTabAudioError } from "./lib/meeting";
 import { initAnalytics, track, trackVisit } from "./lib/analytics";
 import { ensureStorage, humanBytes } from "./lib/storage";
 import {
@@ -43,6 +44,10 @@ const dropzone = $("#dropzone");
 const fileInput = $<HTMLInputElement>("#file-input");
 const recordBtn = $<HTMLButtonElement>("#record-btn");
 const recordLabel = $("#record-label");
+// Opcionales: /embed/ y las páginas de caso de uso no llevan captura de reunión.
+const meetingBtn = document.querySelector<HTMLButtonElement>("#meeting-btn");
+const meetingLabel = document.querySelector<HTMLElement>("#meeting-label");
+const meetingHint = document.querySelector<HTMLElement>("#meeting-hint");
 const modelSelect = $<HTMLSelectElement>("#model-quality");
 const langSelect = $<HTMLSelectElement>("#language");
 const statusBox = $("#status");
@@ -197,6 +202,11 @@ let phase: "idle" | "download" | "inference" = "idle";
 // (Safari lo borra tras unos días sin visitas). A quien esté en ese caso se le
 // ofrece la única salida real: instalar la web como aplicación.
 let storagePersisted = true;
+
+// Una reunión grabada sin micrófono sale entera menos la voz de quien graba.
+// Decirlo al final evita la conclusión más cara: creer que la herramienta se
+// ha saltado frases al azar.
+let meetingNoMic = false;
 
 let waitSurveyShown = false;
 function showWaitSurvey(bytesDone: number): void {
@@ -358,9 +368,14 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
     device: "?",
     fromHistory: false,
   };
+  const isMeeting = name.startsWith(`${t("meeting_prefix")}-`);
+  if (!isMeeting) meetingNoMic = false;
+  // GoatCounter solo guarda el nombre del evento, no sus propiedades: para
+  // saber cuánto pesan las reuniones hace falta un nombre propio.
+  if (isMeeting) track("transcribe_start_meeting");
   track("transcribe_start", {
     model: quality,
-    source: name.startsWith(`${t("recording_prefix")}-`) ? "mic" : "file",
+    source: isMeeting ? "meeting" : name.startsWith(`${t("recording_prefix")}-`) ? "mic" : "file",
     minutes,
     lang,
   });
@@ -527,7 +542,8 @@ function modelLabel(q: ModelQuality): string {
 function renderResult(metaText: string): void {
   if (!current) return;
   resultTitle.textContent = current.title;
-  resultMeta.textContent = `${current.minutes} min · ${metaText}`;
+  const micNote = meetingNoMic && !current.fromHistory ? ` · ${t("meeting_mic_off")}` : "";
+  resultMeta.textContent = `${current.minutes} min · ${metaText}${micNote}`;
   if (!current.fromHistory) show(player);
   else hide(player);
 
@@ -782,6 +798,97 @@ recordBtn.addEventListener("click", async () => {
     showError(t("mic_error"), t("mic_hint"));
   }
 });
+
+// ── grabación de reuniones (Meet, Zoom, Teams…) ──
+//
+// El micrófono por sí solo no sirve para una videollamada con auriculares: la
+// voz de los demás sale por los cascos y nunca pasa por el aire. Aquí se
+// captura el audio que reproduce la pestaña de la reunión y se mezcla con el
+// micrófono, así que la transcripción incluye a todo el mundo.
+//
+// Dos pasos a propósito. El primer clic solo enseña dos cosas: que hay que
+// marcar la casilla de compartir audio (sin ella el navegador entrega la
+// pestaña muda y se graba media reunión) y que grabar a otras personas exige
+// avisarlas. El diálogo del navegador tapa la página, así que un aviso
+// mostrado a la vez que el diálogo no lo lee nadie.
+
+let meeting: Awaited<ReturnType<typeof captureMeeting>> | null = null;
+let meetingRec: MediaRecorder | null = null;
+let meetingChunks: Blob[] = [];
+let meetingTimer: number | undefined;
+let meetingArmed = false;
+
+function resetMeetingBtn(): void {
+  meetingArmed = false;
+  meetingBtn?.classList.remove("recording");
+  if (meetingLabel) meetingLabel.textContent = t("meeting_btn");
+  if (meetingHint) hide(meetingHint);
+}
+
+if (meetingBtn && canCaptureTab()) {
+  meetingBtn.hidden = false;
+  meetingBtn.addEventListener("click", async () => {
+    if (busy && !meetingRec) return;
+    if (meetingRec) {
+      meetingRec.stop();
+      return;
+    }
+    if (!meetingArmed) {
+      meetingArmed = true;
+      if (meetingHint) {
+        meetingHint.textContent = `${t("meeting_pick")} ${t("meeting_consent")}`;
+        show(meetingHint);
+      }
+      if (meetingLabel) meetingLabel.textContent = t("meeting_start");
+      track("meeting_click");
+      return;
+    }
+    try {
+      meeting = await captureMeeting();
+      track("meeting_start");
+      meetingNoMic = !meeting.withMic;
+      if (meetingNoMic) track("meeting_no_mic");
+      meetingChunks = [];
+      meetingRec = new MediaRecorder(meeting.stream);
+      meetingRec.addEventListener("dataavailable", (e) => {
+        if (e.data.size > 0) meetingChunks.push(e.data);
+      });
+      meetingRec.addEventListener("stop", () => {
+        meeting?.stop();
+        meeting = null;
+        window.clearInterval(meetingTimer);
+        const blob = new Blob(meetingChunks, { type: meetingRec?.mimeType ?? "audio/webm" });
+        meetingRec = null;
+        resetMeetingBtn();
+        if (blob.size > 0) {
+          const stamp = new Date().toTimeString().slice(0, 5).replace(":", ".");
+          void handleFile(blob, `${t("meeting_prefix")}-${stamp}`);
+        }
+      });
+      meetingRec.start();
+      const t0 = Date.now();
+      if (meetingHint) hide(meetingHint);
+      meetingBtn.classList.add("recording");
+      if (meetingLabel) meetingLabel.textContent = t("meeting_stop", { t: "00:00" });
+      meetingTimer = window.setInterval(() => {
+        if (meetingLabel) {
+          meetingLabel.textContent = t("meeting_stop", { t: clock((Date.now() - t0) / 1000) });
+        }
+      }, 500);
+    } catch (err) {
+      resetMeetingBtn();
+      // Cancelar el diálogo de compartir no es un fallo: no se avisa de nada.
+      if (err instanceof DOMException && err.name === "NotAllowedError") return;
+      if (err instanceof NoTabAudioError) {
+        track("meeting_no_audio");
+        showError(t("meeting_no_audio"), t("meeting_no_audio_hint"));
+      } else {
+        track("meeting_error");
+        showError(t("meeting_error"), t("meeting_error_hint"));
+      }
+    }
+  });
+}
 
 // ── cancelar / cerrar errores / nueva ──
 

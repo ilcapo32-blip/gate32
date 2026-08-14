@@ -262,6 +262,13 @@ button { font-family: inherit; }
   margin-top: 0.9rem;
 }
 
+.alt-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .privacy-inline { font-size: 0.8rem; color: var(--muted); }
 
 .mobile-note {

@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transcribir reuniones de Meet, Zoom o Teams sin meter un bot — Gate32</title>
+  <meta name="description" content="Graba y transcribe tus videollamadas sin que entre ningún bot y sin subir el audio a ningún servidor. Captura el sonido de la pestaña, así que funciona aunque lleves auriculares. Gratis, sin registro y sin límite de minutos." />
+  <link rel="canonical" href="https://gate32.autoritasai.com/reuniones/" />
+  <meta property="og:title" content="Transcribe tus reuniones sin meter un bot en la llamada — Gate32" />
+  <meta property="og:description" content="Captura el audio de la pestaña y lo transcribe en tu propio equipo. Sin bot en la lista de participantes y sin subir nada." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gate32.autoritasai.com/reuniones/" />
+  <meta property="og:image" content="https://gate32.autoritasai.com/og.png" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#1c1c1a" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Si llevo auriculares, ¿se graba también la voz de los demás?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sí. Gate32 no graba lo que suena en la sala, sino el audio que reproduce la pestaña de la videollamada. Ese sonido se toma antes de llegar a los auriculares, así que se recoge igual que si sonara por altavoces. Tu voz entra por el micrófono y las dos pistas se mezclan." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Entra algún bot en mi reunión?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. Gate32 no se conecta a la reunión ni aparece en la lista de participantes: es una pestaña más de tu navegador que escucha el sonido de otra pestaña. Los asistentes de reunión al uso se unen como un participante más, cosa que muchas empresas prohíben." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Se sube el audio de la reunión a algún servidor?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. El reconocimiento de voz se ejecuta dentro de tu navegador con un modelo que se descarga una vez. Puedes comprobarlo: una vez descargado el modelo, corta la conexión y la transcripción sigue funcionando." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿En qué navegadores funciona la captura de reuniones?",
+        "acceptedAnswer": { "@type": "Answer", "text": "En Chrome y Edge de escritorio, que son los que permiten compartir el audio de una pestaña. Firefox y Safari todavía no lo permiten. Si tu navegador no puede, el botón no aparece: puedes grabar por otro medio y arrastrar el archivo." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Puedo grabar una reunión sin avisar a los demás?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Grabar a otras personas exige su consentimiento, y en el ámbito laboral suele haber además normas internas. Avisa al principio de la llamada. Gate32 te lo recuerda antes de empezar a grabar." }
+      }
+    ]
+  }
+  </script>
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Gate32, inicio">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="currentColor" opacity="0.14"/><path d="M6 20 V12 M10 23 V9 M14 26 V6 M18 24 V8 M22 21 V11 M26 19 V13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>
+      <span>Gate<b>32</b></span>
+    </a>
+    <nav class="site-nav" aria-label="Secciones">
+      <a href="/subtitulos/">Subtítulos</a>
+      <a href="/entrevistas/">Entrevistas</a>
+      <a href="/#faq">Preguntas</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Transcribe tus reuniones <em>sin meter un bot en la llamada</em></h1>
+      <p class="hero-sub">
+        Gate32 graba el sonido de la pestaña donde tienes Meet, Zoom o Teams y lo transcribe
+        <strong>en tu propio ordenador</strong>. Nadie ve entrar a un asistente en la lista de
+        participantes, y el audio no se sube a ningún sitio.
+      </p>
+      <ul class="badges" aria-label="Ventajas">
+        <li>✓ Funciona con auriculares</li>
+        <li>✓ Sin bot en la reunión</li>
+        <li>✓ Sin subir el audio</li>
+        <li>✓ Sin límite de minutos</li>
+      </ul>
+      <p><a class="btn accent" href="/">Abrir el transcriptor →</a></p>
+    </section>
+
+    <section class="info">
+      <h2>El problema de los auriculares</h2>
+      <p>
+        La forma casera de grabar una videollamada es poner el móvil encima de la mesa. Con los
+        cascos puestos no sirve de nada: la voz de los demás sale por los auriculares y nunca
+        pasa por el aire, así que la grabación recoge <strong>solo la mitad de la
+        conversación</strong> — la tuya.
+      </p>
+      <ol class="steps">
+        <li>
+          <strong>1 · Se captura la pestaña, no la sala</strong>
+          <p>Al pulsar «Grabar una reunión», el navegador te pide elegir una pestaña. Eliges la de la videollamada y marcas «compartir también el audio de la pestaña». A partir de ahí Gate32 recibe el sonido que esa pestaña reproduce, antes de que llegue a tus cascos.</p>
+        </li>
+        <li>
+          <strong>2 · Tu voz se mezcla con la de ellos</strong>
+          <p>El micrófono se añade a la misma grabación. Resultado: una sola pista con toda la reunión, en vez de dos grabaciones que luego hay que cuadrar.</p>
+        </li>
+        <li>
+          <strong>3 · Se transcribe donde estás tú</strong>
+          <p>Al colgar, la transcripción arranca sola en tu navegador, con marcas de tiempo por frase y un editor sincronizado con el audio para repasar lo dudoso. Export a TXT, Markdown, SRT, VTT o JSON.</p>
+        </li>
+      </ol>
+      <p class="hero-sub">
+        No se graba nada de vídeo: en cuanto el navegador entrega el audio, la imagen se descarta.
+      </p>
+    </section>
+
+    <section class="info">
+      <h2>Por qué «sin bot» no es un detalle</h2>
+      <p>
+        Los asistentes de reunión habituales se unen a la llamada como un participante más y suben
+        la grabación a sus servidores. Eso tiene tres consecuencias que a mucha gente le cierran la
+        puerta: aparece un invitado desconocido en la lista, el audio de la empresa acaba en un
+        tercero, y en bastantes organizaciones directamente está prohibido.
+      </p>
+      <p>
+        Gate32 no se conecta a la reunión. Es una pestaña de tu navegador escuchando a otra pestaña
+        de tu navegador; para la llamada, no existe. Y como el modelo de reconocimiento corre en tu
+        equipo, el audio tampoco sale de él: <strong>una vez descargado el modelo puedes cortar la
+        conexión y la transcripción sigue funcionando</strong>. Es la única prueba de privacidad que
+        no hay que creerse.
+      </p>
+      <p class="hero-sub">
+        ⚠️ Que sea técnicamente privado no lo hace automáticamente legal: grabar a otras personas
+        exige su consentimiento. Avísales al principio de la llamada.
+      </p>
+    </section>
+
+    <section class="info" id="faq">
+      <h2>Preguntas sobre reuniones</h2>
+      <details>
+        <summary>Si llevo auriculares, ¿se graba también la voz de los demás?</summary>
+        <p>Sí. No se graba lo que suena en la sala, sino el audio que reproduce la pestaña de la videollamada. Ese sonido se toma antes de llegar a los auriculares, así que entra igual que si sonara por altavoces. Tu voz llega por el micrófono y las dos pistas se mezclan en una.</p>
+      </details>
+      <details>
+        <summary>¿Entra algún bot en mi reunión?</summary>
+        <p>No. Gate32 no se conecta a la llamada ni aparece en la lista de participantes: es una pestaña más de tu navegador que escucha el sonido de otra pestaña.</p>
+      </details>
+      <details>
+        <summary>¿Se sube el audio a algún servidor?</summary>
+        <p>No. El reconocimiento de voz se ejecuta dentro de tu navegador con un modelo que se descarga una sola vez y queda guardado. Con el modelo ya descargado, la transcripción funciona sin conexión.</p>
+      </details>
+      <details>
+        <summary>¿En qué navegadores funciona?</summary>
+        <p>En Chrome y Edge de escritorio, los que permiten compartir el audio de una pestaña. Firefox y Safari todavía no lo permiten, y en el móvil tampoco existe. Si tu navegador no puede, el botón no aparece; siempre puedes grabar por otro medio y arrastrar el archivo.</p>
+      </details>
+      <details>
+        <summary>Comparto la pestaña y no se graba a los demás, ¿qué falta?</summary>
+        <p>La casilla «compartir también el audio de la pestaña», abajo a la izquierda del selector. Sin marcarla, el navegador entrega la pestaña muda. Además tiene que ser una <em>pestaña</em> concreta: compartir una ventana o la pantalla entera no incluye el sonido. Si Gate32 detecta que llegó sin audio, avisa y no graba, en vez de dejarte media reunión.</p>
+      </details>
+      <details>
+        <summary>¿Y si la reunión es en una aplicación de escritorio y no en el navegador?</summary>
+        <p>Zoom, Teams y Meet tienen versión web: entra por el navegador y ya está. Si tienes que usar la aplicación de escritorio, graba con la herramienta que prefieras y arrastra el archivo al transcriptor; el resultado es el mismo.</p>
+      </details>
+      <details>
+        <summary>¿Cuánto puede durar la reunión?</summary>
+        <p>No hay tope de minutos ni de tamaño impuesto por nosotros: el límite es la memoria de tu equipo. Para reuniones de más de una hora conviene un ordenador, no el móvil.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p><strong>Gate32</strong> · <a href="/">Transcriptor</a> · <a href="/subtitulos/">Subtítulos</a> · <a href="/entrevistas/">Entrevistas</a> · <a href="/clases/">Clases y audios largos</a></p>
+    <p class="contact">Contacto: <a href="mailto:hpartida@autoritasai.com">hpartida@autoritasai.com</a></p>
+    <p class="footnote">Tus archivos no salen de tu dispositivo. <a href="https://github.com/ilcapo32-blip/gate32" rel="noopener">Código abierto</a>.</p>
+  </footer>
+
+  <script type="module" src="/src/landing.ts"></script>
+</body>
+</html>

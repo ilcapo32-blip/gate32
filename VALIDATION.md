@@ -352,7 +352,13 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `storage_not_persisted` | el navegador no garantiza conservar el modelo | — |
 | `storage_full` | no cabe el modelo; se avisa antes de descargar | — |
 | `use_case_wait_*` / `use_case_export_*` | respuesta a la encuesta | `kind`, `when` |
-| `transcribe_start` | usuario lanza una transcripción | `model`, `device`, `source` (file/mic), `minutes` |
+| `transcribe_start` | usuario lanza una transcripción | `model`, `device`, `source` (file/mic/meeting), `minutes` |
+| `transcribe_start_meeting` | la transcripción viene de una reunión grabada | — |
+| `meeting_click` | primer clic en «Grabar una reunión» (aún no comparte) | — |
+| `meeting_start` | la captura arranca de verdad | — |
+| `meeting_no_mic` | se capturó la pestaña pero no el micrófono | — |
+| `meeting_no_audio` | la pestaña se compartió sin audio: se aborta | — |
+| `meeting_error` | fallo de captura distinto a los anteriores | — |
 | `model_ready` | pesos cargados | `model`, `seconds`, `cached` |
 | `transcribe_done` | transcripción completa | `model`, `device`, `minutes`, `seconds` |
 | `transcribe_error` | fallo | `stage`, `kind` |
@@ -361,6 +367,33 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `share` | usa el botón compartir | `channel` |
 | `pro_interest` | clic en "Quiero Gate32 Pro" | — |
 | `return_visit` | visita con historial local previo | `days_since_first` |
+
+### Captura de reuniones (desplegada 2026-08-14, sin datos todavía)
+
+Se instrumenta con nombres de evento propios porque GoatCounter **solo guarda
+el nombre**, no las propiedades: `source: "meeting"` dentro de
+`transcribe_start` sería invisible ahí.
+
+Tres preguntas, en este orden:
+
+1. **¿Se usa?** `transcribe_start_meeting` / `transcribe_start`. Por debajo
+   del 5 % es una función de nicho y no debe condicionar el roadmap; a partir
+   del 15 % las actas para equipos dejan de ser una hipótesis lejana
+   (MONETIZATION.md §3b).
+2. **¿Se entiende?** `meeting_no_audio` / `meeting_start`. Es el fallo
+   esperable (no marcar la casilla de compartir audio). Por encima del 30 % el
+   problema es la explicación, no la función, y se arregla antes de construir
+   nada encima.
+3. **¿Se abandona antes de compartir?** `meeting_start` / `meeting_click`. Un
+   número bajo significa que el aviso de consentimiento o el diálogo del
+   navegador asustan; hay que saberlo antes de concluir que la función no
+   interesa.
+
+**Sesgo conocido:** el botón solo existe en Chrome y Edge de escritorio, así
+que el denominador natural no son todas las visitas. Comparar contra
+`transcribe_start` total infravalorará el uso; se anota aquí para no repetir
+el error de la primera medición de activación, donde se dividió por el
+denominador equivocado.
 
 ## Métricas y umbrales
 

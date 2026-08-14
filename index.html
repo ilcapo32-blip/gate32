@@ -64,6 +64,11 @@
       },
       {
         "@type": "Question",
+        "name": "¿Puedo transcribir una reunión de Meet, Zoom o Teams?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sí, con Chrome o Edge de escritorio. Gate32 captura el audio de la pestaña de la videollamada y lo mezcla con el micrófono, así que recoge también a los demás participantes aunque se usen auriculares. No entra ningún bot en la reunión ni aparece en la lista de participantes, y el audio no se sube a ningún servidor." }
+      },
+      {
+        "@type": "Question",
         "name": "¿Qué precisión tiene y qué idiomas soporta?",
         "acceptedAnswer": { "@type": "Answer", "text": "Usa Whisper de OpenAI en el dispositivo, con tres tamaños de modelo. El modo Preciso ofrece muy buena calidad en español y decenas de idiomas más." }
       },
@@ -167,12 +172,21 @@
         </div>
 
         <div class="alt-actions">
-          <button id="record-btn" class="btn ghost" type="button">
-            <span class="rec-dot" aria-hidden="true"></span>
-            <span id="record-label">Grabar con el micrófono</span>
-          </button>
+          <div class="alt-buttons">
+            <button id="record-btn" class="btn ghost" type="button">
+              <span class="rec-dot" aria-hidden="true"></span>
+              <span id="record-label">Grabar con el micrófono</span>
+            </button>
+            <!-- Solo se muestra donde el navegador sabe capturar el audio de
+                 una pestaña (Chrome y Edge de escritorio). -->
+            <button id="meeting-btn" class="btn ghost" type="button" hidden>
+              <span class="rec-dot" aria-hidden="true"></span>
+              <span id="meeting-label">Grabar una reunión (Meet, Zoom, Teams…)</span>
+            </button>
+          </div>
           <span class="privacy-inline">🔒 El procesado es 100 % local: el archivo no se sube a ningún servidor.</span>
         </div>
+        <p id="meeting-hint" class="mobile-note" hidden></p>
 
         <p id="mobile-note" class="mobile-note" hidden></p>
         <p id="gpu-note" class="mobile-note" hidden></p>
@@ -362,6 +376,10 @@
         <p>Sí. Tras transcribir, pulsa SRT o VTT y descargarás el archivo con los tiempos de cada frase, listo para YouTube, Premiere, DaVinci o cualquier reproductor.</p>
       </details>
       <details>
+        <summary>¿Puedo transcribir una reunión de Meet, Zoom o Teams?</summary>
+        <p>Sí, con Chrome o Edge de escritorio: el botón «Grabar una reunión» captura el audio de la pestaña de la videollamada y lo mezcla con tu micrófono, así que funciona aunque lleves auriculares. No entra ningún bot en la llamada. <a href="/reuniones/">Cómo funciona</a>.</p>
+      </details>
+      <details>
         <summary>¿Qué precisión tiene? ¿Qué idiomas soporta?</summary>
         <p>Usa Whisper de OpenAI en tu dispositivo, con tres tamaños de modelo. El modo Preciso ofrece muy buena calidad en español y decenas de idiomas más. Audio con mucho ruido o solapamiento de voces reduce la precisión, como en cualquier transcriptor.</p>
       </details>
@@ -389,6 +407,7 @@
       Casos de uso:
       <a href="/subtitulos/">Subtítulos SRT/VTT</a> ·
       <a href="/entrevistas/">Entrevistas confidenciales</a> ·
+      <a href="/reuniones/">Reuniones de Meet, Zoom o Teams</a> ·
       <a href="/clases/">Clases y audios largos</a>
     </p>
     <p class="contact">

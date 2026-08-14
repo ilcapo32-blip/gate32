@@ -30,6 +30,21 @@ esta elección están en [`RESEARCH.md`](RESEARCH.md); la tesis de producto en
 4. Corrige el texto con el audio sincronizado y exporta TXT, Markdown, SRT,
    VTT o JSON.
 
+### Grabar una reunión
+
+En Chrome o Edge de escritorio aparece el botón **Grabar una reunión**. Captura
+el audio que *reproduce* la pestaña de la videollamada
+(`getDisplayMedia({audio: true})`) y lo mezcla con el micrófono, así que
+recoge a todos los participantes aunque lleves auriculares — con cascos, una
+grabadora ambiente solo te graba a ti.
+
+No entra ningún bot en la llamada: Gate32 es una pestaña del navegador
+escuchando a otra pestaña, no aparece en la lista de participantes y el audio
+no se sube a ningún sitio. Si la pestaña llega sin pista de audio —no se marcó
+«compartir también el audio de la pestaña»— la captura **se aborta con una
+explicación** en lugar de grabar media reunión en silencio. Grabar a otras
+personas exige su consentimiento, y la aplicación lo recuerda antes de empezar.
+
 ## Arquitectura
 
 ```
@@ -40,6 +55,7 @@ src/lib/
   worker.ts           Whisper vía transformers.js (WebGPU → WASM fallback)
   transcriber.ts      cliente tipado del worker (capa de IA sustituible)
   audio.ts            decodificación a mono 16 kHz (OfflineAudioContext)
+  meeting.ts          captura del audio de una pestaña + micro (videollamadas)
   formats.ts          lógica pura: ventanas, fusión, TXT/MD/SRT/VTT/JSON
   analytics.ts        eventos anónimos de validación (Vercel Web Analytics)
   history.ts          historial local (localStorage, sin cuenta)
@@ -123,6 +139,9 @@ Cada push a `main` publica en https://gate32.autoritasai.com.
   WASM, útil pero lento con el modelo Preciso.
 - Sin identificación de hablantes (diarización) ni resúmenes: son la capa Pro
   propuesta, pendiente de señal de demanda (`pro_interest`).
+- La captura de reuniones requiere Chrome o Edge de escritorio: Firefox y
+  Safari no permiten capturar el audio de una pestaña, y en el móvil tampoco
+  existe. Donde no funciona, el botón no se muestra.
 - Archivos muy largos (>~90 min) exigen memoria holgada; se avisa al usuario.
 - La transcripción en Safari/iOS funciona con WASM pero sin aceleración.
 

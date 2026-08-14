@@ -5,6 +5,9 @@ export interface RedditThread {
   id?: string;
   title?: string;
   selftext?: string;
+  /** Autor del hilo, tal y como lo da el feed: "/u/nombre". */
+  author?: string;
+  /** Los feeds RSS no lo aportan: `undefined` significa "no se sabe". */
   num_comments?: number;
   created_utc?: number;
   subreddit?: string;
@@ -48,3 +51,4 @@ export function newComments(
 export function formatReplies(items: RedditComment[], now?: Date): string;
 export function formatMentions(items: RedditThread[]): string;
 export function formatDigest(items: ScoredThread[], now?: Date): string;
+export function parseAtom(xml: string): RedditThread[];
