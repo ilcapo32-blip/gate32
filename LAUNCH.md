@@ -101,12 +101,24 @@ r/opositores. **Leer las reglas de autopromoción de cada sub antes de postear.*
 
 **Reglas concretas por subreddit (aprendidas en el lanzamiento):**
 
-- **r/selfhosted exige divulgación de uso de IA.** Un bot retira el post y lo
-  restaura automáticamente en cuanto respondes explicando cómo se usó IA para
-  crear el proyecto. La respuesta debe ser completa y honesta: el repo es
-  público y los commits llevan la coautoría visible, así que cualquiera puede
-  comprobarlo. Bien contada, la divulgación **suma credibilidad** en vez de
-  restarla.
+- **r/selfhosted: el post acabó retirado, y no por la IA.** Lo que se anotó
+  aquí en su día —"un bot retira el post y lo restaura al declarar el uso de
+  IA"— resultó ser solo la mitad. El equipo de moderación lo retiró después
+  por la **regla 6**: los proyectos con menos de tres meses de vida solo se
+  pueden publicar en el *New Project Megathread* del momento, nunca como post
+  propio. Eso se sabía leyendo las normas, y no se leyó.
+  **Si se vuelve a intentar, es en el megahilo.**
+- **Y r/selfhosted probablemente no sea nuestro sitio.** El comentario más
+  citado del hilo fue *"How is this self hosting? Where is the open source
+  code?"*. Es una objeción justa: allí "self-hosted" significa *mi servidor*,
+  y lo nuestro es *ningún servidor*. Suena parecido y no lo es. Documentamos
+  el autoalojamiento (README §Self-hosting), pero no es el argumento con el
+  que llegamos, así que llegamos como intrusos.
+- **La voz de IA costó el hilo entero.** Dos comentarios lo dijeron sin
+  rodeos: *"habría sido más rápido y menos vergonzoso si respondieras como una
+  persona en vez de preguntarle a Claude"* y *"F off chatgpt"*. Es la tercera y
+  cuarta confirmación independiente. La regla no es "que suene más humano":
+  es que **el texto lo escriba el humano**.
 - **Los subs anglófonos son los que están trayendo tráfico real**
   (Reino Unido y Australia en las primeras 24 h, 4 de 5 visitas a `/en`).
   Publicar en inglés y enlazar `/en/` no era opcional.
