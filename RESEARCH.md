@@ -231,6 +231,34 @@ rendimiento (10 h, saltar silencios); nadie optimiza *la corrección*.
 → **[HIPÓTESIS a validar]** El hueco defendible de Gate32 no es transcribir
 mejor, sino **ser el mejor sitio para corregir y verificar una transcripción**.
 
+### 1h · La corrección, quinta señal — y esta viene de fuera (2026-08-13)
+
+**Tropical Podcasting** (tropicalpodcasting.com, Puerto Rico, editor Julio Axel
+Ponce) menciona Gate32 en su boletín del 13/08. Es la **primera mención ganada
+del proyecto**: nadie la pidió, y llegó registrada en los referrers.
+
+Lo que importa no es la mención, es **qué eligió enseñar**. En vez de copiar la
+descripción de la web, cogió su propio episodio de 38:33, lo transcribió, hizo
+captura del resultado —con los fallos a la vista, incluido su propio apellido
+mal ("Ponzi" por "Ponce")— y le puso este pie:
+
+> *"Los errores se pueden editar fácilmente"*
+
+Un editor de podcasting, evaluando por su cuenta y sin hablar con nosotros,
+resumió el producto por **el pase de corrección**, no por la transcripción.
+Quinta señal independiente, y la primera que no es alguien quejándose de un
+dolor sino alguien señalando la solución.
+
+También dice qué mensaje viaja solo, porque es el que él escribió: *"funciona
+directamente en tu navegador, en español y gratis"* y *"SRT o VTT"*. Ni
+privacidad ni «sin subir archivos» — el navegador, el español, el precio y los
+subtítulos.
+
+**Y dice a quién le importamos.** Podcasting hispanohablante, no r/selfhosted.
+El mismo día que un sub anglófono nos retiraba un post preguntando dónde
+estaba el servidor, un medio del sector en español nos recomendaba sin que
+nadie se lo pidiera.
+
 ## 1c · Segmento no contemplado: accesibilidad (sordera)
 
 **[ANÉCDOTA, no evidencia]** Un hilo viral en X (376 K visualizaciones) de una

@@ -204,6 +204,32 @@ adaptándola al hilo.
 suma más de lo que resta:** una respuesta que solo nombra tu herramienta es
 publicidad; una que nombra tres es ayuda, y el enlace sigue estando ahí.
 
+## 2c · Prensa ganada: Tropical Podcasting (2026-08-13)
+
+Primera mención que nadie pidió. Boletín de podcasting en español, desde
+Puerto Rico, editor **Julio Axel Ponce**. Nos detectó y probó por su cuenta:
+transcribió su propio episodio de 38 minutos y publicó la captura con los
+fallos incluidos.
+
+**Qué hacer:** dar las gracias por correo (el contacto está en
+tropicalpodcasting.com; **no inventar la dirección**), sin pedir nada, y
+aportarle algo útil —en la captura se ve que usó el modelo por defecto
+(Equilibrado) y por eso los nombres propios salieron mal; con **Preciso**
+mejoran—. Un medio que prueba de verdad merece una respuesta que también
+aporte, no un agradecimiento vacío.
+
+**Qué NO hacer:** pedir una segunda mención. Si la función de reuniones les
+interesa, la mencionarán ellos.
+
+**Su X está muerto** (@tropipodcasting, 5 seguidores, último post de septiembre
+de 2024): el canal vivo es el boletín. Seguirles en X no hace daño pero no es
+por ahí.
+
+**Lo que enseña sobre el mensaje:** de todo lo que decimos, él eligió repetir
+*"funciona directamente en tu navegador, en español y gratis"* y *"SRT o VTT"*.
+No la privacidad. Cuando alguien resume el producto con sus palabras, esas son
+las palabras que viajan solas.
+
 ## 3 · Menéame
 
 **Titular:** Gate32: transcriptor de audio y subtítulos gratuito donde la IA corre en tu navegador y el archivo nunca se sube
