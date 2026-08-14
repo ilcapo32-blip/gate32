@@ -61,6 +61,24 @@ const SIGNALS = [
  */
 const NOT_AUDIO = /\b(handwrit|manuscript|palaeograph|paleograph|OCR|Transkribus|manuscrito|paleograf|caligraf)/i;
 
+/**
+ * Puerta temática: el hilo tiene que ir de convertir voz en texto.
+ *
+ * Sin esto, el radar puntuaba lo que le echaran. El 14/08/2026 reportó 36
+ * hilos y entre los diez primeros había cirugía refractiva de miopía, un
+ * servidor de Minecraft y un tutorial de Clip Studio Paint, con puntuaciones
+ * de 70 a 101. El motivo: cuando una búsqueda no le cuadra, `search.rss` de
+ * Reddit devuelve el feed general de novedades en vez de una lista vacía, y
+ * las señales genéricas ("vs", "private", "free") disparan solas en cualquier
+ * texto lo bastante largo.
+ *
+ * Se comprueba antes de puntuar y no resta puntos: descarta. Un resumen con
+ * treinta hilos de relleno enseña a no abrirlo, y entonces da igual lo bueno
+ * que sea el que hacía número treinta y uno.
+ */
+const ON_TOPIC =
+  /(transcri|subtitl|subtítul|closed caption|\bcaptions?\b|\bsrt\b|\bvtt\b|whisper|speech[ -]?to[ -]?text|voice[ -]?to[ -]?text|\bdictation\b|\bdictado\b|\bASR\b|otter\.?ai|happyscribe|notta|descript|trint|sonix|rev\.com)/i;
+
 /** Restas: cosas que hacen que responder sea mala idea. */
 const PENALTIES = [
   { re: /\b(hiring|for hire|job|freelance|se busca|contrato)\b/i, weight: -40, tag: "oferta de empleo" },
@@ -94,6 +112,8 @@ export function scoreThread(thread) {
   // Descarte duro: si va de texto manuscrito u OCR, no es nuestro problema por
   // mucho que aparezca la palabra "transcripción".
   if (NOT_AUDIO.test(text)) return { score: -100, tags: ["no es audio"], hours: 0 };
+  // Descarte duro: si no habla de pasar voz a texto, ninguna señal cuenta.
+  if (!ON_TOPIC.test(text)) return { score: -100, tags: ["fuera de tema"], hours: 0 };
   let score = 0;
   const tags = [];
   for (const s of [...SIGNALS, ...PENALTIES]) {
@@ -143,8 +163,13 @@ export function pickTemplate(tags) {
  */
 export function rank(threads, seen = [], minScore = 45) {
   const seenSet = new Set(seen);
-  return threads
-    .filter((t) => t.id && !seenSet.has(t.id))
+  // Varias búsquedas devuelven el mismo hilo: sin esto salía repetido en el
+  // resumen, y un resumen que se repite parece roto aunque el hilo sea bueno.
+  const unique = new Map();
+  for (const t of threads) {
+    if (t.id && !seenSet.has(t.id) && !unique.has(t.id)) unique.set(t.id, t);
+  }
+  return [...unique.values()]
     .map((t) => ({ ...t, ...scoreThread(t) }))
     .filter((t) => t.score >= minScore)
     .sort((a, b) => b.score - a.score);

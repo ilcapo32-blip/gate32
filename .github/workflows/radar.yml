@@ -55,10 +55,16 @@ jobs:
       # respuesta cuesta la conversación.
       - name: Recordar los hilos ya vistos
         run: |
-          if ! git diff --quiet .radar-seen.json; then
-            git config user.name "gate32-radar"
-            git config user.email "radar@users.noreply.github.com"
-            git add .radar-seen.json
-            git commit -m "chore: radar seen list"
-            git push
-          fi
+          if git diff --quiet .radar-seen.json; then exit 0; fi
+          git config user.name "gate32-radar"
+          git config user.email "radar@users.noreply.github.com"
+          git add .radar-seen.json
+          git commit -m "chore: radar seen list"
+          # La pasada dura minutos y main puede haberse movido mientras tanto:
+          # el 14/08 el push se rechazó por eso. Se reintenta reordenando encima
+          # de lo que haya llegado, que en este archivo nunca entra en conflicto.
+          for i in 1 2 3; do
+            git push && exit 0
+            git pull --rebase origin main
+          done
+          git push

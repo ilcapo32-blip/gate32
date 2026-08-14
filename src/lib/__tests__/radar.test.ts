@@ -268,3 +268,48 @@ describe("radar · solo se olvida lo que se ha contado", () => {
     expect(out.at(-1)).toBe("t3_ultimo");
   });
 });
+
+// El 14/08/2026 el radar reportó 36 hilos: entre los diez primeros había
+// cirugía de miopía, un servidor de Minecraft y un tutorial de Clip Studio,
+// con puntuaciones de 70 a 101. Reddit devuelve el feed general cuando una
+// búsqueda no le cuadra, y las señales genéricas disparaban solas.
+describe("radar · puerta temática", () => {
+  const fuera = {
+    id: "t3_prk",
+    title: "PRK for high myopia -9.75 and -8.75",
+    selftext:
+      "I'm 32 and have been dependent on glasses. LASIK vs PRK, my private clinic said it was free of extra cost.",
+    created_utc: hoursAgo(1),
+  };
+
+  it("descarta un hilo que no va de pasar voz a texto, dispare lo que dispare", () => {
+    const r = scoreThread(fuera);
+    expect(r.tags).toContain("fuera de tema");
+    expect(r.score).toBeLessThan(0);
+    expect(rank([fuera])).toHaveLength(0);
+  });
+
+  it("deja pasar lo que sí lo es", () => {
+    for (const title of [
+      "Best free transcription tool for interviews?",
+      "Need SRT subtitles without a watermark",
+      "Running Whisper locally is a pain, alternatives?",
+      "Otter.ai free tier keeps cutting me off",
+      "¿Alguna app para transcribir una entrevista gratis?",
+    ]) {
+      expect(scoreThread({ title, selftext: "", created_utc: hoursAgo(2) }).tags).not.toContain(
+        "fuera de tema",
+      );
+    }
+  });
+
+  it("un hilo que llega por dos búsquedas aparece una sola vez", () => {
+    const hilo = {
+      id: "t3_dup",
+      title: "Free tool to transcribe interviews without uploading?",
+      selftext: "privacy is the issue",
+      created_utc: hoursAgo(1),
+    };
+    expect(rank([hilo, { ...hilo }])).toHaveLength(1);
+  });
+});

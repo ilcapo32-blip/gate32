@@ -146,6 +146,28 @@ verde.
   tampoco están contados.
 - La lista se ha vaciado para que vuelva a aparecer lo que se tragó.
 
+## El ruido del 14/08/2026: 36 hilos, casi todos de relleno
+
+La primera pasada que sí llegó a Reddit reportó **36 hilos**. Entre los diez
+primeros: cirugía refractiva de miopía, un servidor de Minecraft y un tutorial
+de Clip Studio Paint, con puntuaciones de 70 a 101. Tres hilos salían por
+duplicado.
+
+La causa: cuando una búsqueda no le cuadra, `search.rss` de Reddit **devuelve
+el feed general de novedades** en lugar de una lista vacía. El puntuador no
+comprobaba en ningún momento que el hilo fuera del tema, así que las señales
+genéricas —"vs", "private", "free"— disparaban solas en cualquier texto lo
+bastante largo.
+
+Arreglado con una **puerta temática** que se comprueba antes de puntuar: si el
+hilo no habla de pasar voz a texto (transcripción, subtítulos, Whisper, o el
+nombre de un competidor), se descarta y da igual lo que sume. Y los hilos que
+llegan por varias búsquedas se muestran una sola vez.
+
+El motivo de arreglarlo el mismo día: un resumen con treinta hilos de relleno
+enseña a no abrirlo, y entonces da lo mismo lo bueno que sea el que hacía
+número treinta y uno.
+
 ## Cómo se lee el resumen
 
 Cada hilo llega con:
