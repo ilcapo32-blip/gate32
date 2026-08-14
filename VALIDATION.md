@@ -318,6 +318,87 @@ siguen calculándose dentro de una sola fuente**.
 26 %: el tráfico de Podnews es de industria del podcasting, y esa industria usa
 Mac.
 
+### Sexta medición (2026-08-14) · ventana 30/07–14/08, 569 visitas
+
+**Denominador:** la suma de las filas de página, no el Totals (regla aprendida
+a base de equivocarse). Filas de página visibles: `/en` 155 + `/` 23 = **178**.
+Hay 46 visitas repartidas en filas ocultas tras "Show more", parte de ellas de
+`/subtitulos/`, `/entrevistas/` y `/clases/`, así que el denominador real está
+entre 178 y ~200 y los porcentajes de activación se dan como horquilla.
+
+| Métrica | Valor | Umbral | Lectura |
+|---|---|---|---|
+| Activación (`transcribe_done` / páginas) | **13,5–15,2 %** | continuar ≥ 10 % | Por primera vez claramente por encima |
+| Finalización (`done`/`start`) | 27/46 = **58,7 %** | sano ≥ 60 % · fracaso < 25 % | A un punto de "sano" |
+| Export (`export`/`done`) | 15/27 = **55,6 %** | ≥ 40 % | Se llevan el resultado, no solo prueban |
+| Errores (`error`/`start`) | 14/46 = **30,4 %** | — | Casi un tercio |
+| De decodificación | 9/46 = **19,6 %** | — | Antes 22,5 % |
+| Sin persistencia (`storage_not_persisted`/`start`) | 34/46 = **73,9 %** | — | **Antes 65 %: va a peor** |
+| Sin aislamiento (`coi_off`/páginas) | 29/178 = **16,3 %** | — | Antes 13 % |
+| Sin WebGPU (`no_webgpu`/`start`) | 8/46 = **17,4 %** | — | WASM ya remata: 5 de 27 |
+
+**El 19,6 % de errores de decodificación NO demuestra que el troceado de MP3
+funcione.** La ventana es acumulada desde el 30/07 e incluye los días
+anteriores al despliegue: bajar de 22,5 % a 19,6 % es compatible con la mejora
+y también con el ruido. Para saberlo hace falta filtrar por fecha posterior al
+arreglo, y todavía no hay volumen suficiente. Se anota como pendiente, no como
+logro. **44 % de esos fallos (4 de 9) son por tamaño**, así que el aviso previo
+de archivo grande está apareciendo donde tiene que aparecer.
+
+**Lo peor del cuadro: tres de cada cuatro.** El 73,9 % de quien transcribe
+tiene un navegador que no garantiza conservar el modelo, y ha empeorado
+respecto al 65 % anterior. Se traduce en que casi todo el que vuelva se comerá
+otra descarga de 80 MB. Con Safari en el 26 % de las visitas y iOS en el 16 %,
+esto no se arregla programando mejor: la única salida real es que instalen la
+web como aplicación, y hoy eso solo se sugiere en un aviso al final.
+
+#### Distribución: el canal propio ha empezado a existir
+
+| Origen | Visitas | % |
+|---|---|---|
+| (desconocido) | 217 | 38 % |
+| Reddit (web + app + hilo r/podcasting) | 180 | 32 % |
+| **Google** | **84** | **15 %** |
+| Podnews | 29 | 5 % |
+| Email | 14 | 2 % |
+| Bing | 14 | 2 % |
+| **gemini.google.com** | 6 | 1 % |
+| chatgpt.com | 1 | .2 % |
+
+**Google al 15 % es la novedad de esta medición.** Hasta ahora todo el tráfico
+venía de publicar a mano; ahora hay 104 visitas (Google + Bing) que llegan
+solas y que seguirán llegando sin trabajo adicional. Es el primer indicio de
+que el SEO de intención compone. Y con Gemini (6) y ChatGPT (1) sumando 7, el
+GEO deja de ser una hipótesis: los asistentes ya nos mandan gente.
+
+**Podnews trajo 28 visitas reales.** La mención existía y se midió.
+
+**Tropical Podcasting trajo 1 visita etiquetada.** Como canal, eso es lo que
+es: una visita. **[INFERENCIA, no dato]** Puerto Rico aparece con 23 visitas
+(4 %, sexto país) en un proyecto cuyo tráfico es EE. UU./España/Canadá/
+Alemania/Australia, y el boletín salió el 13/08: es razonable pensar que buena
+parte de esas 23 vienen de ahí y que el referrer se pierde al leerse por
+correo. No se puede confirmar.
+
+#### La monetización sigue sin existir
+
+`pro_interest` **no aparece en el top 20 de eventos**, cuyo último puesto tiene
+4 visitas. Es decir: como mucho 4 clics en quince días, con 27 transcripciones
+completadas. Es la cuarta medición seguida con señal cero.
+
+Lo honesto es también decir qué **no** demuestra: el disparador escrito en
+MONETIZATION.md §4 pedía `pro_interest` < 5 **con ≥ 300 activados** para
+declarar muerta la capa Pro B2C. Vamos por 27. No es un resultado negativo, es
+una muestra demasiado pequeña. Lo que sí hace es reforzar la decisión de mirar
+hacia reuniones y B2B (MONETIZATION.md §3b) en vez de esperar sentados.
+
+#### Qué equipo tiene la gente (y qué implica para reuniones)
+
+Chrome 65 %, Safari 26 %, Firefox 8 %. Escritorio 71 %, móvil 28 %.
+→ El botón de reuniones, que exige Chrome o Edge de escritorio, **lo verá
+aproximadamente la mitad de las visitas**. El otro 26 % (Safari) no lo verá
+nunca y además es quien peor conserva el modelo.
+
 ### Por qué no sabemos para qué se usa (2026-08-07, corregido)
 
 La encuesta de caso de uso existía desde el principio, pero solo se mostraba
