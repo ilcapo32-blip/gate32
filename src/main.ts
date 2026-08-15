@@ -208,6 +208,9 @@ let storagePersisted = true;
 // ha saltado frases al azar.
 let meetingNoMic = false;
 
+// De dónde viene lo que se va a transcribir. Lo fija quien llama a handleFile.
+let pendingSource: "file" | "mic" | "tab" = "file";
+
 let waitSurveyShown = false;
 function showWaitSurvey(bytesDone: number): void {
   // Solo con descarga real en curso; una carga desde caché no llega aquí.
@@ -368,17 +371,15 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
     device: "?",
     fromHistory: false,
   };
-  const isMeeting = name.startsWith(`${t("meeting_prefix")}-`);
-  if (!isMeeting) meetingNoMic = false;
+  // El origen lo declara quien llama, no se deduce del nombre: un archivo que
+  // el usuario hubiera llamado "reunion-3.mp3" se contaba como grabación.
+  const source = pendingSource;
+  pendingSource = "file";
+  if (source !== "tab") meetingNoMic = false;
   // GoatCounter solo guarda el nombre del evento, no sus propiedades: para
-  // saber cuánto pesan las reuniones hace falta un nombre propio.
-  if (isMeeting) track("transcribe_start_meeting");
-  track("transcribe_start", {
-    model: quality,
-    source: isMeeting ? "meeting" : name.startsWith(`${t("recording_prefix")}-`) ? "mic" : "file",
-    minutes,
-    lang,
-  });
+  // saber cuánto pesa la captura de pestaña hace falta un nombre propio.
+  if (source === "tab") track("transcribe_start_meeting");
+  track("transcribe_start", { model: quality, source, minutes, lang });
 
   // Antes de bajar 80 MB conviene saber que caben y que no los van a borrar:
   // sin esto el fallo llega a mitad de descarga y como QuotaExceededError.
@@ -789,6 +790,7 @@ recordBtn.addEventListener("click", async () => {
       recorder = null;
       if (blob.size > 0) {
         const stamp = new Date().toTimeString().slice(0, 5).replace(":", ".");
+        pendingSource = "mic";
         void handleFile(blob, `${t("recording_prefix")}-${stamp}`);
       }
     });
@@ -870,6 +872,7 @@ if (meetingBtn && canCaptureTab()) {
         resetMeetingBtn();
         if (blob.size > 0) {
           const stamp = new Date().toTimeString().slice(0, 5).replace(":", ".");
+          pendingSource = "tab";
           void handleFile(blob, `${t("meeting_prefix")}-${stamp}`);
         }
       });

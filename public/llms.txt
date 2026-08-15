@@ -18,10 +18,14 @@
   descarga del modelo (≈50–250 MB, cacheada) funciona incluso sin conexión.
 - Formatos de entrada: MP3, WAV, M4A, OGG, OPUS, FLAC, AAC, MP4, WEBM, MOV, y
   grabación directa con micrófono.
-- Reuniones: puede grabar una videollamada capturando el audio de la pestaña
-  (Meet, Zoom, Teams, Jitsi, Whereby) y mezclándolo con el micrófono, así que
-  funciona con auriculares puestos. No entra ningún bot en la reunión ni
-  aparece en la lista de participantes. Requiere Chrome o Edge de escritorio.
+- Captura de pestaña: puede grabar y transcribir el audio que reproduce otra
+  pestaña del navegador. Con videollamadas (Meet, Zoom, Teams, Jitsi, Whereby)
+  lo mezcla con el micrófono, así que funciona con auriculares puestos y sin
+  que entre ningún bot en la reunión ni aparezca en la lista de participantes.
+  Sirve igual para vídeos, clases y webinars en directo, radios en línea o
+  pódcast en su reproductor web. Requiere Chrome o Edge de escritorio. No
+  funciona con plataformas de streaming de pago (Netflix, Disney+, Prime
+  Video): el navegador bloquea la captura de contenido protegido.
 - Exportación: TXT, Markdown, SRT, VTT y JSON, con marcas de tiempo por frase
   y editor sincronizado con el audio para corregir antes de exportar.
 - Idiomas de transcripción: español, inglés, catalán, gallego, euskera,

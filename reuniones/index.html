@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Transcribir reuniones de Meet, Zoom o Teams sin meter un bot — Gate32</title>
-  <meta name="description" content="Graba y transcribe tus videollamadas sin que entre ningún bot y sin subir el audio a ningún servidor. Captura el sonido de la pestaña, así que funciona aunque lleves auriculares. Gratis, sin registro y sin límite de minutos." />
+  <meta name="description" content="Graba y transcribe tus videollamadas sin que entre ningún bot y sin subir el audio a ningún servidor. Captura el sonido de la pestaña, así que funciona aunque lleves auriculares — y sirve igual para un vídeo, una clase en directo o una radio. Gratis, sin registro y sin límite de minutos." />
   <link rel="canonical" href="https://gate32.autoritasai.com/reuniones/" />
   <meta property="og:title" content="Transcribe tus reuniones sin meter un bot en la llamada — Gate32" />
   <meta property="og:description" content="Captura el audio de la pestaña y lo transcribe en tu propio equipo. Sin bot en la lista de participantes y sin subir nada." />
@@ -37,8 +37,13 @@
       },
       {
         "@type": "Question",
-        "name": "¿En qué navegadores funciona la captura de reuniones?",
+        "name": "¿En qué navegadores funciona la captura de audio de una pestaña?",
         "acceptedAnswer": { "@type": "Answer", "text": "En Chrome y Edge de escritorio, que son los que permiten compartir el audio de una pestaña. Firefox y Safari todavía no lo permiten. Si tu navegador no puede, el botón no aparece: puedes grabar por otro medio y arrastrar el archivo." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Sirve para transcribir un vídeo de YouTube o una clase en directo?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sí. Es la misma función: se comparte la pestaña donde suena el audio y Gate32 lo transcribe desde otra pestaña. Funciona con directos, webinars, radios en línea y vídeos sin subtítulos. No funciona con plataformas de streaming de pago como Netflix o Disney+, porque el navegador bloquea la captura de contenido protegido. Transcribir para uso propio no equivale a poder republicar el texto de una obra ajena." }
       },
       {
         "@type": "Question",
@@ -131,6 +136,29 @@
       </p>
     </section>
 
+    <section class="info">
+      <h2>Y no solo reuniones: cualquier pestaña que suene</h2>
+      <p>
+        Al navegador le da igual qué haya en la pestaña que compartes. La misma
+        función sirve para <strong>un vídeo de YouTube, una clase o un webinar en
+        directo, una radio, un pódcast en su reproductor web o un directo de
+        Twitch</strong>. Si suena en una pestaña, se puede transcribir desde otra.
+      </p>
+      <p>
+        Donde más se nota es en lo que <em>no</em> tiene subtítulos: un directo
+        que nadie va a subtitular, un vídeo en el que están desactivados, o un
+        idioma en el que los automáticos son ilegibles. Y en que aquí el
+        resultado sale con marcas de tiempo, editable, y se exporta a SRT o VTT.
+      </p>
+      <p class="hero-sub">
+        <strong>Dos límites, dichos por delante.</strong> Las plataformas de
+        streaming de pago (Netflix, Disney+, Prime Video…) protegen su contenido
+        y <strong>el navegador bloquea su captura</strong>: no es un fallo nuestro
+        ni algo que vayamos a sortear. Y transcribir para uso propio no es lo
+        mismo que republicar: el texto de una obra ajena sigue teniendo dueño.
+      </p>
+    </section>
+
     <section class="info" id="faq">
       <h2>Preguntas sobre reuniones</h2>
       <details>
@@ -152,6 +180,10 @@
       <details>
         <summary>Comparto la pestaña y no se graba a los demás, ¿qué falta?</summary>
         <p>La casilla «compartir también el audio de la pestaña», abajo a la izquierda del selector. Sin marcarla, el navegador entrega la pestaña muda. Además tiene que ser una <em>pestaña</em> concreta: compartir una ventana o la pantalla entera no incluye el sonido. Si Gate32 detecta que llegó sin audio, avisa y no graba, en vez de dejarte media reunión.</p>
+      </details>
+      <details>
+        <summary>¿Sirve para transcribir un vídeo de YouTube o una clase en directo?</summary>
+        <p>Sí, es la misma función: compartes la pestaña donde suena y se transcribe desde otra. Va bien con directos, webinars, radios y vídeos sin subtítulos. Lo que no funciona son las plataformas de streaming de pago: protegen el contenido y el navegador impide capturarlo. Y una cosa es transcribir para uso propio y otra republicar el texto de una obra ajena.</p>
       </details>
       <details>
         <summary>¿Y si la reunión es en una aplicación de escritorio y no en el navegador?</summary>

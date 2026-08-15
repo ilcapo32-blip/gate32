@@ -280,7 +280,7 @@ try {
   );
   check(
     "tras el fallo el botón vuelve a su estado inicial",
-    ((await page.locator("#meeting-label").textContent()) ?? "").includes("Grabar una reunión"),
+    ((await page.locator("#meeting-label").textContent()) ?? "").includes("Grabar otra pestaña"),
   );
   await page.click("#error-dismiss");
 
@@ -291,6 +291,11 @@ try {
     /auriculares/i.test((await page.locator("main").textContent()) ?? ""),
   );
   check("/reuniones/ lleva al transcriptor", (await page.locator('a[href="/"]').count()) > 0);
+  // La función no distingue qué hay en la pestaña, así que la página tampoco
+  // debe prometer solo reuniones — ni callar que el streaming de pago no va.
+  const reunionesTxt = (await page.locator("main").textContent()) ?? "";
+  check("/reuniones/ dice que sirve para vídeos y clases", /YouTube/i.test(reunionesTxt));
+  check("/reuniones/ avisa del contenido protegido", /Netflix/i.test(reunionesTxt));
 
   // 3e · página de integración: la misma app sin la web alrededor. Si algún
   // elemento que la aplicación exige faltara, main.ts lanzaría al arrancar y

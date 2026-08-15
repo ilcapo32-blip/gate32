@@ -141,6 +141,43 @@ entonces las actas y resúmenes de MONETIZATION.md §1 dejan de ser una capa
 Pro genérica y pasan a ser el producto de reuniones — que es, además, donde
 el mercado ya paga por asiento.
 
+### Lo que la función era en realidad (2026-08-14, mismo día)
+
+Pregunta del propietario horas después de desplegarla: *"¿podría transcribir
+cualquier vídeo o audio que se estuviera reproduciendo en otra pestaña?"*.
+
+Sí. Y ya lo hacía, sin tocar una línea. `getDisplayMedia` no sabe ni le importa
+qué hay en la pestaña que compartes: entrega el audio que esa pestaña
+reproduce, sea Meet, YouTube, un directo de Twitch o la radio. **Habíamos
+construido algo más general de lo que decía el botón**, y el botón es lo que
+la gente lee.
+
+Corregido: «Grabar una reunión» pasa a **«Grabar otra pestaña (reunión, vídeo,
+clase…)»**. Quien quería transcribir un vídeo no iba a pulsar un botón que
+hablaba de reuniones, y ese es un usuario perdido por una etiqueta.
+
+**Qué se gana y qué no.** Se gana volumen de búsqueda —"transcribir vídeo de
+YouTube" tiene mucha más gente detrás que "transcribir reunión de Meet"— y
+casos que nadie cubre bien: directos que no se subtitulan, vídeos con los
+subtítulos desactivados, idiomas donde los automáticos son ilegibles. No se
+gana intención de pago: quien transcribe un vídeo suelto no compra nada.
+
+**Por eso el posicionamiento de cabecera sigue siendo la reunión.** Es donde
+existe la historia competitiva («sin bot en la llamada»), donde hay dinero por
+asiento y donde el usuario vuelve cada semana. Lo demás es tráfico, y el
+tráfico está bien, pero no es lo mismo.
+
+**Dos límites que se dicen por delante, en la app y en la página:**
+
+- **El streaming de pago no se puede capturar.** Netflix, Disney+, Prime Video
+  y similares protegen el contenido y el navegador bloquea su captura. No es un
+  fallo nuestro y **no vamos a intentar sortearlo**: eludir una medida de
+  protección técnica es ilegal en la UE y en EE. UU., y vendemos
+  verificabilidad. Un producto que ayuda a saltarse un DRM no puede después
+  pedir que se fíen de él.
+- **Transcribir para uso propio no es republicar.** El texto de una obra ajena
+  sigue teniendo dueño. Se avisa una vez, sin sermón, y se sigue.
+
 ## Propuesta de valor (una frase)
 
 > Transcribe y subtitula cualquier audio o vídeo con IA, gratis y sin límites,
