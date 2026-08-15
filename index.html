@@ -177,11 +177,19 @@
               <span class="rec-dot" aria-hidden="true"></span>
               <span id="record-label">Grabar con el micrófono</span>
             </button>
-            <!-- Solo se muestra donde el navegador sabe capturar el audio de
-                 una pestaña (Chrome y Edge de escritorio). -->
+            <!-- Solo se muestran donde el navegador sabe capturar el audio de
+                 una pestaña (Chrome y Edge de escritorio). Son el mismo
+                 mecanismo con dos públicos: quien viene a transcribir una
+                 videollamada no se para a mirar si el botón que menciona
+                 YouTube también le vale. Y el micrófono va al revés en cada
+                 uno: en la reunión hace falta, en un vídeo estorba. -->
             <button id="meeting-btn" class="btn ghost" type="button" hidden>
               <span class="rec-dot" aria-hidden="true"></span>
-              <span id="meeting-label">Grabar otra pestaña (reunión, vídeo, clase…)</span>
+              <span data-label>Grabar una reunión (Meet, Zoom, Teams…)</span>
+            </button>
+            <button id="media-btn" class="btn ghost" type="button" hidden>
+              <span class="rec-dot" aria-hidden="true"></span>
+              <span data-label>Transcribir un vídeo o directo de otra pestaña</span>
             </button>
           </div>
           <span class="privacy-inline">🔒 El procesado es 100 % local: el archivo no se sube a ningún servidor.</span>

@@ -23,7 +23,7 @@ import {
 } from "./lib/formats";
 import { MODELS, type ModelQuality, type Segment } from "./lib/types";
 import { t, lang, locale } from "./lib/i18n";
-import { canCaptureTab, captureMeeting, NoTabAudioError } from "./lib/meeting";
+import { canCaptureTab, captureTab, NoTabAudioError } from "./lib/meeting";
 import { initAnalytics, track, trackVisit } from "./lib/analytics";
 import { ensureStorage, humanBytes } from "./lib/storage";
 import {
@@ -44,10 +44,10 @@ const dropzone = $("#dropzone");
 const fileInput = $<HTMLInputElement>("#file-input");
 const recordBtn = $<HTMLButtonElement>("#record-btn");
 const recordLabel = $("#record-label");
-// Opcionales: /embed/ y las páginas de caso de uso no llevan captura de reunión.
+// Opcionales: /embed/ y las páginas de caso de uso no llevan captura de pestaña.
 const meetingBtn = document.querySelector<HTMLButtonElement>("#meeting-btn");
-const meetingLabel = document.querySelector<HTMLElement>("#meeting-label");
-const meetingHint = document.querySelector<HTMLElement>("#meeting-hint");
+const mediaBtn = document.querySelector<HTMLButtonElement>("#media-btn");
+const tabHint = document.querySelector<HTMLElement>("#meeting-hint");
 const modelSelect = $<HTMLSelectElement>("#model-quality");
 const langSelect = $<HTMLSelectElement>("#language");
 const statusBox = $("#status");
@@ -209,7 +209,7 @@ let storagePersisted = true;
 let meetingNoMic = false;
 
 // De dónde viene lo que se va a transcribir. Lo fija quien llama a handleFile.
-let pendingSource: "file" | "mic" | "tab" = "file";
+let pendingSource: "file" | "mic" | "meeting" | "media" = "file";
 
 let waitSurveyShown = false;
 function showWaitSurvey(bytesDone: number): void {
@@ -375,10 +375,11 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
   // el usuario hubiera llamado "reunion-3.mp3" se contaba como grabación.
   const source = pendingSource;
   pendingSource = "file";
-  if (source !== "tab") meetingNoMic = false;
+  if (source !== "meeting") meetingNoMic = false;
   // GoatCounter solo guarda el nombre del evento, no sus propiedades: para
   // saber cuánto pesa la captura de pestaña hace falta un nombre propio.
-  if (source === "tab") track("transcribe_start_meeting");
+  if (source === "meeting") track("transcribe_start_meeting");
+  if (source === "media") track("transcribe_start_media");
   track("transcribe_start", { model: quality, source, minutes, lang });
 
   // Antes de bajar 80 MB conviene saber que caben y que no los van a borrar:
@@ -765,10 +766,9 @@ let recTimer: number | undefined;
 
 recordBtn.addEventListener("click", async () => {
   if (busy && !recorder) return;
-  // Con una reunión grabándose, el micrófono ya está dentro de la mezcla:
-  // abrir una segunda grabación dejaría dos cronómetros corriendo y dos
-  // archivos distintos de la misma voz.
-  if (meetingRec) return;
+  // Con una pestaña grabándose, el micrófono puede estar ya dentro de la
+  // mezcla: una segunda grabación dejaría dos cronómetros y dos archivos.
+  if (recordingTab()) return;
   if (recorder) {
     recorder.stop();
     return;
@@ -785,6 +785,7 @@ recordBtn.addEventListener("click", async () => {
       window.clearInterval(recTimer);
       recordBtn.classList.remove("recording");
       if (meetingBtn) meetingBtn.disabled = false;
+      if (mediaBtn) mediaBtn.disabled = false;
       recordLabel.textContent = t("record");
       const blob = new Blob(recChunks, { type: recorder?.mimeType ?? "audio/webm" });
       recorder = null;
@@ -798,6 +799,7 @@ recordBtn.addEventListener("click", async () => {
     const t0 = Date.now();
     recordBtn.classList.add("recording");
     if (meetingBtn) meetingBtn.disabled = true;
+    if (mediaBtn) mediaBtn.disabled = true;
     recordLabel.textContent = t("stop_rec", { t: "00:00" });
     recTimer = window.setInterval(() => {
       recordLabel.textContent = t("stop_rec", { t: clock((Date.now() - t0) / 1000) });
@@ -807,99 +809,138 @@ recordBtn.addEventListener("click", async () => {
   }
 });
 
-// ── grabación de reuniones (Meet, Zoom, Teams…) ──
+// ── captura del audio de otra pestaña ──
 //
-// El micrófono por sí solo no sirve para una videollamada con auriculares: la
-// voz de los demás sale por los cascos y nunca pasa por el aire. Aquí se
-// captura el audio que reproduce la pestaña de la reunión y se mezcla con el
-// micrófono, así que la transcripción incluye a todo el mundo.
+// Un solo mecanismo, dos botones, y no por cosmética: el micrófono se
+// comporta al revés en cada uso. En una reunión tu voz es parte de la
+// conversación; en un vídeo ajeno solo metería el ruido de tu habitación
+// encima del audio que quieres transcribir, y pediría un permiso inútil.
 //
-// Dos pasos a propósito. El primer clic solo enseña dos cosas: que hay que
-// marcar la casilla de compartir audio (sin ella el navegador entrega la
-// pestaña muda y se graba media reunión) y que grabar a otras personas exige
-// avisarlas. El diálogo del navegador tapa la página, así que un aviso
-// mostrado a la vez que el diálogo no lo lee nadie.
+// Separarlos también resuelve un problema de reconocimiento: quien viene a
+// transcribir una videollamada no se para a pensar si el botón que menciona
+// YouTube también le sirve. La etiqueta tiene que hablar de lo que trae al
+// usuario, no de cómo está implementado por dentro.
+//
+// Dos pasos a propósito. El primer clic explica la casilla de compartir audio
+// —sin ella el navegador entrega la pestaña muda— y, en el caso de una
+// reunión, que grabar a otras personas exige avisarles. El diálogo del
+// navegador tapa la página, así que un aviso simultáneo no lo lee nadie.
 
-let meeting: Awaited<ReturnType<typeof captureMeeting>> | null = null;
-let meetingRec: MediaRecorder | null = null;
-let meetingChunks: Blob[] = [];
-let meetingTimer: number | undefined;
-let meetingArmed = false;
+type TabMode = "meeting" | "media";
 
-function resetMeetingBtn(): void {
-  meetingArmed = false;
-  recordBtn.disabled = false;
-  meetingBtn?.classList.remove("recording");
-  if (meetingLabel) meetingLabel.textContent = t("meeting_btn");
-  if (meetingHint) hide(meetingHint);
+interface TabCapture {
+  capture: Awaited<ReturnType<typeof captureTab>> | null;
+  rec: MediaRecorder | null;
+  chunks: Blob[];
+  timer: number | undefined;
+  armed: boolean;
 }
 
-if (meetingBtn && canCaptureTab()) {
-  meetingBtn.hidden = false;
-  meetingBtn.addEventListener("click", async () => {
-    if (busy && !meetingRec) return;
-    if (meetingRec) {
-      meetingRec.stop();
+const tabState: Record<TabMode, TabCapture> = {
+  meeting: { capture: null, rec: null, chunks: [], timer: undefined, armed: false },
+  media: { capture: null, rec: null, chunks: [], timer: undefined, armed: false },
+};
+
+const recordingTab = (): boolean => tabState.meeting.rec !== null || tabState.media.rec !== null;
+
+function wireTabCapture(mode: TabMode, btn: HTMLButtonElement): void {
+  const label = btn.querySelector<HTMLElement>("[data-label]");
+  const st = tabState[mode];
+  const other = mode === "meeting" ? mediaBtn : meetingBtn;
+  const idle = mode === "meeting" ? "meeting_btn" : "media_btn";
+  const armedKey = mode === "meeting" ? "meeting_start" : "media_start";
+  const stopKey = mode === "meeting" ? "meeting_stop" : "media_stop";
+  const hint =
+    mode === "meeting"
+      ? `${t("meeting_pick")} ${t("meeting_consent")}`
+      : `${t("media_pick")} ${t("media_drm")}`;
+
+  const reset = (): void => {
+    st.armed = false;
+    btn.classList.remove("recording");
+    recordBtn.disabled = false;
+    if (other) other.disabled = false;
+    if (label) label.textContent = t(idle);
+    if (tabHint) hide(tabHint);
+  };
+
+  btn.addEventListener("click", async () => {
+    if (busy && !st.rec) return;
+    if (st.rec) {
+      st.rec.stop();
       return;
     }
-    if (recorder) return;
-    if (!meetingArmed) {
-      meetingArmed = true;
-      if (meetingHint) {
-        meetingHint.textContent = `${t("meeting_pick")} ${t("meeting_consent")}`;
-        show(meetingHint);
+    // Dos capturas a la vez darían dos cronómetros y dos archivos solapados.
+    if (recorder || recordingTab()) return;
+    if (!st.armed) {
+      st.armed = true;
+      if (tabHint) {
+        tabHint.textContent = hint;
+        show(tabHint);
       }
-      if (meetingLabel) meetingLabel.textContent = t("meeting_start");
-      track("meeting_click");
+      if (label) label.textContent = t(armedKey);
+      track(`${mode}_click`);
       return;
     }
     try {
-      meeting = await captureMeeting();
-      track("meeting_start");
-      meetingNoMic = !meeting.withMic;
-      if (meetingNoMic) track("meeting_no_mic");
-      meetingChunks = [];
-      meetingRec = new MediaRecorder(meeting.stream);
-      meetingRec.addEventListener("dataavailable", (e) => {
-        if (e.data.size > 0) meetingChunks.push(e.data);
+      st.capture = await captureTab(mode === "meeting");
+      track(`${mode}_start`);
+      if (mode === "meeting") {
+        meetingNoMic = !st.capture.withMic;
+        if (meetingNoMic) track("meeting_no_mic");
+      }
+      st.chunks = [];
+      st.rec = new MediaRecorder(st.capture.stream);
+      st.rec.addEventListener("dataavailable", (e) => {
+        if (e.data.size > 0) st.chunks.push(e.data);
       });
-      meetingRec.addEventListener("stop", () => {
-        meeting?.stop();
-        meeting = null;
-        window.clearInterval(meetingTimer);
-        const blob = new Blob(meetingChunks, { type: meetingRec?.mimeType ?? "audio/webm" });
-        meetingRec = null;
-        resetMeetingBtn();
+      st.rec.addEventListener("stop", () => {
+        st.capture?.stop();
+        st.capture = null;
+        window.clearInterval(st.timer);
+        const blob = new Blob(st.chunks, { type: st.rec?.mimeType ?? "audio/webm" });
+        st.rec = null;
+        reset();
         if (blob.size > 0) {
           const stamp = new Date().toTimeString().slice(0, 5).replace(":", ".");
-          pendingSource = "tab";
-          void handleFile(blob, `${t("meeting_prefix")}-${stamp}`);
+          pendingSource = mode;
+          void handleFile(blob, `${t(mode === "meeting" ? "meeting_prefix" : "media_prefix")}-${stamp}`);
         }
       });
-      meetingRec.start();
+      st.rec.start();
       const t0 = Date.now();
-      if (meetingHint) hide(meetingHint);
+      if (tabHint) hide(tabHint);
       recordBtn.disabled = true;
-      meetingBtn.classList.add("recording");
-      if (meetingLabel) meetingLabel.textContent = t("meeting_stop", { t: "00:00" });
-      meetingTimer = window.setInterval(() => {
-        if (meetingLabel) {
-          meetingLabel.textContent = t("meeting_stop", { t: clock((Date.now() - t0) / 1000) });
-        }
+      if (other) other.disabled = true;
+      btn.classList.add("recording");
+      if (label) label.textContent = t(stopKey, { t: "00:00" });
+      st.timer = window.setInterval(() => {
+        if (label) label.textContent = t(stopKey, { t: clock((Date.now() - t0) / 1000) });
       }, 500);
     } catch (err) {
-      resetMeetingBtn();
+      reset();
       // Cancelar el diálogo de compartir no es un fallo: no se avisa de nada.
       if (err instanceof DOMException && err.name === "NotAllowedError") return;
       if (err instanceof NoTabAudioError) {
-        track("meeting_no_audio");
-        showError(t("meeting_no_audio"), t("meeting_no_audio_hint"));
+        track(`${mode}_no_audio`);
+        showError(t(mode === "meeting" ? "meeting_no_audio" : "media_no_audio"), t("tab_no_audio_hint"));
       } else {
-        track("meeting_error");
-        showError(t("meeting_error"), t("meeting_error_hint"));
+        track(`${mode}_error`);
+        showError(t("tab_error"), t("tab_error_hint"));
       }
     }
   });
+}
+
+if (canCaptureTab()) {
+  if (meetingBtn) {
+    meetingBtn.hidden = false;
+    wireTabCapture("meeting", meetingBtn);
+  }
+  if (mediaBtn) {
+    mediaBtn.hidden = false;
+    wireTabCapture("media", mediaBtn);
+  }
 }
 
 // ── cancelar / cerrar errores / nueva ──
@@ -1042,6 +1083,7 @@ if (new URLSearchParams(location.search).has("e2e")) {
     // entre las dos grabaciones se comprueba desde su efecto observable.
     micRecording(on: boolean): void {
       if (meetingBtn) meetingBtn.disabled = on;
+      if (mediaBtn) mediaBtn.disabled = on;
     },
   };
 }

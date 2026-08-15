@@ -167,6 +167,22 @@ existe la historia competitiva («sin bot en la llamada»), donde hay dinero por
 asiento y donde el usuario vuelve cada semana. Lo demás es tráfico, y el
 tráfico está bien, pero no es lo mismo.
 
+**Corrección el mismo día, del propietario:** *"yo dejaría el botón de
+transcripción de reunión y añadiría otro botón con esta funcionalidad, porque
+son públicos diferentes… si vienen a transcribir una reunión no piensan en el
+botón que también transcribe YouTube"*. Tiene razón, y por un motivo más
+fuerte del que da: **el micrófono se comporta al revés en cada caso**. En una
+reunión tu voz forma parte de la conversación y sin ella la transcripción sale
+coja; sobre un vídeo ajeno solo añadiría el ruido de tu habitación encima del
+audio que quieres, y encima pediría un permiso que no hace falta para nada.
+
+Es decir: un botón único no era solo peor de entender, **funcionaba peor**.
+Ahora son dos botones sobre el mismo `captureTab(withMic)`, con textos, avisos
+y eventos propios — consentimiento solo donde hay personas, aviso de DRM solo
+donde hay contenido de pago. La lección para el resto del producto: cuando dos
+usos comparten implementación pero no comparten intención, unificar la
+interfaz es optimizar para el que escribe el código, no para el que lo usa.
+
 **Dos límites que se dicen por delante, en la app y en la página:**
 
 - **El streaming de pago no se puede capturar.** Netflix, Disney+, Prime Video

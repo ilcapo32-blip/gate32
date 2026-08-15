@@ -22,12 +22,21 @@ export interface MeetingCapture {
   withMic: boolean;
 }
 
-/** ¿Puede este navegador capturar el audio de una pestaña? */
+/**
+ * ¿Puede este navegador capturar el audio de una pestaña?
+ *
+ * Además de la API hace falta descartar el móvil: Chrome de Android expone
+ * `getDisplayMedia` pero no entrega audio de pestaña, así que el botón
+ * aparecería para fallar al pulsarlo. `any-pointer: fine` distingue un
+ * portátil (aunque tenga pantalla táctil) de un teléfono.
+ */
 export function canCaptureTab(): boolean {
   return (
     typeof navigator !== "undefined" &&
     typeof navigator.mediaDevices?.getDisplayMedia === "function" &&
-    typeof AudioContext !== "undefined"
+    typeof AudioContext !== "undefined" &&
+    typeof matchMedia === "function" &&
+    matchMedia("(any-pointer: fine)").matches
   );
 }
 
@@ -40,12 +49,19 @@ export class NoTabAudioError extends Error {
 }
 
 /**
- * Pide la pestaña y el micrófono y devuelve un único flujo con los dos
- * mezclados. Si la pestaña llega sin pista de audio, se aborta con un error
- * propio: seguir grabando solo el micrófono daría media reunión sin avisar,
- * que es exactamente el problema que veníamos a resolver.
+ * Captura el audio de una pestaña, opcionalmente mezclado con el micrófono.
+ *
+ * `withMic` no es un detalle de configuración, es la diferencia entre los dos
+ * usos. En una reunión tu voz forma parte de la conversación y sin ella la
+ * transcripción sale coja. En un vídeo ajeno tu micrófono solo aportaría el
+ * ruido de tu habitación encima del audio que quieres transcribir, y además
+ * pediría un permiso que no hace falta para nada.
+ *
+ * Si la pestaña llega sin pista de audio se aborta con un error propio:
+ * seguir adelante grabaría media reunión —o silencio— sin avisar, que es
+ * exactamente el problema que veníamos a resolver.
  */
-export async function captureMeeting(): Promise<MeetingCapture> {
+export async function captureTab(withMic: boolean): Promise<MeetingCapture> {
   const display = await navigator.mediaDevices.getDisplayMedia({
     video: true,
     audio: true,
@@ -61,10 +77,12 @@ export async function captureMeeting(): Promise<MeetingCapture> {
   display.getVideoTracks().forEach((t) => t.stop());
 
   let mic: MediaStream | null = null;
-  try {
-    mic = await navigator.mediaDevices.getUserMedia({ audio: true });
-  } catch {
-    // Sin micrófono se graba igual: se pierde tu voz, pero la de los demás no.
+  if (withMic) {
+    try {
+      mic = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      // Sin permiso se graba igual: se pierde tu voz, pero la de los demás no.
+    }
   }
 
   const ctx = new AudioContext();

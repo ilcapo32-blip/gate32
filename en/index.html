@@ -173,10 +173,18 @@
               <span id="record-label">Record with the microphone</span>
             </button>
             <!-- Shown only where the browser can capture a tab's audio
-                 (desktop Chrome and Edge). -->
+                 (desktop Chrome and Edge). Same mechanism, two audiences:
+                 someone here to transcribe a video call will not stop to
+                 check whether the button mentioning YouTube also covers
+                 them. And the microphone works the opposite way in each:
+                 needed in a meeting, in the way for a video. -->
             <button id="meeting-btn" class="btn ghost" type="button" hidden>
               <span class="rec-dot" aria-hidden="true"></span>
-              <span id="meeting-label">Record another tab (meeting, video, class…)</span>
+              <span data-label>Record a meeting (Meet, Zoom, Teams…)</span>
+            </button>
+            <button id="media-btn" class="btn ghost" type="button" hidden>
+              <span class="rec-dot" aria-hidden="true"></span>
+              <span data-label>Transcribe a video or stream from another tab</span>
             </button>
           </div>
           <span class="privacy-inline">🔒 Processing is 100% local: your file is never uploaded.</span>

@@ -245,21 +245,40 @@ try {
   // termine en un error explicativo en vez de grabar media reunión.
   await page.goto(`${BASE}/?e2e=1`, { waitUntil: "load" });
   check("botón de reunión visible en Chromium", await page.locator("#meeting-btn").isVisible());
-  check("aviso de reunión oculto de inicio", await page.locator("#meeting-hint").isHidden());
+  check("botón de vídeo visible en Chromium", await page.locator("#media-btn").isVisible());
+  check("aviso oculto de inicio", await page.locator("#meeting-hint").isHidden());
+
+  // Los dos avisos hablan a públicos distintos y no deben decir lo mismo: el
+  // consentimiento solo aplica cuando hay personas, y el DRM solo cuando hay
+  // contenido de pago.
   await page.click("#meeting-btn");
   const meetingHint = (await page.locator("#meeting-hint").textContent()) ?? "";
-  check("el primer clic explica la casilla de audio", /audio de la pestaña/i.test(meetingHint));
-  check("el primer clic recuerda pedir consentimiento", /consentimiento/i.test(meetingHint));
+  check("reunión: explica la casilla de audio", /audio de la pestaña/i.test(meetingHint));
+  check("reunión: recuerda pedir consentimiento", /consentimiento/i.test(meetingHint));
   check(
-    "el botón pasa a confirmar",
-    ((await page.locator("#meeting-label").textContent()) ?? "").includes("empezar"),
+    "reunión: el botón pasa a confirmar",
+    ((await page.locator("#meeting-btn [data-label]").textContent()) ?? "").includes("empezar"),
   );
+  // Armar no es grabar: hasta que no se comparte la pestaña, el otro botón
+  // sigue disponible. Bloquear antes de tiempo sería atrapar a quien se ha
+  // equivocado de botón.
+  check("armar uno no bloquea el otro", await page.locator("#media-btn").isEnabled());
+
+  await page.reload({ waitUntil: "load" });
+  await page.click("#media-btn");
+  const mediaHint = (await page.locator("#meeting-hint").textContent()) ?? "";
+  check("vídeo: explica la casilla de audio", /audio de la pestaña/i.test(mediaHint));
+  check("vídeo: dice que no usa el micrófono", /micrófono no se usa/i.test(mediaHint));
+  check("vídeo: avisa del contenido protegido", /Netflix/i.test(mediaHint));
+  check("vídeo: no habla de consentimiento", !/consentimiento/i.test(mediaHint));
+
   // Dos grabaciones a la vez dejarían dos cronómetros y dos archivos de la
   // misma voz: mientras una corre, la otra no se puede empezar.
   await page.evaluate(() => window.__g32.micRecording(true));
   check("grabando con el micro, la reunión no se puede empezar", await page.locator("#meeting-btn").isDisabled());
+  check("grabando con el micro, el vídeo tampoco", await page.locator("#media-btn").isDisabled());
   await page.evaluate(() => window.__g32.micRecording(false));
-  check("al parar el micro vuelve a poder grabarse una reunión", await page.locator("#meeting-btn").isEnabled());
+  check("al parar el micro vuelven a habilitarse", await page.locator("#meeting-btn").isEnabled());
 
   await page.addInitScript(() => {
     // Pestaña compartida sin marcar «compartir audio»: el caso que falla.
@@ -280,7 +299,7 @@ try {
   );
   check(
     "tras el fallo el botón vuelve a su estado inicial",
-    ((await page.locator("#meeting-label").textContent()) ?? "").includes("Grabar otra pestaña"),
+    ((await page.locator("#meeting-btn [data-label]").textContent()) ?? "").includes("Grabar una reunión"),
   );
   await page.click("#error-dismiss");
 
