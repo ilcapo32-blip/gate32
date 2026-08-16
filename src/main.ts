@@ -74,6 +74,12 @@ const shareBtn = $<HTMLButtonElement>("#share-btn");
 const recentsBox = $("#recents");
 const recentsList = $("#recents-list");
 const waitSurvey = $("#wait-survey");
+const readyBox = document.querySelector<HTMLElement>("#ready");
+const readyName = document.querySelector<HTMLElement>("#ready-name");
+const readySize = document.querySelector<HTMLElement>("#ready-size");
+const readyWarn = document.querySelector<HTMLElement>("#ready-warn");
+const startBtn = document.querySelector<HTMLButtonElement>("#start-btn");
+const readyCancel = document.querySelector<HTMLButtonElement>("#ready-cancel");
 
 fileInput.accept = ACCEPT;
 
@@ -181,6 +187,37 @@ if (onPhone) {
     note.hidden = false;
   }
 }
+// Se recuerda la última elección. Sin esto, el botón de confirmar sería un
+// peaje en cada visita; con esto, a partir de la segunda vez ya está puesto lo
+// que el usuario usa siempre y confirmar es un vistazo.
+const MODEL_KEY = "gate32.model";
+const LANG_KEY = "gate32.lang";
+const hasOption = (sel: HTMLSelectElement, v: string): boolean =>
+  [...sel.options].some((o) => o.value === v);
+try {
+  const m = localStorage.getItem(MODEL_KEY);
+  if (m && hasOption(modelSelect, m)) modelSelect.value = m;
+  const l = localStorage.getItem(LANG_KEY);
+  if (l && hasOption(langSelect, l)) langSelect.value = l;
+} catch {
+  /* sin almacenamiento se usa el valor por defecto y ya está */
+}
+// La URL manda sobre lo recordado: si una integración fija el modelo, es porque
+// sabe mejor que nosotros qué le encaja a sus usuarios.
+if (requestedModel && requestedModel in MODELS && hasOption(modelSelect, requestedModel)) {
+  modelSelect.value = requestedModel;
+}
+const remember = (key: string, value: string): void => {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* ídem */
+  }
+};
+modelSelect.addEventListener("change", () => remember(MODEL_KEY, modelSelect.value));
+langSelect.addEventListener("change", () => remember(LANG_KEY, langSelect.value));
+
+syncLangNote();
 syncFirstRunSize();
 
 // ── estado ──
@@ -261,6 +298,9 @@ let meetingNoMic = false;
 // De dónde viene lo que se va a transcribir. Lo fija quien llama a handleFile.
 let pendingSource: "file" | "mic" | "meeting" | "media" = "file";
 
+// Archivo elegido y a la espera de que se confirmen idioma y modelo.
+let pending: { file: File | Blob; name: string } | null = null;
+
 let waitSurveyShown = false;
 function showWaitSurvey(bytesDone: number): void {
   // Solo con descarga real en curso; una carga desde caché no llega aquí.
@@ -271,6 +311,8 @@ function showWaitSurvey(bytesDone: number): void {
 }
 
 function resetToIdle(): void {
+  pending = null;
+  if (readyBox) hide(readyBox);
   busy = false;
   phase = "idle";
   hide(waitSurvey);
@@ -330,6 +372,20 @@ async function importJSON(file: File | Blob, name: string): Promise<boolean> {
   }
 }
 
+/**
+ * Prepara un archivo y espera a que se confirme. **No transcribe.**
+ *
+ * Antes se arrancaba solo al soltar el archivo. Con dos ajustes y diez idiomas
+ * era defendible; con cuatro modelos y cuarenta y siete idiomas ya no: los
+ * selectores están encima de la zona de arrastre, así que se saltan, y quien
+ * pulsa lo más grande de la pantalla arranca con lo que hubiera puesto. El
+ * precio de equivocarse no es un clic, son 250 MB de descarga o diez minutos
+ * transcribiendo en otro idioma.
+ *
+ * El clic añadido se paga con dos cosas: se recuerda la última elección, así
+ * que a la segunda vez ya está bien, y el aviso de archivo grande pasa a este
+ * panel en lugar de un diálogo del navegador encima.
+ */
 async function handleFile(file: File | Blob, name: string): Promise<void> {
   if (busy) return;
 
@@ -340,23 +396,35 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
     return;
   }
 
+  pending = { file, name };
+  hide(errorBox);
+  hide(resultSection);
+  if (readyName) readyName.textContent = name;
+  if (readySize) readySize.textContent = humanBytes(file.size, locale);
   // El aviso por tamaño va **antes** de decodificar. Un 22 % de los archivos
   // que se sueltan no se pueden leer, y la causa confirmada es la memoria del
   // navegador: enterarse después de dos minutos de espera es la peor versión
   // de ese fallo.
-  const bytes = file instanceof File ? file.size : file.size;
-  if (bytes > BIG_FILE_BYTES) {
-    track("big_file_prompt");
-    const go = confirm(
-      t(onPhone ? "big_file_confirm_phone" : "big_file_confirm", {
-        size: humanBytes(bytes, locale),
-      }),
-    );
-    if (!go) {
-      track("big_file_cancel");
-      return;
-    }
+  if (readyWarn) {
+    const big = file.size > BIG_FILE_BYTES;
+    if (big) track("big_file_prompt");
+    readyWarn.textContent = big
+      ? t(onPhone ? "big_file_note_phone" : "big_file_note", {
+          size: humanBytes(file.size, locale),
+        })
+      : "";
+    readyWarn.hidden = !big;
   }
+  if (readyBox) show(readyBox);
+  track("file_ready");
+  startBtn?.focus();
+}
+
+/** Arranca de verdad, ya con el idioma y el modelo confirmados. */
+async function startTranscription(file: File | Blob, name: string): Promise<void> {
+  if (busy) return;
+  pending = null;
+  if (readyBox) hide(readyBox);
 
   busy = true;
   editTracked = false;
@@ -992,6 +1060,20 @@ if (canCaptureTab()) {
     wireTabCapture("media", mediaBtn);
   }
 }
+
+// ── confirmar y arrancar ──
+
+startBtn?.addEventListener("click", () => {
+  if (!pending) return;
+  void startTranscription(pending.file, pending.name);
+});
+
+readyCancel?.addEventListener("click", () => {
+  pending = null;
+  if (readyBox) hide(readyBox);
+  fileInput.value = "";
+  track("file_ready_cancel");
+});
 
 // ── cancelar / cerrar errores / nueva ──
 

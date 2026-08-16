@@ -775,3 +775,34 @@ body.embed .toolbar { position: static; }
 }
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ── confirmación antes de transcribir ── */
+
+.ready {
+  margin-top: 0.9rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 11px;
+  background: var(--accent-soft);
+}
+
+.ready-file {
+  margin: 0;
+  font-size: 0.95rem;
+  word-break: break-word;
+}
+
+.ready-file span { color: var(--muted); }
+
+.ready-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.ready-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.8rem;
+}

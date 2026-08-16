@@ -159,8 +159,26 @@ try {
     (await page.locator('main a[href="/reuniones/"]').count()) > 0,
   );
 
-  // 2 · decodificación + fase de modelo (éxito o error de red controlado)
+  // 2 · confirmación, decodificación y fase de modelo
+  //
+  // Elegir un archivo ya no arranca: enseña lo que va a pasar y espera. Con
+  // cuatro modelos y 47 idiomas, arrancar solo hacía que los selectores —que
+  // están encima de la zona de arrastre— se saltaran.
   await page.setInputFiles("#file-input", tonePath);
+  await page.waitForSelector("#ready:not([hidden])", { timeout: 10000 });
+  check("elegir archivo no arranca solo", await page.locator("#status").isHidden());
+  check(
+    "el panel dice qué archivo se va a transcribir",
+    ((await page.locator("#ready-name").textContent()) ?? "").includes("tone.wav"),
+  );
+  await page.click("#ready-cancel");
+  check("se puede cambiar de archivo sin transcribir", await page.locator("#ready").isHidden());
+
+  await page.setInputFiles("#file-input", tonePath);
+  await page.waitForSelector("#ready:not([hidden])", { timeout: 10000 });
+  // La elección se recuerda, que es lo que hace barato el clic de confirmar.
+  await page.selectOption("#model-quality", "fast");
+  await page.click("#start-btn");
   await page.waitForSelector("#status:not([hidden])", { timeout: 10000 });
   const outcome = await Promise.race([
     page.waitForSelector("#result:not([hidden])", { timeout: 300000 }).then(() => "done"),
@@ -177,6 +195,13 @@ try {
   }
   const dzClass = (await page.locator("#dropzone").getAttribute("class")) ?? "";
   check("dropzone reutilizable tras el primer intento", !dzClass.includes("disabled"));
+
+  await page.reload({ waitUntil: "load" });
+  check(
+    "el modelo elegido se recuerda en la siguiente visita",
+    (await page.locator("#model-quality").inputValue()) === "fast",
+  );
+  await page.selectOption("#model-quality", "balanced");
 
   // 3 · resultado inyectado: edición + exports
   await page.evaluate(() => {

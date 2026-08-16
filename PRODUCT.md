@@ -194,6 +194,38 @@ interfaz es optimizar para el que escribe el código, no para el que lo usa.
 - **Transcribir para uso propio no es republicar.** El texto de una obra ajena
   sigue teniendo dueño. Se avisa una vez, sin sermón, y se sigue.
 
+## Confirmar antes de arrancar (2026-08-16)
+
+Propuesta del propietario: un botón de empezar, en vez de que la transcripción
+arranque sola al soltar el archivo. *"Son públicos diferentes"* fue su
+argumento para los botones de pestaña; aquí el suyo es la comodidad. El motivo
+de fondo es más duro que eso.
+
+**Los selectores de idioma y modelo están encima de la zona de arrastre, así
+que se saltan.** Quien entra pulsa lo más grande de la pantalla y arranca con
+lo que hubiera puesto. Eso era defendible con dos ajustes y diez idiomas. El
+mismo día pasamos a cuatro modelos y 47 idiomas, y el precio de equivocarse
+dejó de ser un clic: son 250 MB de descarga, o diez minutos transcribiendo en
+un idioma que no era.
+
+Ahora elegir archivo abre un panel que dice **qué** se va a transcribir, avisa
+si pesa demasiado y espera. Tres decisiones que lo acompañan:
+
+1. **Se recuerda la última elección** de idioma y modelo. Sin esto el botón
+   sería un peaje en cada visita; con esto, a la segunda vez ya está puesto lo
+   que esa persona usa siempre y confirmar es un vistazo.
+2. **El aviso de archivo grande sale del `confirm()` del navegador** y entra en
+   el panel. Antes había dos confirmaciones seguidas para lo mismo.
+3. **Se mide**, porque es un clic en el camino feliz y la activación es la
+   métrica principal. `transcribe_start` / `file_ready` dice lo que cuesta, y
+   VALIDATION.md fija de antemano el umbral en el que se revierte — dejando la
+   memoria de ajustes, que es la mitad del valor y no cuesta ningún clic.
+
+Lo que **no** cambia: la grabación de micrófono y las dos capturas de pestaña
+siguen transcribiendo al parar. Ahí el usuario ya ha tomado dos decisiones
+explícitas (pulsar, y luego detener), y meter una tercera después de una
+reunión de una hora sería pedirle permiso para hacer lo único que iba a hacer.
+
 ## Propuesta de valor (una frase)
 
 > Transcribe y subtitula cualquier audio o vídeo con IA, gratis y sin límites,

@@ -206,6 +206,20 @@
           <span class="privacy-inline">🔒 Processing is 100% local: your file is never uploaded.</span>
         </div>
         <p id="meeting-hint" class="mobile-note" hidden></p>
+        <!-- Confirmation before starting. With four models and 47 languages,
+             starting the moment a file lands meant the selects above it got
+             skipped, and getting it wrong costs a 250 MB download or ten
+             minutes transcribing in the wrong language. -->
+        <div id="ready" class="ready" hidden>
+          <p class="ready-file"><strong id="ready-name"></strong> <span id="ready-size"></span></p>
+          <p id="ready-warn" class="mobile-note" hidden></p>
+          <p class="ready-hint">Check the language and model above before you start.</p>
+          <div class="ready-actions">
+            <button id="start-btn" class="btn accent" type="button">Transcribe</button>
+            <button id="ready-cancel" class="btn ghost" type="button">Choose another file</button>
+          </div>
+        </div>
+
 
         <p id="lang-note" class="mobile-note" hidden></p>
         <p id="mobile-note" class="mobile-note" hidden></p>

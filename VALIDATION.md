@@ -291,7 +291,9 @@ nada. La hipótesis del tamaño está confirmada; la solución era insuficiente.
 60 MB, con mensaje más duro en móvil (24 % del tráfico, memoria mucho más
 justa). No arregla el fallo: evita esperar dos minutos para nada y dice qué
 hacer. Eventos `big_file_prompt` y `big_file_cancel` para saber cuántos siguen
-adelante y si el aviso ahuyenta a alguien.
+adelante y si el aviso ahuyenta a alguien. *(El 16/08 `big_file_cancel`
+desaparece: el aviso deja de ser un `confirm()` del navegador y pasa al panel
+de confirmación, así que el abandono equivalente es `file_ready_cancel`.)*
 
 **El arreglo de verdad** es decodificar por trozos con **WebCodecs**
 (`AudioDecoder`), que mantiene la memoria constante. Requiere demultiplexar los
@@ -433,7 +435,9 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `storage_not_persisted` | el navegador no garantiza conservar el modelo | — |
 | `storage_full` | no cabe el modelo; se avisa antes de descargar | — |
 | `use_case_wait_*` / `use_case_export_*` | respuesta a la encuesta | `kind`, `when` |
-| `transcribe_start` | usuario lanza una transcripción | `model`, `device`, `source` (file/mic/meeting), `minutes` |
+| `file_ready` | archivo elegido, esperando confirmación | — |
+| `file_ready_cancel` | elige otro archivo sin transcribir | — |
+| `transcribe_start` | usuario confirma y lanza la transcripción | `model`, `device`, `source` (file/mic/meeting/media), `minutes` |
 | `transcribe_start_meeting` | la transcripción viene de una reunión grabada | — |
 | `meeting_click` | primer clic en «Grabar una reunión» (aún no comparte) | — |
 | `meeting_start` | la captura arranca de verdad | — |
@@ -448,6 +452,35 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `share` | usa el botón compartir | `channel` |
 | `pro_interest` | clic en "Quiero Gate32 Pro" | — |
 | `return_visit` | visita con historial local previo | `days_since_first` |
+
+### El botón de confirmar (desplegado 2026-08-16, sin datos todavía)
+
+Elegir un archivo ya no arranca la transcripción: aparece un panel con el
+archivo, el aviso de tamaño si lo hay, y un botón **Transcribir**.
+
+**Es un clic añadido en el camino feliz, así que hay que medirlo, no
+justificarlo.** La métrica es `transcribe_start` / `file_ready`:
+
+- **≥ 90 %** — el botón no cuesta nada y evita arranques equivocados.
+- **75–90 %** — parte de esa caída puede ser gente que se lo repensó al ver el
+  aviso de archivo grande, que es un abandono *bueno*: antes esa transcripción
+  fallaba igual, pero después de dos minutos de espera. Mirar `file_ready` en
+  archivos grandes antes de concluir.
+- **< 75 %** — el botón está perdiendo gente de verdad. Revertir a arranque
+  automático dejando la memoria de idioma y modelo, que es la mitad del valor y
+  no cuesta ningún clic.
+
+**Por qué se hizo igualmente:** el coste de arrancar con los ajustes
+equivocados subió mucho el mismo día. Con cuatro modelos y 47 idiomas, un
+arranque erróneo son 250 MB de descarga o diez minutos transcribiendo en otro
+idioma; los selectores están encima de la zona de arrastre y por eso se
+saltaban. El clic se abarata recordando la última elección
+(`gate32.model`, `gate32.lang`): a partir de la segunda visita ya está puesto
+lo que esa persona usa siempre.
+
+**Sustituye a `big_file_cancel`**, que ya no existe: el aviso de archivo grande
+era un `confirm()` del navegador y ahora vive dentro del panel. El abandono
+equivalente es `file_ready_cancel`.
 
 ### Captura de reuniones (desplegada 2026-08-14, sin datos todavía)
 

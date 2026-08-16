@@ -211,6 +211,20 @@
           <span class="privacy-inline">🔒 El procesado es 100 % local: el archivo no se sube a ningún servidor.</span>
         </div>
         <p id="meeting-hint" class="mobile-note" hidden></p>
+        <!-- Confirmación antes de arrancar. Con cuatro modelos y 47 idiomas,
+             empezar solo al soltar el archivo hacía que los selectores —que
+             están arriba— se saltaran, y equivocarse cuesta una descarga de
+             250 MB o diez minutos en otro idioma. -->
+        <div id="ready" class="ready" hidden>
+          <p class="ready-file"><strong id="ready-name"></strong> <span id="ready-size"></span></p>
+          <p id="ready-warn" class="mobile-note" hidden></p>
+          <p class="ready-hint">Comprueba el idioma y el modelo arriba antes de empezar.</p>
+          <div class="ready-actions">
+            <button id="start-btn" class="btn accent" type="button">Transcribir</button>
+            <button id="ready-cancel" class="btn ghost" type="button">Elegir otro archivo</button>
+          </div>
+        </div>
+
 
         <p id="lang-note" class="mobile-note" hidden></p>
         <p id="mobile-note" class="mobile-note" hidden></p>
