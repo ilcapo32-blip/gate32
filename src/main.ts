@@ -1025,6 +1025,17 @@ function wireTabCapture(mode: TabMode, btn: HTMLButtonElement): void {
           void handleFile(blob, `${t(mode === "meeting" ? "meeting_prefix" : "media_prefix")}-${stamp}`);
         }
       });
+      // Si se corta la compartición desde la barra del navegador, se cierra la
+      // grabación igual que si se hubiera pulsado «Detener» aquí: dejar de
+      // compartir es dejar de grabar. Lo contrario sería seguir apuntando
+      // silencio sin que nadie lo note hasta el final.
+      st.capture.onEnded(() => {
+        if (st.rec && st.rec.state !== "inactive") {
+          track(`${mode}_ended_external`);
+          st.rec.stop();
+        }
+      });
+
       st.rec.start();
       const t0 = Date.now();
       if (tabHint) hide(tabHint);

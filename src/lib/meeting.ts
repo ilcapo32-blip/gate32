@@ -20,6 +20,16 @@ export interface MeetingCapture {
   stop(): void;
   /** El micrófono entró en la mezcla. */
   withMic: boolean;
+  /**
+   * Avisa si la compartición se corta desde fuera de la aplicación.
+   *
+   * Chrome enseña su propia barra con «Dejar de compartir», y mucha gente la
+   * usa: es lo que tiene delante. Si eso ocurre, la pista de audio muere pero
+   * el `MediaRecorder` sigue tan contento **grabando silencio**, y el
+   * cronómetro sigue subiendo. Quien creía estar grabando una hora de webinar
+   * se encontraría con una hora de nada.
+   */
+  onEnded(cb: () => void): void;
 }
 
 /**
@@ -90,9 +100,14 @@ export async function captureTab(withMic: boolean): Promise<MeetingCapture> {
   ctx.createMediaStreamSource(display).connect(mixer);
   if (mic) ctx.createMediaStreamSource(mic).connect(mixer);
 
+  const [tabTrack] = display.getAudioTracks();
+
   return {
     stream: mixer.stream,
     withMic: mic !== null,
+    onEnded(cb) {
+      tabTrack?.addEventListener("ended", cb, { once: true });
+    },
     stop() {
       display.getTracks().forEach((t) => t.stop());
       mic?.getTracks().forEach((t) => t.stop());

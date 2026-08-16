@@ -3,7 +3,21 @@ import { canCaptureTab, captureTab, NoTabAudioError } from "../meeting";
 
 /** Pista falsa que recuerda si la han parado. */
 function track(kind: "audio" | "video") {
-  return { kind, stopped: false, stop(this: { stopped: boolean }) { this.stopped = true; } };
+  const listeners: (() => void)[] = [];
+  return {
+    kind,
+    stopped: false,
+    stop(this: { stopped: boolean }) {
+      this.stopped = true;
+    },
+    addEventListener(_ev: string, cb: () => void) {
+      listeners.push(cb);
+    },
+    /** Simula que el usuario pulsa «Dejar de compartir» en la barra de Chrome. */
+    fireEnded() {
+      listeners.splice(0).forEach((cb) => cb());
+    },
+  };
 }
 
 type FakeTrack = ReturnType<typeof track>;
@@ -126,6 +140,20 @@ describe("meeting · captura", () => {
     const env = setup({ tabAudio: false });
     await expect(captureTab(true)).rejects.toBeInstanceOf(NoTabAudioError);
     expect(env.display.tracks.every((t) => t.stopped)).toBe(true);
+  });
+
+  // Chrome enseña su propia barra con «Dejar de compartir» y mucha gente la
+  // usa. Sin esto el MediaRecorder seguía corriendo sobre una pista muerta:
+  // una hora de webinar convertida en una hora de silencio.
+  it("avisa si se deja de compartir desde la barra del navegador", async () => {
+    const env = setup();
+    const capture = await captureTab(true);
+    let avisado = false;
+    capture.onEnded(() => {
+      avisado = true;
+    });
+    env.display.getAudioTracks()[0]?.fireEnded();
+    expect(avisado).toBe(true);
   });
 
   it("stop() corta pestaña, micrófono y contexto", async () => {
