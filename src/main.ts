@@ -1221,10 +1221,18 @@ window.addEventListener("appinstalled", () => {
   if (installBox) hide(installBox);
 });
 
+let installShown = false;
+
 /** Se ofrece tras la primera transcripción: antes no hay motivo para aceptar. */
 function offerInstall(): void {
   if (!installBox || !installPrompt || storagePersisted) return;
-  track("install_shown");
+  // Una sola vez por carga: quien transcribe tres archivos seguidos lo ve una
+  // vez, y así el denominador significa "personas que lo vieron" y no "veces
+  // que se pintó", que es lo que hay que dividir para saber si convence.
+  if (!installShown) {
+    installShown = true;
+    track("install_shown");
+  }
   show(installBox);
 }
 
