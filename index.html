@@ -314,6 +314,25 @@
       </div>
 
       <p class="edit-hint">Haz clic en cualquier texto para corregirlo. Clic en un tiempo para saltar al audio.</p>
+        <!-- El pase de corrección. Sale de la primera transcripción larga que
+             salió bien: 69 minutos sobre Claude, y Whisper escribió "Cloud"
+             noventa veces. Todo lo demás correcto y el texto igual de inútil. -->
+        <div class="fixbar">
+          <p class="fix-title">Corregir en toda la transcripción</p>
+          <p class="fix-hint">El reconocimiento falla siempre en los mismos nombres propios. Corrígelo una vez y se arregla en todo el texto.</p>
+          <div class="fix-row">
+            <input id="fix-find" type="text" placeholder="Lo que dice" aria-label="Lo que dice" />
+            <span class="fix-arrow" aria-hidden="true">→</span>
+            <input id="fix-replace" type="text" placeholder="Lo que debería decir" aria-label="Lo que debería decir" />
+            <button id="fix-apply" class="btn small" type="button" disabled>Reemplazar todo</button>
+          </div>
+          <div class="fix-row">
+            <label class="fix-case"><input id="fix-case" type="checkbox" /> Respetar mayúsculas</label>
+            <span id="fix-count" class="fix-count"></span>
+            <button id="fix-undo" class="btn ghost small" type="button" hidden></button>
+          </div>
+        </div>
+
         <div id="retry-better" class="retry-better" hidden>
           <p class="retry-hint">¿Se ha saltado frases o ha entendido mal palabras? Con un modelo mayor mejora bastante. No hay que volver a cargar el archivo.</p>
           <button id="retry-btn" class="btn accent small" type="button">Repetir con un modelo mejor</button>

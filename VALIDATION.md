@@ -437,6 +437,8 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `use_case_wait_*` / `use_case_export_*` | respuesta a la encuesta | `kind`, `when` |
 | `file_ready` | archivo elegido, esperando confirmación | — |
 | `retry_better` | repite la misma transcripción con un modelo mayor | — |
+| `fix_replace` | corrige un término en toda la transcripción | — |
+| `fix_undo` | deshace la corrección | — |
 | `transcribe_partial` | terminó pero se perdieron bloques por el camino | — |
 | `file_ready_cancel` | elige otro archivo sin transcribir | — |
 | `transcribe_start` | usuario confirma y lanza la transcripción | `model`, `device`, `source` (file/mic/meeting/media), `minutes` |
@@ -454,6 +456,40 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `share` | usa el botón compartir | `channel` |
 | `pro_interest` | clic en "Quiero Gate32 Pro" | — |
 | `return_visit` | visita con historial local previo | `days_since_first` |
+
+### El pase de corrección, construido por fin (2026-08-16)
+
+Seis señales independientes llevaban semanas apuntando al mismo sitio y no
+habíamos construido nada de ello. La primera transcripción larga que salió bien
+lo zanjó: todo correcto salvo "Cloud" noventa veces, y el texto igual de
+inservible para estudiar o citar.
+
+**Está en la pantalla del resultado, gratis:** buscar, ver **cuántas
+coincidencias hay antes de tocar nada**, reemplazar en toda la transcripción y
+deshacer. La cuenta previa no es un adorno: reemplazar a ciegas en ochocientos
+párrafos es una función que nadie se atreve a usar.
+
+**Por qué esto, y no un muro de pago, siendo la dirección la monetización.**
+Con 27 activaciones, un 5 % de conversión son 1,35 clientes: montar el cobro
+ahora mide ruido, no demanda. Lo que bloquea el MRR, en orden, es **volumen,
+después retención, y solo entonces cobrar**. Un transcriptor de un solo uso no
+tiene camino a suscripción — nadie paga cada mes por algo que usó una vez. La
+corrección es lo que da motivo para volver, y es lo único nuestro que la
+evidencia de usuarios respalda.
+
+**Y sirve además para arreglar el instrumento.** `pro_interest` lleva cuatro
+mediciones en cero, pero es un botón que no cuesta nada pulsar y no da nada a
+cambio: una encuesta sobre un producto hipotético. `fix_replace` mide algo
+distinto y más fiable — **gente usando la funcionalidad que decimos que es
+nuestro hueco**. Si nadie la usa, la tesis de la corrección se cae con datos
+propios y no por opinión.
+
+| Señal | Qué diría |
+|---|---|
+| `fix_replace` en ≥ 20 % de las transcripciones | La corrección es el trabajo real → es donde construir la capa de pago |
+| `fix_replace` casi nulo pero `edit_used` alto | Corrigen a mano: el problema existe pero la herramienta no se encuentra |
+| Ambos bajos | La tesis del pase de corrección no aguanta y hay que decirlo |
+| `retry_better` alto junto a `fix_replace` | El modelo por defecto se queda corto y la gente lo arregla como puede |
 
 ### Primera transcripción larga que sale bien (2026-08-16) — tres validaciones resueltas
 

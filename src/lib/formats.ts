@@ -282,3 +282,53 @@ export function exportName(original: string, ext: string): string {
   const base = original.replace(/\.[^.]+$/, "").replace(/[^\p{L}\p{N}_-]+/gu, "-") || "transcripcion";
   return `${base}.${ext}`;
 }
+
+/** Una corrección aplicada, con lo justo para poder deshacerla. */
+export interface Correction {
+  find: string;
+  replace: string;
+  /** Segmentos tal y como estaban antes. */
+  before: Segment[];
+  count: number;
+}
+
+/** Escapa un texto para usarlo como literal dentro de una expresión regular. */
+function literal(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Cuenta cuántas veces aparece un texto en la transcripción.
+ *
+ * Va antes de reemplazar y no después: reemplazar a ciegas en ochocientos
+ * párrafos es justo lo que nadie se atreve a hacer. Ver "90 coincidencias"
+ * convierte la decisión en una comprobación.
+ */
+export function countMatches(segments: Segment[], find: string, caseSensitive = false): number {
+  if (!find) return 0;
+  const re = new RegExp(literal(find), caseSensitive ? "g" : "gi");
+  let n = 0;
+  for (const s of segments) n += (s.text.match(re) ?? []).length;
+  return n;
+}
+
+/**
+ * Reemplaza en toda la transcripción y devuelve los segmentos nuevos.
+ *
+ * Existe por la primera transcripción larga que salió bien: el vídeo hablaba
+ * de **Claude** y Whisper escribió **"Cloud" noventa veces**. Un nombre propio
+ * mal oído de forma sistemática arruina el texto para estudiar o citar aunque
+ * todo lo demás esté correcto, y `prompt_ids` —el mecanismo de Whisper para
+ * darle vocabulario esperado— está documentado en transformers.js pero sin
+ * implementar. Así que la corrección va después, no antes.
+ */
+export function replaceAll(
+  segments: Segment[],
+  find: string,
+  replace: string,
+  caseSensitive = false,
+): Segment[] {
+  if (!find) return segments;
+  const re = new RegExp(literal(find), caseSensitive ? "g" : "gi");
+  return segments.map((s) => ({ ...s, text: s.text.replace(re, replace) }));
+}

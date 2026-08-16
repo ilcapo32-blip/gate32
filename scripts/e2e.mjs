@@ -273,6 +273,56 @@ try {
   check("con el modelo máximo no se ofrece nada", await page.locator("#retry-better").isHidden());
   await page.evaluate(() => window.__g32.showResult([{ start: 0, end: 2, text: "x" }]));
 
+  // El pase de corrección. Sale del caso real: 69 minutos sobre Claude y
+  // Whisper escribió "Cloud" 90 veces. Todo lo demás correcto y el texto igual
+  // de inútil para estudiar o citar.
+  await page.evaluate(() => {
+    window.__g32.showResult([
+      { start: 0, end: 2, text: "bienvenido al curso de Cloud" },
+      { start: 2, end: 4, text: "Cloud es la herramienta, cloud es otra cosa" },
+      { start: 4, end: 6, text: "aquí no hay nada" },
+    ]);
+  });
+  await page.fill("#fix-find", "Cloud");
+  check(
+    "cuenta las coincidencias antes de tocar nada",
+    ((await page.locator("#fix-count").textContent()) ?? "").includes("3"),
+  );
+  await page.check("#fix-case");
+  check(
+    "respetar mayúsculas cambia la cuenta",
+    ((await page.locator("#fix-count").textContent()) ?? "").includes("2"),
+  );
+  await page.uncheck("#fix-case");
+  await page.fill("#fix-replace", "Claude");
+  await page.click("#fix-apply");
+  check(
+    "corrige en toda la transcripción de una vez",
+    ((await page.locator(".seg-text").nth(1).textContent()) ?? "") ===
+      "Claude es la herramienta, Claude es otra cosa",
+  );
+  check("tras corregir se ofrece deshacer", await page.locator("#fix-undo").isVisible());
+  await page.click("#fix-undo");
+  check(
+    "deshacer devuelve el texto original",
+    ((await page.locator(".seg-text").nth(1).textContent()) ?? "").includes("Cloud es la herramienta"),
+  );
+  // Un nombre propio con paréntesis no puede convertirse en comodín.
+  await page.fill("#fix-find", "curso de Cloud");
+  check(
+    "la búsqueda es literal",
+    ((await page.locator("#fix-count").textContent()) ?? "").includes("1"),
+  );
+  await page.fill("#fix-find", "");
+
+  await page.evaluate(() => {
+    window.__g32.showResult([
+      { start: 0, end: 2.5, text: "Hola, esto es una prueba. EDITADO" },
+      { start: 2.5, end: 5, text: "Segunda frase de ejemplo." },
+      { start: 5, end: 8, text: "Tercera y última." },
+    ]);
+  });
+
   await page.click("#pro-btn");
   check("CTA Pro despliega funcionalidades", await page.locator("#pro-features").isVisible());
   await page.click(".pro-feature");

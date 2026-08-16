@@ -840,3 +840,55 @@ body.embed .toolbar { position: static; }
   color: var(--ink);
   line-height: 1.45;
 }
+
+/* ── pase de corrección ── */
+
+.fixbar {
+  margin: 0.9rem 0;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.fix-title { font-size: 0.9rem; font-weight: 600; }
+
+.fix-hint {
+  margin: 0.15rem 0 0.7rem;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.fix-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.fix-row + .fix-row { margin-top: 0.55rem; }
+
+.fix-row input[type="text"] {
+  flex: 1;
+  min-width: 9rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.88rem;
+}
+
+.fix-arrow { color: var(--muted); }
+
+.fix-case {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.fix-count { font-size: 0.8rem; color: var(--accent); font-weight: 600; }

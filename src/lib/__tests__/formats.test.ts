@@ -15,6 +15,8 @@ import {
   ATTRIBUTION_LINE,
   SUPER_S,
   OVERLAP_S,
+  countMatches,
+  replaceAll,
 } from "../formats";
 import type { RawChunk, Segment } from "../types";
 
@@ -273,5 +275,48 @@ describe("bloques largos · costuras", () => {
     const b1 = { offset: paso, segments: [{ start: paso + 1, end: paso + 4, text: "segunda" }] };
     const out = mergeWindows([b0, b1], OVERLAP_S, paso);
     expect(out.map((s) => s.text)).toEqual(["primera", "segunda"]);
+  });
+});
+
+// El caso real: 69 minutos sobre Claude y Whisper escribió "Cloud" 90 veces.
+describe("pase de corrección · buscar y reemplazar", () => {
+  const segs = [
+    seg(0, 2, "bienvenido al curso de Cloud"),
+    seg(2, 4, "Cloud es la herramienta, cloud a secas es otra cosa"),
+    seg(4, 6, "sin coincidencias aquí"),
+  ];
+
+  it("cuenta antes de tocar nada", () => {
+    expect(countMatches(segs, "Cloud")).toBe(3);
+    expect(countMatches(segs, "Cloud", true)).toBe(2);
+    expect(countMatches(segs, "")).toBe(0);
+  });
+
+  it("reemplaza en toda la transcripción de una vez", () => {
+    const out = replaceAll(segs, "Cloud", "Claude");
+    expect(out[0]?.text).toBe("bienvenido al curso de Claude");
+    expect(out[1]?.text).toBe("Claude es la herramienta, Claude a secas es otra cosa");
+  });
+
+  it("respetando mayúsculas deja en paz lo que no coincide", () => {
+    const out = replaceAll(segs, "Cloud", "Claude", true);
+    expect(out[1]?.text).toBe("Claude es la herramienta, cloud a secas es otra cosa");
+  });
+
+  it("no altera los tiempos", () => {
+    const out = replaceAll(segs, "Cloud", "Claude");
+    expect(out.map((s) => [s.start, s.end])).toEqual(segs.map((s) => [s.start, s.end]));
+  });
+
+  // Un nombre propio con paréntesis o punto no puede convertirse en comodín y
+  // arrasar el texto entero.
+  it("trata la búsqueda como literal, no como expresión regular", () => {
+    const raros = [seg(0, 1, "esto es C++ (v2.0) y esto no: Cxx v240")];
+    expect(countMatches(raros, "C++ (v2.0)")).toBe(1);
+    expect(replaceAll(raros, "C++ (v2.0)", "C++ 2")[0]?.text).toBe("esto es C++ 2 y esto no: Cxx v240");
+  });
+
+  it("buscar vacío no hace nada", () => {
+    expect(replaceAll(segs, "", "x")).toEqual(segs);
   });
 });

@@ -19,7 +19,10 @@ import {
   toVTT,
   toJSON,
   clock,
+  countMatches,
+  replaceAll,
   exportName,
+  type Correction,
   type CueOptions,
 } from "./lib/formats";
 import { MODELS, type ModelQuality, type Segment } from "./lib/types";
@@ -87,6 +90,12 @@ const readySize = document.querySelector<HTMLElement>("#ready-size");
 const readyWarn = document.querySelector<HTMLElement>("#ready-warn");
 const startBtn = document.querySelector<HTMLButtonElement>("#start-btn");
 const readyCancel = document.querySelector<HTMLButtonElement>("#ready-cancel");
+const fixFind = document.querySelector<HTMLInputElement>("#fix-find");
+const fixReplace = document.querySelector<HTMLInputElement>("#fix-replace");
+const fixCase = document.querySelector<HTMLInputElement>("#fix-case");
+const fixApply = document.querySelector<HTMLButtonElement>("#fix-apply");
+const fixUndo = document.querySelector<HTMLButtonElement>("#fix-undo");
+const fixCount = document.querySelector<HTMLElement>("#fix-count");
 const retryBox = document.querySelector<HTMLElement>("#retry-better");
 const retryBtn = document.querySelector<HTMLButtonElement>("#retry-btn");
 const recoveryBox = document.querySelector<HTMLElement>("#recovery");
@@ -727,34 +736,10 @@ function nextQuality(q: ModelQuality): ModelQuality | null {
   return null;
 }
 
-function modelLabel(q: ModelQuality): string {
-  if (q === "fast") return t("model_fast");
-  if (q === "accurate") return t("model_accurate");
-  if (q === "max") return t("model_max");
-  return t("model_balanced");
-}
-
-// ── resultado y edición ──
-
-function renderResult(metaText: string): void {
+/** Pinta la lista de segmentos editables. Se repinta tras una corrección. */
+function renderSegments(): void {
   if (!current) return;
-  resultTitle.textContent = current.title;
-  const micNote = meetingNoMic && !current.fromHistory ? ` · ${t("meeting_mic_off")}` : "";
-  resultMeta.textContent = `${current.minutes} min · ${metaText}${micNote}`;
-  if (!current.fromHistory) show(player);
-  else hide(player);
-
-  // El aviso va aquí y no antes: durante la espera solo añadiría ruido, y en
-  // este punto el usuario ya sabe si le ha merecido la pena volver.
-  const persistNote = document.querySelector<HTMLElement>("#persist-note");
-  if (persistNote && !current.fromHistory && !storagePersisted) {
-    persistNote.textContent = t("persist_note");
-    persistNote.hidden = false;
-  } else if (persistNote) {
-    persistNote.hidden = true;
-  }
-
-  segmentsBox.replaceChildren();
+segmentsBox.replaceChildren();
   current.segments.forEach((seg, i) => {
     const row = document.createElement("div");
     row.className = "segment";
@@ -801,6 +786,36 @@ function renderResult(metaText: string): void {
   show(resultSection);
   resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
   renderRecents();
+}
+
+function modelLabel(q: ModelQuality): string {
+  if (q === "fast") return t("model_fast");
+  if (q === "accurate") return t("model_accurate");
+  if (q === "max") return t("model_max");
+  return t("model_balanced");
+}
+
+// ── resultado y edición ──
+
+function renderResult(metaText: string): void {
+  if (!current) return;
+  resultTitle.textContent = current.title;
+  const micNote = meetingNoMic && !current.fromHistory ? ` · ${t("meeting_mic_off")}` : "";
+  resultMeta.textContent = `${current.minutes} min · ${metaText}${micNote}`;
+  if (!current.fromHistory) show(player);
+  else hide(player);
+
+  // El aviso va aquí y no antes: durante la espera solo añadiría ruido, y en
+  // este punto el usuario ya sabe si le ha merecido la pena volver.
+  const persistNote = document.querySelector<HTMLElement>("#persist-note");
+  if (persistNote && !current.fromHistory && !storagePersisted) {
+    persistNote.textContent = t("persist_note");
+    persistNote.hidden = false;
+  } else if (persistNote) {
+    persistNote.hidden = true;
+  }
+
+  renderSegments();
 }
 
 let persistTimer: number | undefined;
@@ -1150,6 +1165,64 @@ if (canCaptureTab()) {
     wireTabCapture("media", mediaBtn);
   }
 }
+
+// ── pase de corrección ──
+//
+// La primera transcripción larga que salió bien lo pedía a gritos: 69 minutos
+// sobre **Claude** y Whisper escribió **"Cloud" noventa veces**. Todo lo demás
+// era correcto y el texto no servía igual, porque un nombre propio mal oído de
+// forma sistemática invalida la transcripción para estudiar o citar.
+//
+// No se puede arreglar antes de transcribir: `prompt_ids`, el mecanismo de
+// Whisper para darle vocabulario esperado, está documentado en transformers.js
+// pero sin implementar. Así que se arregla después — que es, además, donde seis
+// señales independientes de usuarios llevan semanas diciendo que está el hueco
+// que nadie cubre (RESEARCH.md §1f, §1h, §1i).
+
+let lastCorrection: Correction | null = null;
+
+function syncFixCount(): void {
+  if (!fixCount || !fixApply) return;
+  const find = fixFind?.value ?? "";
+  const n = current ? countMatches(current.segments, find, fixCase?.checked ?? false) : 0;
+  fixCount.textContent = find ? t("fix_count", { n }) : "";
+  fixApply.disabled = n === 0;
+}
+
+fixFind?.addEventListener("input", syncFixCount);
+fixCase?.addEventListener("change", syncFixCount);
+
+fixApply?.addEventListener("click", () => {
+  if (!current || !fixFind?.value) return;
+  const find = fixFind.value;
+  const to = fixReplace?.value ?? "";
+  const caseSensitive = fixCase?.checked ?? false;
+  const count = countMatches(current.segments, find, caseSensitive);
+  if (count === 0) return;
+  // Se guarda el estado anterior entero: reemplazar en ochocientos párrafos sin
+  // vuelta atrás es una función que nadie se atreve a usar.
+  lastCorrection = { find, replace: to, before: current.segments, count };
+  current.segments = replaceAll(current.segments, find, to, caseSensitive);
+  updateHistorySegments(current.id, current.segments);
+  track("fix_replace");
+  renderSegments();
+  if (fixUndo) {
+    fixUndo.textContent = t("fix_undo", { n: count });
+    show(fixUndo);
+  }
+  syncFixCount();
+});
+
+fixUndo?.addEventListener("click", () => {
+  if (!current || !lastCorrection) return;
+  current.segments = lastCorrection.before;
+  updateHistorySegments(current.id, current.segments);
+  lastCorrection = null;
+  track("fix_undo");
+  renderSegments();
+  if (fixUndo) hide(fixUndo);
+  syncFixCount();
+});
 
 // ── la grabación no se pierde ──
 //

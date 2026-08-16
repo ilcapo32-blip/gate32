@@ -308,6 +308,25 @@
       </div>
 
       <p class="edit-hint">Click any text to fix it. Click a timestamp to jump to that point in the audio.</p>
+        <!-- El pase de corrección. Sale de la primera transcripción larga que
+             salió bien: 69 minutos sobre Claude, y Whisper escribió "Cloud"
+             noventa veces. Todo lo demás correcto y el texto igual de inútil. -->
+        <div class="fixbar">
+          <p class="fix-title">Fix across the whole transcript</p>
+          <p class="fix-hint">Speech recognition always trips on the same proper nouns. Correct it once and it is fixed everywhere.</p>
+          <div class="fix-row">
+            <input id="fix-find" type="text" placeholder="What it says" aria-label="What it says" />
+            <span class="fix-arrow" aria-hidden="true">→</span>
+            <input id="fix-replace" type="text" placeholder="What it should say" aria-label="What it should say" />
+            <button id="fix-apply" class="btn small" type="button" disabled>Replace all</button>
+          </div>
+          <div class="fix-row">
+            <label class="fix-case"><input id="fix-case" type="checkbox" /> Match case</label>
+            <span id="fix-count" class="fix-count"></span>
+            <button id="fix-undo" class="btn ghost small" type="button" hidden></button>
+          </div>
+        </div>
+
         <div id="retry-better" class="retry-better" hidden>
           <p class="retry-hint">Skipped sentences, or words it got wrong? A larger model improves this a lot. No need to load the file again.</p>
           <button id="retry-btn" class="btn accent small" type="button">Redo with a better model</button>
