@@ -267,6 +267,60 @@ El mismo día que un sub anglófono nos retiraba un post preguntando dónde
 estaba el servidor, un medio del sector en español nos recomendaba sin que
 nadie se lo pidiera.
 
+### 1i · El idioma es la barrera, no la privacidad (2026-08-16, r/notebooklm)
+
+Hilo de 45 votos y 24 comentarios. Quien pregunta tiene **clases de horas en
+YouTube en vietnamita**, sin subtítulos o con automáticos malísimos, y quiere
+un archivo de subtítulos completo para estudiar. Probó Whisper y *"la
+transcripción al vietnamita salió sorprendentemente mala"*. **Usa un portátil
+Windows**, y lo dice dos veces.
+
+**Las 24 respuestas, resumidas: todas piden algo que él no puede hacer.**
+API de Gemini con clave, subir el vídeo a Gemini, `yt-dlp` + Whisper en
+terminal (*"te toma como 10 minutos de configuración"*), MacWhisper (→ *"uso
+una laptop con Windows"*), Google Colab con un script de Python, extensiones
+de navegador, o servicios de pago con prueba de 14 días. **Ninguna de las 24
+menciona una opción que funcione en el navegador.** Su última respuesta, sobre
+faster-whisper-cli: *"ya hay un montón de modelos en GitHub, yo no sé cuál es
+el mejor para mi caso de uso"*.
+
+Es la tesis de acceso de PRODUCT.md, otra vez y más nítida. El narrador de
+audiolibros lo dijo en abstracto (*"gente que no tiene Python ni una GPU"*);
+aquí se ve en directo a alguien rebotando contra cada recomendación.
+
+**Y hemos descubierto que la puerta la teníamos cerrada nosotros.** El
+desplegable ofrecía **diez idiomas** de los casi cien que reconoce Whisper. No
+había ninguna razón técnica —el código de idioma se pasa tal cual al modelo—:
+era una lista escrita a mano el primer día y jamás revisada. Alguien con
+clases en vietnamita no podía **ni seleccionar su idioma**. Corregido: 47
+idiomas, y el modelo grande (`large-v3-turbo`, oculto hasta ahora para todos)
+disponible para quien ya ha transcrito una vez.
+
+**El diagnóstico que nadie le dio, y que probablemente era el bueno:** que
+Whisper le fallara en vietnamita casi seguro no era Whisper, era el **tamaño
+del modelo**. El entrenamiento está dominado por el inglés y unas pocas
+lenguas más; fuera de ese grupo los modelos pequeños se desploman y los
+grandes aguantan. Ahora la app lo avisa **al elegir el idioma**, antes de
+transcribir, en vez de dejar que alguien concluya que la herramienta no sirve
+para su lengua.
+
+**Sexta confirmación del pase de corrección**, y de la fuente más limpia hasta
+ahora, porque no nos conoce. u/oldsongwin recomienda dos cosas concretas:
+sacar el audio a **mono 16 kHz** (que es exactamente lo que hace `audio.ts`) y
+
+> *"deja las marcas de tiempo en la salida. Un muro de texto sin timestamps es
+> mucho más difícil de usar de lo que parece — pierdes la posibilidad de
+> volver a donde el transcript se equivocó."*
+
+Eso es literalmente nuestro editor sincronizado, descrito por alguien que no
+sabe que existimos.
+
+**Competidores nuevos, sin verificar** (el entorno no tiene salida a internet):
+`Revoldiv` (gratis, sin límites ni anuncios; un comentarista dice *"no tengo
+idea de cómo el sitio se financia solo"*), `Notely` (notely.se, subtítulos SRT
+de YouTube), `Lilys.ai` y `Meetily Pro` (reuniones, prueba de 14 días). El
+primero merece una mirada: mismo posicionamiento de gratis-sin-límites.
+
 ## 1c · Segmento no contemplado: accesibilidad (sordera)
 
 **[ANÉCDOTA, no evidencia]** Un hilo viral en X (376 K visualizaciones) de una

@@ -33,9 +33,16 @@
   Firefox, Safari ni móviles, que no permiten capturar el audio de una pestaña.
 - Exportación: TXT, Markdown, SRT, VTT y JSON, con marcas de tiempo por frase
   y editor sincronizado con el audio para corregir antes de exportar.
-- Idiomas de transcripción: español, inglés, catalán, gallego, euskera,
-  portugués, francés, alemán, italiano y detección automática (Whisper
-  multilingüe).
+- Idiomas de transcripción: 47 seleccionables más detección automática, entre
+  ellos español, inglés, alemán, francés, italiano, portugués, catalán,
+  gallego, euskera, ruso, polaco, neerlandés, árabe, hindi, japonés, coreano,
+  chino, vietnamita, tailandés, indonesio, turco, ucraniano, persa, urdu,
+  bengalí, tamil, telugu, malayalam, suajili y tagalo.
+- Aviso honesto sobre precisión por idioma: Whisper se entrenó sobre todo con
+  inglés y un puñado de lenguas mayoritarias, así que en el resto los modelos
+  pequeños pierden bastante precisión. Gate32 lo avisa **antes** de transcribir
+  y recomienda subir de modelo, en lugar de dejar que el usuario concluya que
+  la herramienta no sirve para su idioma.
 - Requisitos: navegador moderno; con Chrome/Edge y GPU es varias veces más
   rápido que el tiempo real. Funciona sin GPU (más lento).
 - Código abierto: https://github.com/ilcapo32-blip/gate32

@@ -86,7 +86,7 @@
       {
         "@type": "Question",
         "name": "¿Qué precisión tiene y qué idiomas soporta?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Usa Whisper de OpenAI en el dispositivo, con tres tamaños de modelo. El modo Preciso ofrece muy buena calidad en español y decenas de idiomas más." }
+        "acceptedAnswer": { "@type": "Answer", "text": "Usa Whisper de OpenAI en el dispositivo, con tres tamaños de modelo, y permite elegir entre 47 idiomas o detectarlo automáticamente. El modo Preciso ofrece muy buena calidad en español, inglés y el resto de lenguas mayoritarias. En idiomas con menos datos de entrenamiento, como vietnamita, tailandés o urdu, los modelos pequeños pierden bastante precisión y conviene usar uno mayor; la aplicación lo avisa al elegir el idioma." }
       },
       {
         "@type": "Question",
@@ -212,6 +212,7 @@
         </div>
         <p id="meeting-hint" class="mobile-note" hidden></p>
 
+        <p id="lang-note" class="mobile-note" hidden></p>
         <p id="mobile-note" class="mobile-note" hidden></p>
         <p id="gpu-note" class="mobile-note" hidden></p>
 
@@ -411,7 +412,7 @@
       </details>
       <details>
         <summary>¿Qué precisión tiene? ¿Qué idiomas soporta?</summary>
-        <p>Usa Whisper de OpenAI en tu dispositivo, con tres tamaños de modelo. El modo Preciso ofrece muy buena calidad en español y decenas de idiomas más. Audio con mucho ruido o solapamiento de voces reduce la precisión, como en cualquier transcriptor.</p>
+        <p>Usa Whisper de OpenAI en tu dispositivo, con tres tamaños de modelo. Puedes elegir entre 47 idiomas o dejar que lo detecte solo. El modo Preciso ofrece muy buena calidad en español, inglés y las demás lenguas mayoritarias; en idiomas con menos datos de entrenamiento (vietnamita, tailandés, urdu…) los modelos pequeños pierden bastante y conviene subir de tamaño — la app te lo avisa al elegir. Audio con mucho ruido o solapamiento de voces reduce la precisión, como en cualquier transcriptor.</p>
       </details>
       <details>
         <summary>¿Cuánto tarda?</summary>

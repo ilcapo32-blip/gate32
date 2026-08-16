@@ -24,6 +24,7 @@ import {
 import { MODELS, type ModelQuality, type Segment } from "./lib/types";
 import { t, lang, locale } from "./lib/i18n";
 import { canCaptureTab, captureTab, NoTabAudioError } from "./lib/meeting";
+import { LANGUAGES, needsBiggerModel } from "./lib/languages";
 import { initAnalytics, track, trackVisit } from "./lib/analytics";
 import { ensureStorage, humanBytes } from "./lib/storage";
 import {
@@ -76,12 +77,61 @@ const waitSurvey = $("#wait-survey");
 
 fileInput.accept = ACCEPT;
 
+// ── idiomas ──
+//
+// El desplegable se rellena desde `languages.ts` en vez de repetir cincuenta
+// opciones en cada página. El HTML conserva una lista corta como respaldo sin
+// JavaScript, y el idioma por defecto de cada página es el que venía marcado.
+const defaultLang = langSelect.value || (lang === "en" ? "en" : "es");
+langSelect.replaceChildren();
+const ordered = [...LANGUAGES].sort((a, b) => a[lang].localeCompare(b[lang], locale));
+for (const l of ordered) {
+  const opt = document.createElement("option");
+  opt.value = l.code;
+  opt.textContent = l[lang];
+  langSelect.appendChild(opt);
+}
+const auto = document.createElement("option");
+auto.value = "auto";
+auto.textContent = lang === "en" ? "Detect automatically" : "Detectar automáticamente";
+langSelect.insertBefore(auto, langSelect.firstChild);
+langSelect.value = defaultLang;
+
+// Aviso cuando el idioma elegido no es de los que el modelo pequeño transcribe
+// bien. Es lo que le pasó a quien preguntaba en r/notebooklm: probó Whisper con
+// vietnamita, salió mal y concluyó que Whisper no servía. No era Whisper, era
+// el tamaño. Decirlo **antes** de transcribir evita esa conclusión.
+const langNote = document.querySelector<HTMLElement>("#lang-note");
+function syncLangNote(): void {
+  if (!langNote) return;
+  const avisa = needsBiggerModel(langSelect.value, modelSelect.value);
+  langNote.textContent = avisa ? t("lang_note") : "";
+  langNote.hidden = !avisa;
+}
+langSelect.addEventListener("change", syncLangNote);
+modelSelect.addEventListener("change", syncLangNote);
+syncLangNote();
+
 // Sin WebGPU la inferencia cae a WASM (lenta): el modelo pequeño es mejor
 // primera experiencia en esos equipos, y el modelo grande deja de ofrecerse
 // porque sería inviable. El aviso va por delante porque la diferencia no es
 // de matiz: un usuario de r/podcasting midió 2:15 en Chrome y más de una hora
 // en Firefox con el mismo vídeo de 12 minutos.
 const hasWebGPU = "gpu" in navigator;
+
+// El modelo grande estaba definido pero oculto para todo el mundo: 800 MB
+// arruinan la primera experiencia. Ese razonamiento vale para quien llega hoy,
+// no para quien ya ha transcrito aquí — ese sabe lo que se descarga y por qué.
+// Y para lenguas fuera del núcleo de Whisper es la diferencia entre servir y
+// no servir: en r/notebooklm alguien concluyó que "Whisper no vale para
+// vietnamita" cuando lo que fallaba era el tamaño del modelo.
+if (hasWebGPU && loadHistory().length > 0 && !modelSelect.querySelector('option[value="max"]')) {
+  const opt = document.createElement("option");
+  opt.value = "max";
+  opt.textContent = `${t("model_max")} · ${MODELS.max.sizeLabel}`;
+  modelSelect.appendChild(opt);
+}
+
 if (!hasWebGPU) {
   modelSelect.value = "fast";
   modelSelect.querySelector('option[value="max"]')?.remove();

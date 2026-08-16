@@ -86,7 +86,7 @@
       {
         "@type": "Question",
         "name": "How accurate is it and which languages are supported?",
-        "acceptedAnswer": { "@type": "Answer", "text": "It runs OpenAI's Whisper on your device with three model sizes. The Accurate model delivers strong quality in English, Spanish and dozens of other languages." }
+        "acceptedAnswer": { "@type": "Answer", "text": "It runs OpenAI's Whisper on your device with three model sizes, and lets you pick from 47 languages or detect one automatically. The Accurate model delivers strong quality in English, Spanish and the other major languages. In lower-resource languages such as Vietnamese, Thai or Urdu the small models lose a lot of accuracy and a larger one is worth using; the app says so when you pick the language." }
       },
       {
         "@type": "Question",
@@ -207,6 +207,7 @@
         </div>
         <p id="meeting-hint" class="mobile-note" hidden></p>
 
+        <p id="lang-note" class="mobile-note" hidden></p>
         <p id="mobile-note" class="mobile-note" hidden></p>
         <p id="gpu-note" class="mobile-note" hidden></p>
 
@@ -405,7 +406,7 @@
       </details>
       <details>
         <summary>How accurate is it? Which languages are supported?</summary>
-        <p>It runs OpenAI's Whisper on your device, with three model sizes. The Accurate model delivers strong quality in English and dozens of other languages. Very noisy audio or overlapping voices reduce accuracy, as with any transcriber.</p>
+        <p>It runs OpenAI's Whisper on your device, with three model sizes. You can pick from 47 languages or let it detect one. The Accurate model delivers strong quality in English, Spanish and the other major languages; in lower-resource ones (Vietnamese, Thai, Urdu…) the small models lose a lot and it is worth moving up a size — the app tells you when you pick one. Very noisy audio or overlapping voices reduce accuracy, as with any transcriber.
       </details>
       <details>
         <summary>How long does it take?</summary>

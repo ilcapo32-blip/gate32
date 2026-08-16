@@ -102,6 +102,27 @@ try {
   );
   await page.selectOption("#model-quality", "balanced");
 
+  // El desplegable ofrecía diez idiomas de los casi cien que reconoce Whisper:
+  // quien tenía clases en vietnamita no podía ni elegir el suyo.
+  const idiomas = await page.locator("#language option").count();
+  check("el desplegable ofrece muchos idiomas", idiomas > 40);
+  check(
+    "incluye vietnamita, el idioma que destapó el problema",
+    (await page.locator('#language option[value="vi"]').count()) === 1,
+  );
+  check("el español sigue siendo el idioma por defecto", (await page.locator("#language").inputValue()) === "es");
+
+  // Y avisa antes de transcribir, para que nadie concluya que la herramienta
+  // no sirve para su idioma cuando lo que falla es el tamaño del modelo.
+  check("sin motivo, el aviso de idioma no aparece", await page.locator("#lang-note").isHidden());
+  await page.selectOption("#language", "vi");
+  check("con vietnamita y modelo pequeño avisa", await page.locator("#lang-note").isVisible());
+  await page.selectOption("#model-quality", "accurate");
+  check("con modelo grande el aviso desaparece", await page.locator("#lang-note").isHidden());
+  await page.selectOption("#model-quality", "balanced");
+  await page.selectOption("#language", "es");
+  check("y en español tampoco aparece", await page.locator("#lang-note").isHidden());
+
   check(
     "contacto visible en el pie",
     (await page.locator('a[href^="mailto:"]').count()) > 0,
