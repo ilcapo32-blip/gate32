@@ -101,6 +101,8 @@ const retryBtn = document.querySelector<HTMLButtonElement>("#retry-btn");
 const recoveryBox = document.querySelector<HTMLElement>("#recovery");
 const recoveryBtn = document.querySelector<HTMLButtonElement>("#recovery-btn");
 const recoveryNote = document.querySelector<HTMLElement>("#recovery-note");
+const installBox = document.querySelector<HTMLElement>("#install");
+const installBtn = document.querySelector<HTMLButtonElement>("#install-btn");
 
 fileInput.accept = ACCEPT;
 
@@ -807,8 +809,18 @@ function renderResult(metaText: string): void {
 
   // El aviso va aquí y no antes: durante la espera solo añadiría ruido, y en
   // este punto el usuario ya sabe si le ha merecido la pena volver.
+  // El diálogo real si el navegador lo ofrece; el párrafo explicativo solo
+  // donde no existe (Safari e iOS), que es justo donde más falta hace y menos
+  // se puede hacer.
   const persistNote = document.querySelector<HTMLElement>("#persist-note");
-  if (persistNote && !current.fromHistory && !storagePersisted) {
+  const necesita = !current.fromHistory && !storagePersisted;
+  // El navegador decide cuándo dispara `beforeinstallprompt` y puede hacerlo
+  // después de esto; queda anotado para ofrecerlo en cuanto llegue.
+  installWanted = necesita;
+  if (necesita && installPrompt) {
+    offerInstall();
+    if (persistNote) persistNote.hidden = true;
+  } else if (persistNote && necesita) {
     persistNote.textContent = t("persist_note");
     persistNote.hidden = false;
   } else if (persistNote) {
@@ -1166,6 +1178,69 @@ if (canCaptureTab()) {
   }
 }
 
+// ── instalar como aplicación ──
+//
+// Es el mayor lastre medido y va a peor: **el 75,5 % de quien transcribe** usa
+// un navegador que no garantiza conservar el modelo (65 % → 73,9 % → 75,5 % en
+// tres mediciones). Tres de cada cuatro se comen otra descarga de 80–250 MB al
+// volver, y volver es la condición previa de cualquier suscripción.
+//
+// Hasta ahora solo había un párrafo pidiendo que buscaran "Instalar" en el
+// menú del navegador. Nadie sigue una instrucción de tres pasos escondida bajo
+// una transcripción. `beforeinstallprompt` permite ofrecer el diálogo real de
+// instalación con un clic, y además **se puede medir**: un aviso que nadie
+// pulsa se distingue de uno que nadie ve.
+
+type InstallPrompt = Event & {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: string }>;
+};
+
+let installPrompt: InstallPrompt | null = null;
+/** Hay una transcripción recién hecha y el modelo no está a salvo. */
+let installWanted = false;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  // Sin esto el navegador enseña su propia barra cuando le parece, casi siempre
+  // antes de que la persona sepa si la herramienta le sirve.
+  e.preventDefault();
+  installPrompt = e as InstallPrompt;
+  // Puede llegar con la transcripción ya en pantalla: entonces se ofrece ahora
+  // y se retira el párrafo, que solo tiene sentido si no hay diálogo.
+  if (installWanted) {
+    offerInstall();
+    const persistNote = document.querySelector<HTMLElement>("#persist-note");
+    if (persistNote) persistNote.hidden = true;
+  }
+});
+
+window.addEventListener("appinstalled", () => {
+  track("install_done");
+  installPrompt = null;
+  installWanted = false;
+  if (installBox) hide(installBox);
+});
+
+/** Se ofrece tras la primera transcripción: antes no hay motivo para aceptar. */
+function offerInstall(): void {
+  if (!installBox || !installPrompt || storagePersisted) return;
+  track("install_shown");
+  show(installBox);
+}
+
+installBtn?.addEventListener("click", async () => {
+  if (!installPrompt) return;
+  track("install_click");
+  await installPrompt.prompt();
+  const { outcome } = await installPrompt.userChoice;
+  track(outcome === "accepted" ? "install_accepted" : "install_dismissed");
+  // El evento no se puede reutilizar: una vez consumido, el navegador solo
+  // vuelve a ofrecerlo en otra visita.
+  installPrompt = null;
+  installWanted = false;
+  if (installBox) hide(installBox);
+});
+
 // ── pase de corrección ──
 //
 // La primera transcripción larga que salió bien lo pedía a gritos: 69 minutos
@@ -1456,6 +1531,22 @@ if (new URLSearchParams(location.search).has("e2e")) {
         mimeType: "audio/webm",
       };
       showRecovery();
+    },
+    // El navegador solo revela si conserva el almacenamiento al empezar una
+    // transcripción de verdad; sin esto el aviso nunca se daría por necesario.
+    noPersist(): void {
+      storagePersisted = false;
+    },
+    // `beforeinstallprompt` no se puede provocar desde Playwright (depende de
+    // criterios del navegador y de que la app no esté ya instalada), así que se
+    // inyecta un evento equivalente para comprobar el panel y el recuento.
+    installOffer(): void {
+      const e = new Event("beforeinstallprompt") as InstallPrompt;
+      e.prompt = () => Promise.resolve();
+      Object.defineProperty(e, "userChoice", {
+        value: Promise.resolve({ outcome: "accepted" }),
+      });
+      window.dispatchEvent(e);
     },
     // No se puede conceder el micrófono desde Playwright, así que la exclusión
     // entre las dos grabaciones se comprueba desde su efecto observable.

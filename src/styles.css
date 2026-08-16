@@ -892,3 +892,22 @@ body.embed .toolbar { position: static; }
 }
 
 .fix-count { font-size: 0.8rem; color: var(--accent); font-weight: 600; }
+
+/* ── instalar como aplicación ── */
+
+.install {
+  margin: 0.9rem 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: var(--accent-soft);
+}
+
+.install-title { font-size: 0.92rem; font-weight: 700; }
+
+.install-note {
+  margin: 0.2rem 0 0.7rem;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}

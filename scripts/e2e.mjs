@@ -271,6 +271,29 @@ try {
   // Con el modelo mayor ya en uso no hay nada que ofrecer.
   await page.evaluate(() => window.__g32.finishRun("max"));
   check("con el modelo máximo no se ofrece nada", await page.locator("#retry-better").isHidden());
+
+  // Instalar como aplicación. Tres de cada cuatro personas que transcriben usan
+  // un navegador que no garantiza conservar el modelo, así que al volver se
+  // comen otra descarga de 80-250 MB. Hasta aquí solo había un párrafo pidiendo
+  // que buscaran "Instalar" en el menú; ahora se ofrece el diálogo de verdad.
+  await page.evaluate(() => {
+    window.__g32.noPersist();
+    window.__g32.finishRun("max");
+  });
+  check(
+    "sin diálogo del navegador queda el aviso escrito",
+    await page.locator("#persist-note").isVisible(),
+  );
+  check("y no se ofrece un botón que no funcionaría", await page.locator("#install").isHidden());
+  await page.evaluate(() => window.__g32.installOffer());
+  check("cuando el navegador lo permite se ofrece instalar", await page.locator("#install").isVisible());
+  check(
+    "y el aviso escrito se retira para no repetir lo mismo",
+    await page.locator("#persist-note").isHidden(),
+  );
+  await page.click("#install-btn");
+  check("tras decidir, el panel no se queda colgado", await page.locator("#install").isHidden());
+
   await page.evaluate(() => window.__g32.showResult([{ start: 0, end: 2, text: "x" }]));
 
   // El pase de corrección. Sale del caso real: 69 minutos sobre Claude y

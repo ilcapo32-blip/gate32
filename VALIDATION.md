@@ -401,6 +401,64 @@ Chrome 65 %, Safari 26 %, Firefox 8 %. Escritorio 71 %, móvil 28 %.
 aproximadamente la mitad de las visitas**. El otro 26 % (Safari) no lo verá
 nunca y además es quien peor conserva el modelo.
 
+### Séptima medición (2026-08-16) · 673 visitas, 10 días de producto
+
+**Denominador:** suma de filas de página (`/en` + `/` + las páginas SEO
+visibles) = **201**; con las filas ocultas tras "Show more" el denominador
+llega a ~230. La activación se da como horquilla por eso.
+
+| Métrica | Valor | Umbral | Lectura |
+|---|---|---|---|
+| Activación (`transcribe_done` / páginas) | 32/201–230 = **13,9–15,9 %** | continuar ≥ 10 % | Se sostiene por encima, tercera medición seguida |
+| Finalización (`done`/`start`) | 32/53 = **60,4 %** | sano ≥ 60 % · fracaso < 25 % | **Cruza "sano" por primera vez** |
+| Export (`export`/`done`) | 18/32 = **56,2 %** | ≥ 40 % | Estable en torno al 56 % |
+| De decodificación (`decode_error`/`start`) | 11/53 = **20,8 %** | — | 19,6 % → 20,8 %: sigue sin poder atribuirse nada |
+| Sin persistencia (`storage_not_persisted`/`start`) | 40/53 = **75,5 %** | — | **65 % → 73,9 % → 75,5 %: tercera subida seguida** |
+| Vuelta (`return_visit`) | 13 → **20** | — | +54 % en dos días |
+
+**Finalización sana, retención rota.** Los dos números que importan para MRR
+apuntan en direcciones opuestas: el producto ya termina lo que empieza (60,4 %,
+por encima del umbral escrito antes de medir), pero **tres de cada cuatro
+personas que transcriben usan un navegador que no garantiza conservar el
+modelo, y la proporción empeora en cada medición**. Volver es la condición
+previa de cualquier suscripción: nadie paga una cuota mensual por una
+herramienta que le cobra 80–250 MB de descarga cada vez que la abre.
+
+Por eso esta iteración no añade funcionalidad: convierte el aviso escrito
+("busca «Instalar» en el menú de tu navegador") en el **diálogo real de
+instalación** vía `beforeinstallprompt`, ofrecido justo después de la primera
+transcripción, que es el único momento en que alguien tiene motivo para
+aceptar. El párrafo explicativo se conserva **solo** donde el diálogo no
+existe (Safari e iOS), que es justo donde más falta hace y menos se puede
+hacer.
+
+**Umbrales fijados antes de mirar el dato** (evita interpretar a posteriori):
+
+| Señal | Umbral | Qué implica |
+|---|---|---|
+| `install_click` / `install_shown` | ≥ 15 % | El aviso funciona; mantener y medir si `return_visit` sube |
+| `install_click` / `install_shown` | 5–15 % | Funciona a medias: probar copy y posición antes de descartar |
+| `install_click` / `install_shown` | < 5 % con ≥ 40 mostrados | La instalación no es el camino; la retención habrá que buscarla en otro sitio (o aceptar que el producto es de uso puntual, lo que cambiaría el modelo de negocio hacia pago por uso) |
+| `install_accepted` / `install_click` | — | Mide fricción del diálogo del navegador, no del producto: no se actúa sobre ello |
+
+`install_shown` es el denominador honesto: distingue "nadie lo pulsa" de
+"nadie lo ve" (el navegador solo dispara `beforeinstallprompt` si cumple sus
+criterios y la app no está ya instalada).
+
+#### Distribución: Google se consolida, España se dispara
+
+Google 100 visitas (**15 %**), igual proporción que la medición anterior pero
+sobre más volumen. España pasa de 40 a **71 visitas** — el efecto de las
+páginas SEO en castellano, que son las únicas que no compiten en inglés. India
+aparece por primera vez con un 5 %.
+
+#### Monetización: quinta medición seguida en cero
+
+`pro_interest` sigue **sin aparecer en el top 20** de eventos. Con 32
+transcripciones completadas, el disparador de MONETIZATION.md §4 (< 5 clics con
+≥ 300 activados) **sigue sin poder evaluarse**: la muestra es diez veces menor
+que la que se pactó. No es un no; es que todavía no hay pregunta.
+
 ### Por qué no sabemos para qué se usa (2026-08-07, corregido)
 
 La encuesta de caso de uso existía desde el principio, pero solo se mostraba
@@ -439,6 +497,10 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `retry_better` | repite la misma transcripción con un modelo mayor | — |
 | `fix_replace` | corrige un término en toda la transcripción | — |
 | `fix_undo` | deshace la corrección | — |
+| `install_shown` | el navegador permite instalar y se ofrece tras transcribir | — |
+| `install_click` | pulsa «Instalar»; abre el diálogo del navegador | — |
+| `install_accepted` / `install_dismissed` | qué respondió a ese diálogo | — |
+| `install_done` | la instalación se completó (`appinstalled`) | — |
 | `transcribe_partial` | terminó pero se perdieron bloques por el camino | — |
 | `file_ready_cancel` | elige otro archivo sin transcribir | — |
 | `transcribe_start` | usuario confirma y lanza la transcripción | `model`, `device`, `source` (file/mic/meeting/media), `minutes` |
