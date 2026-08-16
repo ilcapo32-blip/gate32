@@ -32,11 +32,17 @@ esta elección están en [`RESEARCH.md`](RESEARCH.md); la tesis de producto en
 
 ### Grabar una reunión
 
-En Chrome o Edge de escritorio aparece el botón **Grabar una reunión**. Captura
-el audio que *reproduce* la pestaña de la videollamada
-(`getDisplayMedia({audio: true})`) y lo mezcla con el micrófono, así que
-recoge a todos los participantes aunque lleves auriculares — con cascos, una
-grabadora ambiente solo te graba a ti.
+En Chrome o Edge de escritorio hay dos botones sobre un mismo mecanismo.
+**Grabar una reunión** captura el audio que *reproduce* la pestaña de la
+videollamada (`getDisplayMedia({audio: true})`) y lo mezcla con el micrófono,
+así que recoge a todos los participantes aunque lleves auriculares — con
+cascos, una grabadora ambiente solo te graba a ti. **Transcribir un vídeo o
+directo de otra pestaña** hace lo mismo sin tocar el micrófono, para vídeos,
+clases en directo, webinars y radios en línea.
+
+La separación no es cosmética: en una reunión tu voz forma parte de la
+grabación; sobre un vídeo ajeno solo añadiría el ruido de tu habitación y
+pediría un permiso que no sirve para nada.
 
 No entra ningún bot en la llamada: Gate32 es una pestaña del navegador
 escuchando a otra pestaña, no aparece en la lista de participantes y el audio

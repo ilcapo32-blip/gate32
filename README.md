@@ -34,10 +34,17 @@ transcribe on a fast machine and review the result on another one.
 
 ### Recording a meeting
 
-On desktop Chrome or Edge there's a **Record a meeting** button. It captures
-the audio your meeting tab is *playing* (`getDisplayMedia({audio: true})`) and
-mixes it with your microphone, so it picks up everyone even when you're
-wearing headphones — an ambient recorder in that setup only ever captures you.
+On desktop Chrome or Edge there are two buttons over one mechanism. **Record
+a meeting** captures the audio your meeting tab is *playing*
+(`getDisplayMedia({audio: true})`) and mixes it with your microphone, so it
+picks up everyone even when you're wearing headphones — an ambient recorder in
+that setup only ever captures you. **Transcribe a video or stream from another
+tab** does the same without touching the microphone, for videos, live classes,
+webinars and online radio.
+
+The split is not cosmetic: in a meeting your voice belongs in the recording,
+over someone else's video it would only add your room noise and ask for a
+permission that serves no purpose.
 
 No bot joins the call: Gate32 is a browser tab listening to another browser
 tab, so it never appears in the participant list and the audio is never

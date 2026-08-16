@@ -30,6 +30,17 @@
     "url": "https://gate32.autoritasai.com/en/",
     "description": "Audio and video transcription and subtitles powered by AI running locally in the browser. Free, no sign-up, no uploads.",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+    "featureList": [
+      "Transcribes audio and video files (MP3, WAV, M4A, OGG, OPUS, FLAC, AAC, MP4, WEBM, MOV)",
+      "Records and transcribes Meet, Zoom or Teams meetings by capturing the tab's audio, with no bot joining the call, mixed with your microphone",
+      "Transcribes videos, live streams, webinars and radio playing in another browser tab",
+      "Records straight from your microphone in the browser",
+      "Generates SRT and VTT subtitles with configurable line length (32, 37 or 42 characters)",
+      "Editor synced with the audio for correcting before export",
+      "Exports TXT, Markdown, SRT, VTT and JSON, and reopens the JSON on another machine",
+      "Works offline once the model is downloaded",
+      "No sign-up, no minute caps, no watermark"
+    ],
     "inLanguage": "en",
     "maintainer": {
       "@type": "Person",
@@ -66,6 +77,11 @@
         "@type": "Question",
         "name": "Can I transcribe a Meet, Zoom or Teams meeting?",
         "acceptedAnswer": { "@type": "Answer", "text": "Yes, on desktop Chrome or Edge. Gate32 captures the audio the meeting tab plays and mixes it with your microphone, so it picks up the other participants even when you are wearing headphones. No bot joins the call or shows up in the participant list, and the audio is never uploaded." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I transcribe a YouTube video or a live stream from the browser?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes, on desktop Chrome or Edge. Gate32 captures the sound another browser tab is playing and transcribes it, without using your microphone. It works with videos, live streams, webinars, online radio and podcasts in their web player. It does not work with paid streaming services such as Netflix, Disney+ or Prime Video, because browsers block capture of protected content." }
       },
       {
         "@type": "Question",
@@ -307,7 +323,7 @@
       <ol class="steps">
         <li>
           <strong>1 · Pick your file</strong>
-          <p>Audio or video, in any common format. You can also record directly with your microphone.</p>
+          <p>Audio or video, in any common format. You can also record from your microphone, capture <a href="/reuniones/">a Meet, Zoom or Teams meeting</a> with no bot joining the call, or transcribe a video or live stream playing in another tab.</p>
         </li>
         <li>
           <strong>2 · The AI works on your machine</strong>
@@ -356,6 +372,8 @@
             <tr><th scope="row">Requires an account</th><td>No</td><td>Yes</td><td>No</td></tr>
             <tr><th scope="row">Requires installing</th><td>No, it's a website</td><td>No</td><td>Yes, often macOS-only</td></tr>
             <tr><th scope="row">SRT/VTT subtitles without watermark</th><td>Yes</td><td>Usually paid</td><td>Depends on the app</td></tr>
+            <tr><th scope="row">Records a meeting without a bot joining the call</th><td>Yes (desktop Chrome/Edge)</td><td>No: it joins as a participant and uploads the audio</td><td>No, short of recording your screen</td></tr>
+            <tr><th scope="row">Transcribes a video or stream from another tab</th><td>Yes</td><td>You must download it and upload it</td><td>You must download it</td></tr>
             <tr><th scope="row">Speaker identification</th><td>Not yet</td><td>Yes, on paid plans</td><td>Depends on the app</td></tr>
           </tbody>
         </table>
@@ -380,6 +398,10 @@
       <details>
         <summary>Can I transcribe a Meet, Zoom or Teams meeting?</summary>
         <p>Yes, on desktop Chrome or Edge: the "Record another tab" button captures the audio the video-call tab plays and mixes it with your microphone, so it works even with headphones on. No bot joins the call. The same button works for a video, a live class or a radio stream playing in another tab.</p>
+      </details>
+      <details>
+        <summary>Can I transcribe a YouTube video or a live stream I'm watching?</summary>
+        <p>Yes. The "Transcribe a video or stream from another tab" button captures the sound that tab is playing, without using your microphone. It works well for live streams, webinars, online radio and videos with no captions. It does not work with paid streaming services (Netflix, Disney+, Prime Video): browsers block capture of protected content. And transcribing for yourself is not the same as republishing someone else's work.</p>
       </details>
       <details>
         <summary>How accurate is it? Which languages are supported?</summary>

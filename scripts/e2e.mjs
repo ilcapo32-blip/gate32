@@ -107,6 +107,37 @@ try {
     (await page.locator('a[href^="mailto:"]').count()) > 0,
   );
 
+  // Los datos estructurados son lo que citan los asistentes, y son también lo
+  // que más fácil se queda atrás: nadie los ve al mirar la página. Se
+  // comprueba que sean válidos y que enumeren lo que el producto hace hoy.
+  const jsonLd = await page.$$eval('script[type="application/ld+json"]', (ns) =>
+    ns.map((n) => n.textContent),
+  );
+  const parsed = jsonLd.map((raw) => {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  });
+  check("todos los JSON-LD son válidos", parsed.every(Boolean));
+  const app = parsed.find((d) => d && d["@type"] === "SoftwareApplication");
+  const features = (app?.featureList ?? []).join(" ");
+  check("JSON-LD enumera funcionalidades", (app?.featureList ?? []).length >= 5);
+  check("JSON-LD menciona la captura de reunión", /reuni/i.test(features));
+  check("JSON-LD menciona los subtítulos", /SRT/i.test(features));
+  const faq = parsed.find((d) => d && d["@type"] === "FAQPage");
+  const preguntas = (faq?.mainEntity ?? []).map((q) => q.name).join(" | ");
+  check("FAQ estructurada cubre las reuniones", /reuni/i.test(preguntas));
+  check("FAQ estructurada cubre los vídeos de otra pestaña", /v[ií]deo/i.test(preguntas));
+
+  // Una página nueva sin enlaces internos casi no se posiciona: /reuniones/
+  // solo estaba enlazada desde el pie.
+  check(
+    "la home enlaza /reuniones/ desde el cuerpo",
+    (await page.locator('main a[href="/reuniones/"]').count()) > 0,
+  );
+
   // 2 · decodificación + fase de modelo (éxito o error de red controlado)
   await page.setInputFiles("#file-input", tonePath);
   await page.waitForSelector("#status:not([hidden])", { timeout: 10000 });
@@ -315,6 +346,16 @@ try {
   const reunionesTxt = (await page.locator("main").textContent()) ?? "";
   check("/reuniones/ dice que sirve para vídeos y clases", /YouTube/i.test(reunionesTxt));
   check("/reuniones/ avisa del contenido protegido", /Netflix/i.test(reunionesTxt));
+
+  // El sitemap alimenta el aviso a los buscadores: si una página no está,
+  // IndexNow no la envía y nadie se entera de que existe.
+  const sitemap = await (await page.request.get(`${BASE}/sitemap.xml`)).text();
+  for (const ruta of ["/", "/en/", "/subtitulos/", "/entrevistas/", "/clases/", "/reuniones/"]) {
+    check(`sitemap incluye ${ruta}`, sitemap.includes(`https://gate32.autoritasai.com${ruta}<`));
+  }
+  const llms = await (await page.request.get(`${BASE}/llms.txt`)).text();
+  check("llms.txt describe la captura de pestaña", /captura de pesta/i.test(llms));
+  check("llms.txt dice qué no funciona (streaming de pago)", /Netflix/i.test(llms));
 
   // 3e · página de integración: la misma app sin la web alrededor. Si algún
   // elemento que la aplicación exige faltara, main.ts lanzaría al arrancar y

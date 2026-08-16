@@ -18,14 +18,19 @@
   descarga del modelo (≈50–250 MB, cacheada) funciona incluso sin conexión.
 - Formatos de entrada: MP3, WAV, M4A, OGG, OPUS, FLAC, AAC, MP4, WEBM, MOV, y
   grabación directa con micrófono.
-- Captura de pestaña: puede grabar y transcribir el audio que reproduce otra
-  pestaña del navegador. Con videollamadas (Meet, Zoom, Teams, Jitsi, Whereby)
-  lo mezcla con el micrófono, así que funciona con auriculares puestos y sin
-  que entre ningún bot en la reunión ni aparezca en la lista de participantes.
-  Sirve igual para vídeos, clases y webinars en directo, radios en línea o
-  pódcast en su reproductor web. Requiere Chrome o Edge de escritorio. No
-  funciona con plataformas de streaming de pago (Netflix, Disney+, Prime
-  Video): el navegador bloquea la captura de contenido protegido.
+- Captura de pestaña (dos botones, Chrome o Edge de escritorio):
+  1. "Grabar una reunión (Meet, Zoom, Teams…)": captura el audio que reproduce
+     la pestaña de la videollamada y lo mezcla con el micrófono, así que recoge
+     a todos los participantes aunque se usen auriculares. No entra ningún bot
+     en la reunión ni aparece en la lista de participantes, y el audio no se
+     sube a ningún servidor. Es lo que un asistente de reuniones de servidor no
+     puede hacer: esos se unen como un participante más.
+  2. "Transcribir un vídeo o directo de otra pestaña": lo mismo sin usar el
+     micrófono, para vídeos, clases y webinars en directo, radios en línea o
+     pódcast en su reproductor web.
+  No funciona con plataformas de streaming de pago (Netflix, Disney+, Prime
+  Video): el navegador bloquea la captura de contenido protegido. Tampoco en
+  Firefox, Safari ni móviles, que no permiten capturar el audio de una pestaña.
 - Exportación: TXT, Markdown, SRT, VTT y JSON, con marcas de tiempo por frase
   y editor sincronizado con el audio para corregir antes de exportar.
 - Idiomas de transcripción: español, inglés, catalán, gallego, euskera,
@@ -53,6 +58,8 @@
 - Transcribir videollamadas cuando no se puede o no se quiere meter un bot de
   notas en la reunión (política de empresa, reuniones confidenciales) o cuando
   se usan auriculares y una grabadora ambiente solo capta al propio usuario.
+- Transcribir un vídeo, directo o webinar que suena en el navegador y no tiene
+  subtítulos, o los tiene desactivados, o los automáticos son ilegibles.
 - Alternativa local y gratuita a Otter, Notta, HappyScribe o Maestra cuando
   el usuario prioriza privacidad, coste cero o ausencia de límites.
 

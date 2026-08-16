@@ -30,6 +30,17 @@
     "url": "https://gate32.autoritasai.com/",
     "description": "Transcripción de audio y vídeo a texto y subtítulos con IA ejecutada localmente en el navegador. Gratuita, sin registro y sin subir archivos.",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+    "featureList": [
+      "Transcribe archivos de audio y vídeo (MP3, WAV, M4A, OGG, OPUS, FLAC, AAC, MP4, WEBM, MOV)",
+      "Graba y transcribe reuniones de Meet, Zoom o Teams capturando el audio de la pestaña, sin meter ningún bot en la llamada y mezclando tu micrófono",
+      "Transcribe vídeos, directos, webinars y radios que suenen en otra pestaña del navegador",
+      "Graba con el micrófono directamente desde la web",
+      "Genera subtítulos SRT y VTT con longitud de línea configurable (32, 37 o 42 caracteres)",
+      "Editor sincronizado con el audio para corregir antes de exportar",
+      "Exporta TXT, Markdown, SRT, VTT y JSON, y reabre el JSON en otro equipo",
+      "Funciona sin conexión una vez descargado el modelo",
+      "Sin registro, sin límite de minutos y sin marca de agua"
+    ],
     "inLanguage": "es",
     "maintainer": {
       "@type": "Person",
@@ -66,6 +77,11 @@
         "@type": "Question",
         "name": "¿Puedo transcribir una reunión de Meet, Zoom o Teams?",
         "acceptedAnswer": { "@type": "Answer", "text": "Sí, con Chrome o Edge de escritorio. Gate32 captura el audio de la pestaña de la videollamada y lo mezcla con el micrófono, así que recoge también a los demás participantes aunque se usen auriculares. No entra ningún bot en la reunión ni aparece en la lista de participantes, y el audio no se sube a ningún servidor." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Puedo transcribir un vídeo de YouTube o un directo desde el navegador?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sí, con Chrome o Edge de escritorio. Gate32 captura el sonido que reproduce otra pestaña del navegador y lo transcribe, sin usar el micrófono. Funciona con vídeos, directos, webinars, radios en línea y pódcast en su reproductor web. No funciona con plataformas de streaming de pago como Netflix, Disney+ o Prime Video, porque el navegador bloquea la captura de contenido protegido." }
       },
       {
         "@type": "Question",
@@ -313,7 +329,7 @@
       <ol class="steps">
         <li>
           <strong>1 · Elige tu archivo</strong>
-          <p>Audio o vídeo, en cualquier formato habitual. También puedes grabar directamente con el micrófono.</p>
+          <p>Audio o vídeo, en cualquier formato habitual. También puedes grabar con el micrófono, capturar <a href="/reuniones/">una reunión de Meet, Zoom o Teams</a> sin meter ningún bot en la llamada, o transcribir un vídeo o directo que suene en otra pestaña.</p>
         </li>
         <li>
           <strong>2 · La IA trabaja en tu equipo</strong>
@@ -362,6 +378,8 @@
             <tr><th scope="row">Requiere cuenta</th><td>No</td><td>Sí</td><td>No</td></tr>
             <tr><th scope="row">Requiere instalación</th><td>No, es una web</td><td>No</td><td>Sí, y a menudo solo macOS</td></tr>
             <tr><th scope="row">Subtítulos SRT/VTT sin marca de agua</th><td>Sí</td><td>Normalmente de pago</td><td>Según la app</td></tr>
+            <tr><th scope="row">Graba una reunión sin meter un bot en la llamada</th><td>Sí (Chrome/Edge de escritorio)</td><td>No: se une como participante y sube el audio</td><td>No, salvo grabando la pantalla</td></tr>
+            <tr><th scope="row">Transcribe un vídeo o directo de otra pestaña</th><td>Sí</td><td>Hay que descargarlo y subirlo</td><td>Hay que descargarlo</td></tr>
             <tr><th scope="row">Identificación de hablantes</th><td>Todavía no</td><td>Sí, en planes de pago</td><td>Según la app</td></tr>
           </tbody>
         </table>
@@ -386,6 +404,10 @@
       <details>
         <summary>¿Puedo transcribir una reunión de Meet, Zoom o Teams?</summary>
         <p>Sí, con Chrome o Edge de escritorio: el botón «Grabar otra pestaña» captura el audio que reproduce la pestaña de la videollamada y lo mezcla con tu micrófono, así que funciona aunque lleves auriculares. No entra ningún bot en la llamada. Sirve igual para un vídeo, una clase en directo o una radio que suene en otra pestaña. <a href="/reuniones/">Cómo funciona</a>.</p>
+      </details>
+      <details>
+        <summary>¿Puedo transcribir un vídeo de YouTube o un directo que esté viendo?</summary>
+        <p>Sí. El botón «Transcribir un vídeo o directo de otra pestaña» captura el sonido que reproduce esa pestaña, sin usar tu micrófono. Va bien con directos, webinars, radios en línea y vídeos sin subtítulos. No funciona con plataformas de streaming de pago (Netflix, Disney+, Prime Video): el navegador impide capturar contenido protegido. Y transcribir para ti no es lo mismo que republicar el texto de una obra ajena.</p>
       </details>
       <details>
         <summary>¿Qué precisión tiene? ¿Qué idiomas soporta?</summary>

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { urlsFromSitemap } from "../../../scripts/indexnow.mjs";
 // Núcleo JS puro compartido con los scripts (tipado en radar-core.d.ts).
 import {
   scoreThread,
@@ -311,5 +313,29 @@ describe("radar · puerta temática", () => {
       created_utc: hoursAgo(1),
     };
     expect(rank([hilo, { ...hilo }])).toHaveLength(1);
+  });
+});
+
+// IndexNow llevaba desde el 06/08 con la clave publicada y sin nada que
+// hiciera la llamada: media infraestructura, que es igual que ninguna.
+describe("indexnow · lista de URLs", () => {
+  it("saca las URLs del sitemap que ya mantenemos", () => {
+    const xml = `<?xml version="1.0"?><urlset>
+      <url><loc>https://gate32.autoritasai.com/</loc><priority>1.0</priority></url>
+      <url><loc>https://gate32.autoritasai.com/reuniones/</loc></url>
+    </urlset>`;
+    expect(urlsFromSitemap(xml)).toEqual([
+      "https://gate32.autoritasai.com/",
+      "https://gate32.autoritasai.com/reuniones/",
+    ]);
+  });
+
+  it("un sitemap vacío no inventa nada", () => {
+    expect(urlsFromSitemap("<urlset></urlset>")).toEqual([]);
+  });
+
+  it("el sitemap real incluye la página de reuniones", () => {
+    const real = readFileSync(new URL("../../../public/sitemap.xml", import.meta.url), "utf8");
+    expect(urlsFromSitemap(real)).toContain("https://gate32.autoritasai.com/reuniones/");
   });
 });
