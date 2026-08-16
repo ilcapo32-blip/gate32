@@ -5,6 +5,7 @@
 import "./styles.css";
 import {
   decodeToMono16k,
+  decodeParts,
   DecodeError,
   ACCEPT,
   LONG_FILE_WARN_MIN,
@@ -23,7 +24,13 @@ import {
 } from "./lib/formats";
 import { MODELS, type ModelQuality, type Segment } from "./lib/types";
 import { t, lang, locale } from "./lib/i18n";
-import { canCaptureTab, captureTab, NoTabAudioError } from "./lib/meeting";
+import {
+  canCaptureTab,
+  captureTab,
+  NoTabAudioError,
+  recordInParts,
+  MINUTES_PER_PART,
+} from "./lib/meeting";
 import { LANGUAGES, needsBiggerModel } from "./lib/languages";
 import { initAnalytics, track, trackVisit } from "./lib/analytics";
 import { ensureStorage, humanBytes } from "./lib/storage";
@@ -82,6 +89,9 @@ const startBtn = document.querySelector<HTMLButtonElement>("#start-btn");
 const readyCancel = document.querySelector<HTMLButtonElement>("#ready-cancel");
 const retryBox = document.querySelector<HTMLElement>("#retry-better");
 const retryBtn = document.querySelector<HTMLButtonElement>("#retry-btn");
+const recoveryBox = document.querySelector<HTMLElement>("#recovery");
+const recoveryBtn = document.querySelector<HTMLButtonElement>("#recovery-btn");
+const recoveryNote = document.querySelector<HTMLElement>("#recovery-note");
 
 fileInput.accept = ACCEPT;
 
@@ -301,7 +311,13 @@ let meetingNoMic = false;
 let pendingSource: "file" | "mic" | "meeting" | "media" = "file";
 
 // Archivo elegido y a la espera de que se confirmen idioma y modelo.
-let pending: { file: File | Blob; name: string } | null = null;
+let pending: { file: File | Blob; name: string; parts?: Blob[] } | null = null;
+
+// Lo último que se ha grabado, guardado aparte de todo lo demás. Existe porque
+// una hora y media de webinar se perdió entera: la grabación estaba bien y se
+// tiró al fallar la decodificación, sin que hubiera copia en ningún sitio. Una
+// grabación vale por sí misma, se pueda transcribir o no.
+let recorded: { parts: Blob[]; name: string; mimeType: string } | null = null;
 
 // Lo último transcrito, para poder repetirlo con un modelo mejor sin que el
 // usuario tenga que volver a buscar el archivo. Es la diferencia entre "esto
@@ -393,7 +409,7 @@ async function importJSON(file: File | Blob, name: string): Promise<boolean> {
  * que a la segunda vez ya está bien, y el aviso de archivo grande pasa a este
  * panel en lugar de un diálogo del navegador encima.
  */
-async function handleFile(file: File | Blob, name: string): Promise<void> {
+async function handleFile(file: File | Blob, name: string, parts?: Blob[]): Promise<void> {
   if (busy) return;
 
   // Un JSON exportado por Gate32 se reabre en vez de transcribirse.
@@ -403,21 +419,24 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
     return;
   }
 
-  pending = { file, name };
+  pending = { file, name, ...(parts ? { parts } : {}) };
   hide(errorBox);
   hide(resultSection);
   if (readyName) readyName.textContent = name;
-  if (readySize) readySize.textContent = humanBytes(file.size, locale);
+  const bytes = parts ? parts.reduce((n, p) => n + p.size, 0) : file.size;
+  if (readySize) readySize.textContent = humanBytes(bytes, locale);
   // El aviso por tamaño va **antes** de decodificar. Un 22 % de los archivos
   // que se sueltan no se pueden leer, y la causa confirmada es la memoria del
   // navegador: enterarse después de dos minutos de espera es la peor versión
   // de ese fallo.
   if (readyWarn) {
-    const big = file.size > BIG_FILE_BYTES;
+    // Con la grabación partida en trozos el tamaño total ya no es el problema:
+    // cada trozo se decodifica por su cuenta.
+    const big = !parts && file.size > BIG_FILE_BYTES;
     if (big) track("big_file_prompt");
     readyWarn.textContent = big
       ? t(onPhone ? "big_file_note_phone" : "big_file_note", {
-          size: humanBytes(file.size, locale),
+          size: humanBytes(bytes, locale),
         })
       : "";
     readyWarn.hidden = !big;
@@ -428,10 +447,15 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
 }
 
 /** Arranca de verdad, ya con el idioma y el modelo confirmados. */
-async function startTranscription(file: File | Blob, name: string): Promise<void> {
+async function startTranscription(
+  file: File | Blob,
+  name: string,
+  pendingParts?: Blob[],
+): Promise<void> {
   if (busy) return;
   pending = null;
   lastRun = { file, name, quality: modelSelect.value as ModelQuality };
+  const parts = pendingParts;
   if (readyBox) hide(readyBox);
 
   busy = true;
@@ -449,7 +473,11 @@ async function startTranscription(file: File | Blob, name: string): Promise<void
   let duration: number;
   let chunked: boolean | undefined;
   try {
-    ({ audio, duration, chunked } = await decodeToMono16k(file));
+    // Una grabación larga llega partida en trozos independientes: se
+    // decodifican de uno en uno, que es lo único que no depende de que quepa
+    // el archivo entero en memoria.
+    ({ audio, duration, chunked } =
+      parts && parts.length > 1 ? await decodeParts(parts) : await decodeToMono16k(file));
     // Se mide aparte: es el camino nuevo y hay que saber si de verdad salva
     // archivos que antes se perdían.
     if (chunked) track("decode_chunked");
@@ -927,42 +955,41 @@ dropzone.addEventListener("drop", (e) => {
 
 // ── grabación con micrófono ──
 
-let recorder: MediaRecorder | null = null;
-let recChunks: Blob[] = [];
+let stopMic: (() => void) | null = null;
+let micRecording = false;
 let recTimer: number | undefined;
 
 recordBtn.addEventListener("click", async () => {
-  if (busy && !recorder) return;
+  if (busy && !micRecording) return;
   // Con una pestaña grabándose, el micrófono puede estar ya dentro de la
   // mezcla: una segunda grabación dejaría dos cronómetros y dos archivos.
   if (recordingTab()) return;
-  if (recorder) {
-    recorder.stop();
+  if (micRecording) {
+    stopMic?.();
     return;
   }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    recChunks = [];
-    recorder = new MediaRecorder(stream);
-    recorder.addEventListener("dataavailable", (e) => {
-      if (e.data.size > 0) recChunks.push(e.data);
-    });
-    recorder.addEventListener("stop", () => {
+    // También por trozos: una entrevista de dos horas con el micrófono tiene
+    // exactamente el mismo problema que un webinar de hora y media.
+    stopMic = recordInParts(stream, MINUTES_PER_PART, (parts, mimeType) => {
       stream.getTracks().forEach((tr) => tr.stop());
       window.clearInterval(recTimer);
       recordBtn.classList.remove("recording");
       if (meetingBtn) meetingBtn.disabled = false;
       if (mediaBtn) mediaBtn.disabled = false;
       recordLabel.textContent = t("record");
-      const blob = new Blob(recChunks, { type: recorder?.mimeType ?? "audio/webm" });
-      recorder = null;
-      if (blob.size > 0) {
-        const stamp = new Date().toTimeString().slice(0, 5).replace(":", ".");
-        pendingSource = "mic";
-        void handleFile(blob, `${t("recording_prefix")}-${stamp}`);
-      }
+      micRecording = false;
+      stopMic = null;
+      if (parts.length === 0) return;
+      const stamp = new Date().toTimeString().slice(0, 5).replace(":", ".");
+      const name = `${t("recording_prefix")}-${stamp}`;
+      recorded = { parts, name, mimeType };
+      showRecovery();
+      pendingSource = "mic";
+      void handleFile(parts[0] as Blob, name, parts);
     });
-    recorder.start();
+    micRecording = true;
     const t0 = Date.now();
     recordBtn.classList.add("recording");
     if (meetingBtn) meetingBtn.disabled = true;
@@ -997,18 +1024,19 @@ type TabMode = "meeting" | "media";
 
 interface TabCapture {
   capture: Awaited<ReturnType<typeof captureTab>> | null;
-  rec: MediaRecorder | null;
-  chunks: Blob[];
+  /** Detiene la grabación por trozos; null si no hay ninguna en curso. */
+  stop: (() => void) | null;
+  recording: boolean;
   timer: number | undefined;
   armed: boolean;
 }
 
 const tabState: Record<TabMode, TabCapture> = {
-  meeting: { capture: null, rec: null, chunks: [], timer: undefined, armed: false },
-  media: { capture: null, rec: null, chunks: [], timer: undefined, armed: false },
+  meeting: { capture: null, stop: null, recording: false, timer: undefined, armed: false },
+  media: { capture: null, stop: null, recording: false, timer: undefined, armed: false },
 };
 
-const recordingTab = (): boolean => tabState.meeting.rec !== null || tabState.media.rec !== null;
+const recordingTab = (): boolean => tabState.meeting.recording || tabState.media.recording;
 
 function wireTabCapture(mode: TabMode, btn: HTMLButtonElement): void {
   const label = btn.querySelector<HTMLElement>("[data-label]");
@@ -1032,13 +1060,13 @@ function wireTabCapture(mode: TabMode, btn: HTMLButtonElement): void {
   };
 
   btn.addEventListener("click", async () => {
-    if (busy && !st.rec) return;
-    if (st.rec) {
-      st.rec.stop();
+    if (busy && !st.recording) return;
+    if (st.recording) {
+      st.stop?.();
       return;
     }
     // Dos capturas a la vez darían dos cronómetros y dos archivos solapados.
-    if (recorder || recordingTab()) return;
+    if (micRecording || recordingTab()) return;
     if (!st.armed) {
       st.armed = true;
       if (tabHint) {
@@ -1056,36 +1084,38 @@ function wireTabCapture(mode: TabMode, btn: HTMLButtonElement): void {
         meetingNoMic = !st.capture.withMic;
         if (meetingNoMic) track("meeting_no_mic");
       }
-      st.chunks = [];
-      st.rec = new MediaRecorder(st.capture.stream);
-      st.rec.addEventListener("dataavailable", (e) => {
-        if (e.data.size > 0) st.chunks.push(e.data);
-      });
-      st.rec.addEventListener("stop", () => {
+      // Se graba en trozos de pocos minutos, cada uno un archivo válido por su
+      // cuenta. Una sola grabación de hora y media es indecodificable y ya
+      // costó un webinar entero.
+      st.stop = recordInParts(st.capture.stream, MINUTES_PER_PART, (parts, mimeType) => {
         st.capture?.stop();
         st.capture = null;
         window.clearInterval(st.timer);
-        const blob = new Blob(st.chunks, { type: st.rec?.mimeType ?? "audio/webm" });
-        st.rec = null;
+        st.recording = false;
+        st.stop = null;
         reset();
-        if (blob.size > 0) {
-          const stamp = new Date().toTimeString().slice(0, 5).replace(":", ".");
-          pendingSource = mode;
-          void handleFile(blob, `${t(mode === "meeting" ? "meeting_prefix" : "media_prefix")}-${stamp}`);
-        }
+        if (parts.length === 0) return;
+        const stamp = new Date().toTimeString().slice(0, 5).replace(":", ".");
+        const name = `${t(mode === "meeting" ? "meeting_prefix" : "media_prefix")}-${stamp}`;
+        // Antes que nada, la grabación queda a salvo y descargable pase lo que
+        // pase después.
+        recorded = { parts, name, mimeType };
+        showRecovery();
+        pendingSource = mode;
+        void handleFile(parts[0] as Blob, name, parts);
       });
+      st.recording = true;
       // Si se corta la compartición desde la barra del navegador, se cierra la
       // grabación igual que si se hubiera pulsado «Detener» aquí: dejar de
       // compartir es dejar de grabar. Lo contrario sería seguir apuntando
       // silencio sin que nadie lo note hasta el final.
       st.capture.onEnded(() => {
-        if (st.rec && st.rec.state !== "inactive") {
+        if (st.recording) {
           track(`${mode}_ended_external`);
-          st.rec.stop();
+          st.stop?.();
         }
       });
 
-      st.rec.start();
       const t0 = Date.now();
       if (tabHint) hide(tabHint);
       recordBtn.disabled = true;
@@ -1121,11 +1151,47 @@ if (canCaptureTab()) {
   }
 }
 
+// ── la grabación no se pierde ──
+//
+// Una hora y media de webinar se perdió entera: la grabación estaba bien y se
+// tiró al fallar la decodificación, porque solo vivía en memoria. Ahora queda
+// aparte y se puede descargar aunque todo lo demás falle. Una grabación vale
+// por sí misma, se pueda transcribir o no.
+
+function showRecovery(): void {
+  if (!recoveryBox || !recorded) return;
+  const total = recorded.parts.reduce((n, p) => n + p.size, 0);
+  if (recoveryNote) {
+    recoveryNote.textContent = t("recovery_note", {
+      n: recorded.parts.length,
+      size: humanBytes(total, locale),
+    });
+  }
+  show(recoveryBox);
+}
+
+recoveryBtn?.addEventListener("click", () => {
+  if (!recorded) return;
+  track("recording_download");
+  const ext = recorded.mimeType.includes("ogg") ? "ogg" : "webm";
+  recorded.parts.forEach((part, i) => {
+    const url = URL.createObjectURL(part);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download =
+      recorded && recorded.parts.length > 1
+        ? `${recorded.name}-${String(i + 1).padStart(2, "0")}.${ext}`
+        : `${recorded?.name}.${ext}`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  });
+});
+
 // ── confirmar y arrancar ──
 
 startBtn?.addEventListener("click", () => {
   if (!pending) return;
-  void startTranscription(pending.file, pending.name);
+  void startTranscription(pending.file, pending.name, pending.parts);
 });
 
 retryBtn?.addEventListener("click", () => {
@@ -1307,6 +1373,16 @@ if (new URLSearchParams(location.search).has("e2e")) {
       lastRun = { file: new Blob(["x"]), name: "e2e-audio.wav", quality };
       busy = true;
       finishTranscription([{ start: 0, end: 2, text: "prueba" }], quality, 1, 2, 0);
+    },
+    // Simula una grabación terminada para comprobar la red de seguridad, que
+    // es justo lo que faltaba cuando se perdió hora y media de webinar.
+    fakeRecording(nParts: number): void {
+      recorded = {
+        parts: Array.from({ length: nParts }, () => new Blob(["x".repeat(1000)])),
+        name: "e2e-grabacion",
+        mimeType: "audio/webm",
+      };
+      showRecovery();
     },
     // No se puede conceder el micrófono desde Playwright, así que la exclusión
     // entre las dos grabaciones se comprueba desde su efecto observable.

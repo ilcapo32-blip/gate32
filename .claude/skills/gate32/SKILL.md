@@ -96,12 +96,28 @@ De ahí tres reglas que se aplican a cualquier automatización del proyecto:
   desincronizan sin que nadie lo note. Están cubiertos por el E2E justo por
   eso; al añadir una capacidad, se actualizan a la vez que la interfaz.
 
-## 8. Secretos fuera del repositorio
+## 8. Lo que el usuario ha creado no se pierde nunca
+
+Una grabación de 1 h 35 min de webinar se perdió entera porque solo existía en
+la memoria de la pestaña y falló el paso siguiente. El fallo era recuperable;
+la pérdida no.
+
+- **Antes de procesar algo que el usuario ha producido, dale forma de poder
+  guardarlo.** Grabaciones, transcripciones, ediciones: si solo viven en
+  memoria, un error cualquiera las borra.
+- **Lo que se graba en trozos se puede salvar; lo que se graba de una pieza,
+  no.** Nada de acumular horas en un único objeto que luego hay que procesar
+  entero.
+- **Un fallo en una parte no puede tirar el resto.** Vale para los bloques del
+  modelo, para los trozos de audio y para cualquier bucle que procese lo que
+  alguien tardó una hora en producir.
+
+## 9. Secretos fuera del repositorio
 
 Es público. Las credenciales van en variables de entorno o en *secrets* de
 GitHub. Nunca en un archivo.
 
-## 9. Commits
+## 10. Commits
 
 Mensajes en inglés. El asunto dice qué cambia; el cuerpo, **por qué** y qué
 evidencia lo motivó. Sin emojis, sin firmas de herramientas, sin identificador
@@ -109,14 +125,14 @@ de modelo. Si el mensaje lleva caracteres especiales, `git commit -F fichero`.
 
 La firma con GPG falla en este entorno: `git -c commit.gpgsign=false commit`.
 
-## 10. Antes de dar algo por terminado
+## 11. Antes de dar algo por terminado
 
 `npx tsc --noEmit`, `npm test`, `npm run build` y
 `CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node scripts/e2e.mjs`.
 
 El E2E ya ha detectado defectos reales que los tests unitarios no veían.
 
-## 11. Dónde está el contexto
+## 12. Dónde está el contexto
 
 - `VALIDATION.md` — métricas, umbrales y todas las mediciones con sus
   correcciones.

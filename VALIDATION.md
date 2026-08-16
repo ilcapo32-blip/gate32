@@ -455,6 +455,42 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `pro_interest` | clic en "Quiero Gate32 Pro" | — |
 | `return_visit` | visita con historial local previo | `days_since_first` |
 
+### 1 h 35 min de webinar perdidos (2026-08-16) — el peor fallo hasta ahora
+
+El propietario grabó un webinar entero con la captura de pestaña. Al terminar:
+*"superfallo, fatal, toda la grabación perdida"*. El mensaje fue **"No se ha
+podido leer el audio de este archivo"**.
+
+**Qué pasó, en orden:** la grabación salió bien. El `MediaRecorder` produjo un
+único WebM de hora y media. `decodeAudioData` no pudo con él: Opus se
+descomprime primero a su ritmo nativo, así que 95 minutos superan el gigabyte
+antes de remuestrear a 16 kHz. El troceado que habíamos construido el día
+anterior **solo sabe leer MP3**, así que ni se intentó. La decodificación
+falló, y con ella se fue el único sitio donde existía el audio: la memoria de
+la pestaña.
+
+**Lo grave no es que fallara la decodificación. Es que no había copia.**
+Grabábamos hora y media en RAM y se la entregábamos a un decodificador que
+podía fallar, sin guardar nada en ningún sitio. Un fallo recuperable convertido
+en pérdida total por una decisión de diseño que nadie tomó explícitamente.
+
+**Tres arreglos, en este orden de importancia:**
+
+1. **La grabación se puede descargar siempre.** En cuanto se para de grabar
+   aparece un botón para bajarla, y sigue ahí aunque la transcripción falle.
+   Una grabación vale por sí misma, se pueda transcribir o no.
+2. **Se graba por trozos de 8 minutos**, cada uno un archivo válido e
+   independiente. Hora y media son doce archivos que se decodifican de uno en
+   uno, así que la memoria máxima es la de un trozo y no la del total.
+3. **Un trozo ilegible ya no se lleva a los demás por delante**, igual que se
+   arregló antes para los bloques del modelo.
+
+**Lo que esto dice de cómo estábamos probando:** el E2E cubría el recorrido
+completo con un WAV de cuatro segundos. Ninguna prueba automática ha grabado
+nunca más de unos segundos, y por eso este fallo llegó intacto hasta un
+usuario con un webinar de verdad. Los archivos largos son el caso de uso —
+clases, entrevistas, reuniones— y eran justo lo que no se probaba.
+
 ### Calidad de transcripción: la primera prueba real con voz (2026-08-16)
 
 El propietario grabó 2:49 de un vídeo de cocina con el micrófono, modelo

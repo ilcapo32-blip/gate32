@@ -369,6 +369,16 @@ try {
 
   // Dos grabaciones a la vez dejarían dos cronómetros y dos archivos de la
   // misma voz: mientras una corre, la otra no se puede empezar.
+  // La red de seguridad de la grabación: hora y media de webinar se perdieron
+  // porque el audio solo vivía en memoria y falló la decodificación.
+  check("sin grabación no se ofrece rescate", await page.locator("#recovery").isHidden());
+  await page.evaluate(() => window.__g32.fakeRecording(3));
+  check("tras grabar se ofrece descargar el audio", await page.locator("#recovery").isVisible());
+  check(
+    "el aviso dice cuántos archivos y que se pierden al cerrar",
+    /3 archivo|se pierde/i.test((await page.locator("#recovery-note").textContent()) ?? ""),
+  );
+
   await page.evaluate(() => window.__g32.micRecording(true));
   check("grabando con el micro, la reunión no se puede empezar", await page.locator("#meeting-btn").isDisabled());
   check("grabando con el micro, el vídeo tampoco", await page.locator("#media-btn").isDisabled());

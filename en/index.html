@@ -210,6 +210,13 @@
              starting the moment a file lands meant the selects above it got
              skipped, and getting it wrong costs a 250 MB download or ten
              minutes transcribing in the wrong language. -->
+        <!-- Red de seguridad. Una grabación de hora y media se perdió entera
+             porque solo vivía en memoria y falló la decodificación. -->
+        <div id="recovery" class="recovery" hidden>
+          <p id="recovery-note" class="recovery-note">Your recording is held in this browser. Download it if it matters: it is lost when you close the tab.</p>
+          <button id="recovery-btn" class="btn small" type="button">Download the recording</button>
+        </div>
+
         <div id="ready" class="ready" hidden>
           <p class="ready-file"><strong id="ready-name"></strong> <span id="ready-size"></span></p>
           <p id="ready-warn" class="mobile-note" hidden></p>

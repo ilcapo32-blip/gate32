@@ -115,3 +115,66 @@ export async function captureTab(withMic: boolean): Promise<MeetingCapture> {
     },
   };
 }
+
+/**
+ * Graba un flujo en trozos independientes en vez de en un archivo único.
+ *
+ * Un `MediaRecorder` corriendo hora y media produce un WebM enorme que el
+ * navegador **no puede decodificar de una pieza**: Opus se descomprime primero
+ * a su ritmo nativo y hora y media pasan del gigabyte. Eso costó una grabación
+ * entera de webinar. Parando y arrancando el grabador cada pocos minutos, cada
+ * trozo es un WebM completo y válido por su cuenta, y se decodifican de uno en
+ * uno.
+ *
+ * Devuelve una función para detener; los trozos llegan por `onFinish`.
+ */
+export function recordInParts(
+  stream: MediaStream,
+  minutesPerPart: number,
+  onFinish: (parts: Blob[], mimeType: string) => void,
+): () => void {
+  const parts: Blob[] = [];
+  let chunks: Blob[] = [];
+  let rec: MediaRecorder | null = null;
+  let stopping = false;
+  let rotator: number | undefined;
+  let mimeType = "audio/webm";
+
+  const startOne = (): void => {
+    rec = new MediaRecorder(stream);
+    mimeType = rec.mimeType || mimeType;
+    chunks = [];
+    rec.addEventListener("dataavailable", (e) => {
+      if (e.data.size > 0) chunks.push(e.data);
+    });
+    rec.addEventListener("stop", () => {
+      const blob = new Blob(chunks, { type: mimeType });
+      if (blob.size > 0) parts.push(blob);
+      if (stopping) {
+        window.clearInterval(rotator);
+        onFinish(parts, mimeType);
+      } else {
+        startOne();
+      }
+    });
+    rec.start();
+  };
+
+  startOne();
+  rotator = window.setInterval(
+    () => {
+      if (!stopping && rec && rec.state === "recording") rec.stop();
+    },
+    minutesPerPart * 60 * 1000,
+  );
+
+  return () => {
+    stopping = true;
+    window.clearInterval(rotator);
+    if (rec && rec.state !== "inactive") rec.stop();
+    else onFinish(parts, mimeType);
+  };
+}
+
+/** Minutos por trozo: con esto, una hora y media son unos doce archivos. */
+export const MINUTES_PER_PART = 8;

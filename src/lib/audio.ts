@@ -8,6 +8,8 @@ export interface DecodedAudio {
   duration: number; // segundos
   /** Se decodificó por trozos (MP3 grande) en vez de de una sola vez. */
   chunked?: boolean;
+  /** Trozos de una grabación larga que no se pudieron leer. */
+  partsFailed?: number;
 }
 
 const TARGET_RATE = 16000;
@@ -91,6 +93,48 @@ async function decodeChunked(
  * deja en mono a 16 kHz, que es lo que espera Whisper. Los MP3 grandes van por
  * el camino troceado; el resto, por el de siempre.
  */
+/**
+ * Decodifica una grabación partida en varios trozos y los concatena.
+ *
+ * Existe por un desastre real: 1 h 35 min de webinar grabadas en WebM llegaron
+ * enteras y `decodeAudioData` no pudo con ellas de una pieza — Opus se
+ * decodifica primero a su ritmo nativo, así que hora y media son más de un
+ * gigabyte antes de remuestrear. El troceado que teníamos solo sabe leer MP3,
+ * de modo que el camino largo era el único disponible y falló. Resultado: una
+ * grabación de hora y media perdida entera.
+ *
+ * La grabación se parte ahora en trozos de pocos minutos, cada uno un WebM
+ * completo y válido por su cuenta. Aquí se decodifican de uno en uno, así que
+ * la memoria máxima es la de un trozo y no la del archivo entero.
+ */
+export async function decodeParts(parts: Blob[]): Promise<DecodedAudio> {
+  const pieces: Float32Array[] = [];
+  let duration = 0;
+  let failed = 0;
+  for (const part of parts) {
+    try {
+      const d = await decodeToMono16k(part);
+      pieces.push(d.audio);
+      duration += d.duration;
+    } catch {
+      // Un trozo ilegible no puede llevarse los demás por delante: eso es
+      // exactamente el error que estamos arreglando, solo que en pequeño.
+      failed++;
+    }
+  }
+  if (pieces.length === 0) throw new DecodeError(parts.reduce((n, p) => n + p.size, 0));
+
+  let total = 0;
+  for (const p of pieces) total += p.length;
+  const audio = new Float32Array(total);
+  let at = 0;
+  for (const p of pieces) {
+    audio.set(p, at);
+    at += p.length;
+  }
+  return { audio, duration, chunked: true, partsFailed: failed };
+}
+
 export async function decodeToMono16k(file: Blob): Promise<DecodedAudio> {
   const buf = await file.arrayBuffer();
   const AC: typeof AudioContext =
