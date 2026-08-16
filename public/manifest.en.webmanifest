@@ -1,0 +1,16 @@
+{
+  "name": "Gate32 — Local AI transcription",
+  "short_name": "Gate32",
+  "description": "Transcribe audio and video to text and subtitles with AI, 100% in your browser. No uploads, no sign-up, no limits.",
+  "start_url": "/en/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#12120f",
+  "theme_color": "#1c1c1a",
+  "lang": "en",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

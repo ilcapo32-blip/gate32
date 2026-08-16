@@ -538,6 +538,16 @@ try {
   const txtEn = readFileSync(await dlEn.path(), "utf8");
   check("EN: atribución en inglés", txtEn.includes("Transcribed with Gate32"));
 
+  // El 77 % del tráfico entra por /en/. Si instalan desde ahí y el manifest es
+  // el castellano, la app se llama en español y arranca en la portada española.
+  check(
+    "EN: instala su propia app, no la castellana",
+    (await page.getAttribute('link[rel="manifest"]', "href")) === "/manifest.en.webmanifest",
+  );
+  const manEn = await (await fetch(`${BASE}/manifest.en.webmanifest`)).json();
+  check("EN: la app instalada abre la portada inglesa", manEn.start_url === "/en/");
+  check("EN: manifest válido para instalar", manEn.display === "standalone" && manEn.icons.length >= 2);
+
   // 4 · móvil
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${BASE}/`, { waitUntil: "load" });
