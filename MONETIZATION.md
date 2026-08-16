@@ -23,7 +23,7 @@ Todas ejecutables en el navegador → coste marginal ≈ 0 → margen ≈ 100 %:
 | **Herramientas de corrección profesional** (atajos de teclado, reproducción a media velocidad, pedal/foot-switch, buscar-y-reemplazar con audio, marcas de "dudoso", control de calidad por confianza) | Es *el* trabajo caro que hoy se hace a mano; nadie lo optimiza | Todo en cliente, coste 0 |
 | **Lotes** (cola de archivos) | Podcasters/creadores con backlog | Trivial sobre la arquitectura actual |
 | **Actas y resúmenes con IA** | Del texto bruto al entregable | Fase 1 BYOK (clave del usuario, gratis para nosotros); fase 2 API propia financiada por ingresos |
-| **Vocabulario personalizado** | Nombres propios, jerga técnica | `initial_prompt` de Whisper |
+| ~~**Vocabulario personalizado**~~ | Nombres propios, jerga técnica | **No construible hoy:** `prompt_ids` está documentado en transformers.js pero sin implementar (16/08). La alternativa real es buscar y reemplazar en el pase de corrección |
 | Historial ampliado + export masivo | Usuarios intensivos | localStorage/OPFS |
 
 ## 2 · Precio (hipótesis a testar)

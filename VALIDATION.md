@@ -455,6 +455,46 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `pro_interest` | clic en "Quiero Gate32 Pro" | — |
 | `return_visit` | visita con historial local previo | `days_since_first` |
 
+### Primera transcripción larga que sale bien (2026-08-16) — tres validaciones resueltas
+
+MP3 de **99 MB y 69 minutos**, modelo **Preciso**, WebGPU. Es la prueba que
+llevábamos días pidiendo y resuelve de golpe tres cosas que estaban anotadas
+como no verificadas.
+
+| Qué estaba pendiente | Resultado |
+|---|---|
+| ¿Funciona el troceado de MP3 en archivos > 1 h? | **Sí.** 99 MB decodificados enteros; el reproductor marca 1:08:57. Antes fallaba casi todo por encima de 60 MB |
+| ¿Se sigue saltando texto tras delegar el troceado? | **No.** 14 363 palabras en 69 min = **208 por minuto**, ritmo de habla rápida sostenido. No hay huecos |
+| ¿Las costuras entre bloques cosen bien? | **Sí.** Cero párrafos duplicados consecutivos en 852 |
+
+**Velocidad: 31 min 11 s para 69 minutos de audio = 2,2× tiempo real** con
+`small` en WebGPU. Para comparar con el dato de campo que teníamos:
+faster-whisper `large_v3` nativo iba a ~10×. Seguimos siendo cuatro veces más
+lentos que la herramienta de terminal, y a cambio no hay nada que instalar.
+
+**Bucles de repetición: uno solo en todo el archivo**, y al mirarlo resulta
+que era real (*"veis aquí que pone bash, bash, bash, bash"* — la pantalla del
+vídeo repetía la palabra). Frente a los ocho "el acelete" seguidos del modelo
+Equilibrado, el salto de calidad es evidente.
+
+**El único defecto que queda, y es grande:** el vídeo trata sobre **Claude**, y
+Whisper escribe **"Cloud" 90 veces**. Un nombre propio mal oído de forma
+sistemática arruina la transcripción para estudiar o citar, aunque el resto
+sea correcto.
+
+**Lo que se puede y no se puede hacer con eso:**
+`prompt_ids` —el mecanismo de Whisper para pasarle vocabulario esperado antes
+de transcribir— aparece **documentado en transformers.js pero sin implementar**
+(está comentado en el código). Así que el "vocabulario personalizado" que
+figuraba en MONETIZATION.md §1 **no es construible con la pila actual**, y hay
+que dejar de contarlo como opción.
+
+La salida que sí existe es el **pase de corrección**: buscar y reemplazar sobre
+el resultado arregla 90 apariciones de una vez. Y es, precisamente, la tesis
+que seis señales independientes llevan semanas señalando como el hueco
+defendible (RESEARCH.md §1f, §1h, §1i). La primera transcripción buena que
+tenemos apunta al mismo sitio que los usuarios.
+
 ### 1 h 35 min de webinar perdidos (2026-08-16) — el peor fallo hasta ahora
 
 El propietario grabó un webinar entero con la captura de pestaña. Al terminar:
