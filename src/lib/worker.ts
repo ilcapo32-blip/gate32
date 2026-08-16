@@ -169,45 +169,79 @@ async function transcribe(audio: Float32Array, language: string): Promise<void> 
 
   const results: { offset: number; segments: ReturnType<typeof chunksToSegments> }[] = [];
 
-  try {
-    for (let i = 0; i < total; i++) {
-      const startSample = i * stepSamples;
-      const slice = audio.subarray(startSample, Math.min(startSample + windowSamples, totalSamples));
-      const offset = startSample / SAMPLE_RATE;
-      post({ type: "window-start", index: i, total });
+  // Un bloque que falla no puede tirar la transcripción entera. Antes el
+  // try/catch envolvía el bucle completo, así que un solo fallo en el minuto
+  // tres borraba los tres minutos que ya estaban bien. El caso real que lo
+  // destapó: `token_ids must be a non-empty array of integers`, que salta en
+  // el decodificador de marcas de tiempo cuando el modelo no genera nada para
+  // un bloque — normalmente un tramo de silencio.
+  let failed = 0;
+  let lastError: unknown = null;
 
-      const generationOptions: Record<string, unknown> = {
-        task: "transcribe",
-        return_timestamps: true,
-      };
-      if (language !== "auto") generationOptions["language"] = language;
+  for (let i = 0; i < total; i++) {
+    const startSample = i * stepSamples;
+    const slice = audio.subarray(startSample, Math.min(startSample + windowSamples, totalSamples));
+    const offset = startSample / SAMPLE_RATE;
+    post({ type: "window-start", index: i, total });
 
-      const output = (await transcriber(slice.slice(), generationOptions)) as {
-        text: string;
-        chunks?: RawChunk[];
-      };
+    const generationOptions: Record<string, unknown> = {
+      task: "transcribe",
+      return_timestamps: true,
+    };
+    if (language !== "auto") generationOptions["language"] = language;
 
-      const chunks: RawChunk[] =
-        output.chunks && output.chunks.length > 0
-          ? output.chunks
-          : output.text.trim()
-            ? [{ timestamp: [0, null], text: output.text }]
-            : [];
-
-      const segments = chunksToSegments(chunks, offset, slice.length / SAMPLE_RATE);
-      results.push({ offset, segments });
-      post({ type: "window-done", index: i, total, segments });
+    type Output = { text: string; chunks?: RawChunk[] };
+    let output: Output | null = null;
+    try {
+      output = (await transcriber(slice.slice(), generationOptions)) as Output;
+    } catch (err) {
+      lastError = err;
+      // Segundo intento sin marcas de tiempo: es justo la parte que revienta,
+      // y un bloque sin tiempos propios sigue valiendo — se le asigna el tramo
+      // entero, que para 30 segundos de audio es aproximación suficiente.
+      try {
+        output = (await transcriber(slice.slice(), {
+          ...generationOptions,
+          return_timestamps: false,
+        })) as Output;
+      } catch {
+        output = null;
+      }
     }
 
-    const merged = mergeWindows(results);
-    post({ type: "done", segments: merged, seconds: (performance.now() - t0) / 1000 });
-  } catch (err) {
+    if (!output) {
+      failed++;
+      post({ type: "window-done", index: i, total, segments: [] });
+      continue;
+    }
+
+    const chunks: RawChunk[] =
+      output.chunks && output.chunks.length > 0
+        ? output.chunks
+        : output.text.trim()
+          ? [{ timestamp: [0, null], text: output.text }]
+          : [];
+
+    const segments = chunksToSegments(chunks, offset, slice.length / SAMPLE_RATE);
+    results.push({ offset, segments });
+    post({ type: "window-done", index: i, total, segments });
+  }
+
+  const merged = mergeWindows(results);
+
+  // Solo se da por fallida la transcripción si no se ha salvado nada. Con
+  // texto en la mano, aunque falten bloques, entregarlo es mejor que un error:
+  // el usuario ve lo que hay y decide.
+  if (merged.length === 0 && failed > 0) {
     post({
       type: "error",
       stage: "transcribe",
-      message: err instanceof Error ? err.message : String(err),
+      message: lastError instanceof Error ? lastError.message : String(lastError),
     });
+    return;
   }
+
+  post({ type: "done", segments: merged, seconds: (performance.now() - t0) / 1000, failed });
 }
 
 self.addEventListener("message", (event: MessageEvent<WorkerRequest>) => {

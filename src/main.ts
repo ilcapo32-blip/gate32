@@ -577,8 +577,21 @@ async function startTranscription(file: File | Blob, name: string): Promise<void
               ? t("block_progress", { done, total, eta: clock(eta) })
               : t("finishing");
         },
-        onDone(segments, genSeconds) {
-          finishTranscription(segments, quality, genSeconds, (performance.now() - tLoad0) / 1000);
+        onDone(segments, genSeconds, failed) {
+          // Bloques que el modelo no pudo transcribir. Se dicen: un hueco
+          // silencioso en mitad del texto, sin explicación, se lee como que la
+          // herramienta se ha inventado el corte.
+          if (failed && failed > 0) {
+            track("transcribe_partial");
+            track(`transcribe_partial_${quality}`);
+          }
+          finishTranscription(
+            segments,
+            quality,
+            genSeconds,
+            (performance.now() - tLoad0) / 1000,
+            failed ?? 0,
+          );
         },
         onError(_stage, message) {
           track("transcribe_error", { stage: "transcribe", kind: "inference" });
@@ -607,6 +620,7 @@ function finishTranscription(
   quality: ModelQuality,
   genSeconds: number,
   totalSeconds: number,
+  failed = 0,
 ): void {
   if (!current) return;
   busy = false;
@@ -646,7 +660,10 @@ function finishTranscription(
       t("done_model", {
         model: modelLabel(quality),
         device: current.device === "webgpu" ? "WebGPU" : "WASM",
-      }),
+      }) +
+      // Un hueco en mitad del texto sin explicación se lee como que la
+      // herramienta se ha comido una frase por su cuenta.
+      (failed > 0 ? t("done_failed", { n: failed }) : ""),
   );
 }
 

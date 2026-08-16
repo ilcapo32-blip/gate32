@@ -9,7 +9,8 @@ export interface TranscribeCallbacks {
   onLoadProgress?(file: string, loaded: number, total: number): void;
   onReady?(cached: boolean, seconds: number): void;
   onWindowProgress?(done: number, total: number, partial: Segment[]): void;
-  onDone(segments: Segment[], seconds: number): void;
+  /** `failed` son los bloques que el modelo no logró transcribir (0 si todo fue bien). */
+  onDone(segments: Segment[], seconds: number, failed?: number): void;
   onError(stage: "load" | "transcribe", message: string): void;
 }
 
@@ -50,7 +51,7 @@ export class Transcriber {
         cb.onWindowProgress?.(msg.index + 1, msg.total, this.partial);
         break;
       case "done":
-        cb.onDone(msg.segments, msg.seconds);
+        cb.onDone(msg.segments, msg.seconds, msg.failed);
         break;
       case "error":
         cb.onError(msg.stage, msg.message);

@@ -81,5 +81,6 @@ export type WorkerResponse =
   | { type: "ready"; cached: boolean; seconds: number }
   | { type: "window-start"; index: number; total: number }
   | { type: "window-done"; index: number; total: number; segments: Segment[] }
-  | { type: "done"; segments: Segment[]; seconds: number }
+  /** `failed` son los bloques de 30 s que el modelo no pudo transcribir. */
+  | { type: "done"; segments: Segment[]; seconds: number; failed: number }
   | { type: "error"; stage: "load" | "transcribe"; message: string };
