@@ -95,8 +95,16 @@ existía, y compite en las mismas comunidades.
      "confía en mí" — y es *el* argumento para datos de investigación,
      periodismo y comités de ética.
    - **Español nativo** en interfaz, contenido y SEO.
-   - **Activo SEO/GEO ya plantado** (5 páginas indexables, datos
+   - **Activo SEO/GEO ya plantado** (6 páginas indexables, datos
      estructurados, llms.txt, IndexNow, sitemap): compone con el tiempo.
+     *Corrección del 16/08:* cuando se escribió esta línea, "IndexNow" era
+     solo la clave de verificación publicada en `public/`. **Nunca hubo nada
+     que hiciera la llamada**, así que en diez días no se notificó una sola
+     página. Se descubrió auditando, no por un fallo: un trozo de
+     infraestructura que no hace nada tampoco avisa de que no hace nada.
+     Ya funciona (`scripts/indexnow.mjs`, 6 URL enviadas con respuesta 200 el
+     16/08). Y de paso, la comprobación de esta medición: **no dar por
+     implementado lo que solo está preparado.**
    - **Velocidad de iteración.**
 
 ### 1d · MOSS-Transcribe-Diarize (2026-08-08)

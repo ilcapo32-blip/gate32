@@ -87,6 +87,14 @@ De ahí tres reglas que se aplican a cualquier automatización del proyecto:
   permanente. En el radar esto vive en `nextSeen`, con pruebas.
 - **Verde no es prueba de nada.** Al tocar un flujo programado, se mira una
   ejecución real y su salida, no el color del semáforo.
+- **Preparado no es implementado.** IndexNow figuró diez días como hecho en
+  `RESEARCH.md` teniendo solo la clave publicada y ningún código que llamara
+  a la API: cero páginas notificadas. Si algo se apunta como hecho, tiene que
+  haber una ejecución con su salida detrás.
+- **Lo que no se ve es lo que se queda atrás.** Los datos estructurados, el
+  `llms.txt` y el sitemap no aparecen al mirar la página, así que se
+  desincronizan sin que nadie lo note. Están cubiertos por el E2E justo por
+  eso; al añadir una capacidad, se actualizan a la vez que la interfaz.
 
 ## 8. Secretos fuera del repositorio
 
