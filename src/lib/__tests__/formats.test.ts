@@ -13,6 +13,8 @@ import {
   toVTT,
   wrapLines,
   ATTRIBUTION_LINE,
+  SUPER_S,
+  OVERLAP_S,
 } from "../formats";
 import type { RawChunk, Segment } from "../types";
 
@@ -230,5 +232,46 @@ describe("exportName", () => {
   });
   it("usa un nombre por defecto si queda vacío", () => {
     expect(exportName(".mp3", "txt")).toBe("transcripcion.txt");
+  });
+});
+
+// El troceado a mano cada 30 s perdía frases en las costuras: si el modelo no
+// repetía igual la frase en los dos bloques, no la reclamaba ninguno. Ahora
+// trocea la biblioteca por dentro y solo quedan costuras cada dos minutos.
+describe("bloques largos · costuras", () => {
+  const paso = SUPER_S - OVERLAP_S;
+
+  it("un archivo de tres minutos son dos bloques, no siete ventanas", () => {
+    const muestras = 169; // los 2:49 de la grabación real que lo destapó
+    const bloques = Math.max(1, Math.ceil(Math.max(0, muestras - SUPER_S) / paso) + 1);
+    const ventanasAntes = Math.max(1, Math.ceil(Math.max(0, muestras - 30) / 25) + 1);
+    expect(bloques).toBe(2);
+    expect(ventanasAntes).toBeGreaterThan(bloques * 3);
+  });
+
+  it("con los parámetros de bloque largo no se pierde ni se duplica texto", () => {
+    const b0 = {
+      offset: 0,
+      segments: [
+        { start: 1, end: 4, text: "primera" },
+        { start: 100, end: 103, text: "antes de la costura" },
+      ],
+    };
+    const b1 = {
+      offset: paso,
+      segments: [
+        { start: 100, end: 103, text: "antes de la costura" },
+        { start: 130, end: 133, text: "después" },
+      ],
+    };
+    const out = mergeWindows([b0, b1], OVERLAP_S, paso);
+    expect(out.map((s) => s.text)).toEqual(["primera", "antes de la costura", "después"]);
+  });
+
+  it("una frase que solo aparece en el segundo bloque no se descarta", () => {
+    const b0 = { offset: 0, segments: [{ start: 1, end: 4, text: "primera" }] };
+    const b1 = { offset: paso, segments: [{ start: paso + 1, end: paso + 4, text: "segunda" }] };
+    const out = mergeWindows([b0, b1], OVERLAP_S, paso);
+    expect(out.map((s) => s.text)).toEqual(["primera", "segunda"]);
   });
 });

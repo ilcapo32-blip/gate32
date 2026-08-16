@@ -15,7 +15,8 @@ import {
 } from "./types";
 import {
   WINDOW_S,
-  STEP_S,
+  SUPER_S,
+  OVERLAP_S,
   chunksToSegments,
   mergeWindows,
 } from "./formats";
@@ -163,9 +164,19 @@ async function transcribe(audio: Float32Array, language: string): Promise<void> 
   }
   const t0 = performance.now();
   const totalSamples = audio.length;
-  const windowSamples = WINDOW_S * SAMPLE_RATE;
-  const stepSamples = STEP_S * SAMPLE_RATE;
-  const total = Math.max(1, Math.ceil(Math.max(0, totalSamples - windowSamples) / stepSamples) + 1);
+
+  // Se entrega el audio en bloques de dos minutos y **la biblioteca trocea por
+  // dentro**: `chunk_length_s` + `stride_length_s` activan el algoritmo de
+  // audio largo de Whisper, que cose los solapes casando tokens en vez de
+  // recortar por el punto medio de un segmento. La versión anterior troceaba a
+  // mano cada 30 s y perdía las frases que caían en la costura.
+  const superSamples = SUPER_S * SAMPLE_RATE;
+  const overlapSamples = OVERLAP_S * SAMPLE_RATE;
+  const stepSamples = superSamples - overlapSamples;
+  const total = Math.max(
+    1,
+    Math.ceil(Math.max(0, totalSamples - superSamples) / stepSamples) + 1,
+  );
 
   const results: { offset: number; segments: ReturnType<typeof chunksToSegments> }[] = [];
 
@@ -174,19 +185,21 @@ async function transcribe(audio: Float32Array, language: string): Promise<void> 
   // tres borraba los tres minutos que ya estaban bien. El caso real que lo
   // destapó: `token_ids must be a non-empty array of integers`, que salta en
   // el decodificador de marcas de tiempo cuando el modelo no genera nada para
-  // un bloque — normalmente un tramo de silencio.
+  // un trozo — normalmente un tramo de silencio.
   let failed = 0;
   let lastError: unknown = null;
 
   for (let i = 0; i < total; i++) {
     const startSample = i * stepSamples;
-    const slice = audio.subarray(startSample, Math.min(startSample + windowSamples, totalSamples));
+    const slice = audio.subarray(startSample, Math.min(startSample + superSamples, totalSamples));
     const offset = startSample / SAMPLE_RATE;
     post({ type: "window-start", index: i, total });
 
     const generationOptions: Record<string, unknown> = {
       task: "transcribe",
       return_timestamps: true,
+      chunk_length_s: WINDOW_S,
+      stride_length_s: OVERLAP_S,
     };
     if (language !== "auto") generationOptions["language"] = language;
 
@@ -198,7 +211,7 @@ async function transcribe(audio: Float32Array, language: string): Promise<void> 
       lastError = err;
       // Segundo intento sin marcas de tiempo: es justo la parte que revienta,
       // y un bloque sin tiempos propios sigue valiendo — se le asigna el tramo
-      // entero, que para 30 segundos de audio es aproximación suficiente.
+      // entero, que es aproximación suficiente para no perder el texto.
       try {
         output = (await transcriber(slice.slice(), {
           ...generationOptions,
@@ -227,7 +240,8 @@ async function transcribe(audio: Float32Array, language: string): Promise<void> 
     post({ type: "window-done", index: i, total, segments });
   }
 
-  const merged = mergeWindows(results);
+  // Solo quedan las costuras entre bloques de dos minutos, no una cada 25 s.
+  const merged = mergeWindows(results, OVERLAP_S, SUPER_S - OVERLAP_S);
 
   // Solo se da por fallida la transcripción si no se ha salvado nada. Con
   // texto en la mano, aunque falten bloques, entregarlo es mejor que un error:

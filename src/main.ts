@@ -80,6 +80,8 @@ const readySize = document.querySelector<HTMLElement>("#ready-size");
 const readyWarn = document.querySelector<HTMLElement>("#ready-warn");
 const startBtn = document.querySelector<HTMLButtonElement>("#start-btn");
 const readyCancel = document.querySelector<HTMLButtonElement>("#ready-cancel");
+const retryBox = document.querySelector<HTMLElement>("#retry-better");
+const retryBtn = document.querySelector<HTMLButtonElement>("#retry-btn");
 
 fileInput.accept = ACCEPT;
 
@@ -301,6 +303,11 @@ let pendingSource: "file" | "mic" | "meeting" | "media" = "file";
 // Archivo elegido y a la espera de que se confirmen idioma y modelo.
 let pending: { file: File | Blob; name: string } | null = null;
 
+// Lo último transcrito, para poder repetirlo con un modelo mejor sin que el
+// usuario tenga que volver a buscar el archivo. Es la diferencia entre "esto
+// no sirve" y "ah, vale, con el otro modelo sí".
+let lastRun: { file: File | Blob; name: string; quality: ModelQuality } | null = null;
+
 let waitSurveyShown = false;
 function showWaitSurvey(bytesDone: number): void {
   // Solo con descarga real en curso; una carga desde caché no llega aquí.
@@ -424,6 +431,7 @@ async function handleFile(file: File | Blob, name: string): Promise<void> {
 async function startTranscription(file: File | Blob, name: string): Promise<void> {
   if (busy) return;
   pending = null;
+  lastRun = { file, name, quality: modelSelect.value as ModelQuality };
   if (readyBox) hide(readyBox);
 
   busy = true;
@@ -653,6 +661,18 @@ function finishTranscription(
     segments,
   });
 
+  // Con un modelo pequeño el resultado puede salir flojo, y hasta ahora la
+  // única salida era volver a empezar de cero. Ofrecer la repetición con el
+  // modelo siguiente convierte "esto no sirve" en "con el otro sí".
+  const better = nextQuality(quality);
+  if (retryBox && retryBtn && better && lastRun) {
+    retryBtn.textContent = t("retry_better", { model: modelLabel(better) });
+    retryBtn.dataset["quality"] = better;
+    show(retryBox);
+  } else if (retryBox) {
+    hide(retryBox);
+  }
+
   const setup = totalSeconds - genSeconds;
   renderResult(
     t("done_meta", { gen: clock(genSeconds) }) +
@@ -665,6 +685,18 @@ function finishTranscription(
       // herramienta se ha comido una frase por su cuenta.
       (failed > 0 ? t("done_failed", { n: failed }) : ""),
   );
+}
+
+/** El siguiente escalón de calidad, si está disponible en este equipo. */
+function nextQuality(q: ModelQuality): ModelQuality | null {
+  const order: ModelQuality[] = ["fast", "balanced", "accurate", "max"];
+  const i = order.indexOf(q);
+  for (let n = i + 1; n < order.length; n++) {
+    const cand = order[n];
+    // "max" solo existe con WebGPU: en WASM sería una espera inaceptable.
+    if (cand && (cand !== "max" || hasWebGPU)) return cand;
+  }
+  return null;
 }
 
 function modelLabel(q: ModelQuality): string {
@@ -1096,6 +1128,28 @@ startBtn?.addEventListener("click", () => {
   void startTranscription(pending.file, pending.name);
 });
 
+retryBtn?.addEventListener("click", () => {
+  const q = retryBtn.dataset["quality"];
+  if (!lastRun || !q) return;
+  // El modelo mayor pasa a ser el elegido: si alguien lo necesita una vez,
+  // casi siempre lo necesita la siguiente.
+  if (!modelSelect.querySelector(`option[value="${q}"]`) && q === "max") {
+    const opt = document.createElement("option");
+    opt.value = "max";
+    opt.textContent = `${t("model_max")} · ${MODELS.max.sizeLabel}`;
+    modelSelect.appendChild(opt);
+  }
+  modelSelect.value = q;
+  remember(MODEL_KEY, q);
+  syncFirstRunSize();
+  syncLangNote();
+  track("retry_better");
+  track(`retry_better_${q}`);
+  hide(resultSection);
+  void startTranscription(lastRun.file, lastRun.name);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
 readyCancel?.addEventListener("click", () => {
   pending = null;
   if (readyBox) hide(readyBox);
@@ -1238,6 +1292,21 @@ if (new URLSearchParams(location.search).has("e2e")) {
     waitSurvey(): void {
       show(statusBox);
       showWaitSurvey(9e6);
+    },
+    // Recorre el final real de una transcripción (incluido el ofrecimiento de
+    // repetir con un modelo mejor), que `showResult` se salta por diseño.
+    finishRun(quality: ModelQuality): void {
+      current = {
+        id: "e2e",
+        title: "e2e-audio.wav",
+        minutes: 1,
+        segments: [],
+        device: "webgpu",
+        fromHistory: false,
+      };
+      lastRun = { file: new Blob(["x"]), name: "e2e-audio.wav", quality };
+      busy = true;
+      finishTranscription([{ start: 0, end: 2, text: "prueba" }], quality, 1, 2, 0);
     },
     // No se puede conceder el micrófono desde Playwright, así que la exclusión
     // entre las dos grabaciones se comprueba desde su efecto observable.

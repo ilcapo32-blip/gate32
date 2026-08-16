@@ -5,6 +5,24 @@ import type { RawChunk, Segment, WindowResult } from "./types";
 
 /** Ventana de audio que procesa el worker (segundos). */
 export const WINDOW_S = 30;
+
+/**
+ * Audio que se entrega de una vez a la biblioteca, en segundos.
+ *
+ * Estábamos troceando a mano en ventanas de 30 s y cosiéndolas por el punto
+ * medio de cada segmento. transformers.js **ya implementa** el algoritmo de
+ * audio largo de Whisper: trocea igual pero cose a nivel de *tokens*, casando
+ * el solape entre bloques. Es la implementación de referencia y la nuestra era
+ * una aproximación peor: cuando una frase caía justo en la costura y el modelo
+ * no la repetía igual en los dos bloques, se perdía entera. Eso es lo que se
+ * veía como "se salta muchísimo texto".
+ *
+ * Se le pasan bloques de dos minutos en vez del archivo entero para no perder
+ * el progreso ni el texto parcial, que en un archivo de una hora son lo único
+ * que hace la espera tolerable. Dos minutos deja una costura cada dos minutos
+ * en lugar de una cada veinticinco segundos.
+ */
+export const SUPER_S = 120;
 /** Solapamiento entre ventanas consecutivas (segundos). */
 export const OVERLAP_S = 5;
 /** Paso efectivo entre inicios de ventana. */

@@ -255,6 +255,24 @@ try {
   );
   await page.selectOption("#cue-chars", "42");
 
+  // Un resultado flojo con el modelo pequeño tenía como única salida volver a
+  // empezar de cero. Ahora se repite con el siguiente modelo sin recargar nada.
+  await page.evaluate(() => window.__g32.finishRun("balanced"));
+  check("se ofrece repetir con un modelo mejor", await page.locator("#retry-better").isVisible());
+  check(
+    "el botón nombra el modelo al que sube",
+    ((await page.locator("#retry-btn").textContent()) ?? "").includes("Preciso"),
+  );
+  await page.evaluate(() => window.__g32.finishRun("fast"));
+  check(
+    "desde Rápido sube a Equilibrado, no salta escalones",
+    ((await page.locator("#retry-btn").textContent()) ?? "").includes("Equilibrado"),
+  );
+  // Con el modelo mayor ya en uso no hay nada que ofrecer.
+  await page.evaluate(() => window.__g32.finishRun("max"));
+  check("con el modelo máximo no se ofrece nada", await page.locator("#retry-better").isHidden());
+  await page.evaluate(() => window.__g32.showResult([{ start: 0, end: 2, text: "x" }]));
+
   await page.click("#pro-btn");
   check("CTA Pro despliega funcionalidades", await page.locator("#pro-features").isVisible());
   await page.click(".pro-feature");

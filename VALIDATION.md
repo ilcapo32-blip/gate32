@@ -436,6 +436,8 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `storage_full` | no cabe el modelo; se avisa antes de descargar | — |
 | `use_case_wait_*` / `use_case_export_*` | respuesta a la encuesta | `kind`, `when` |
 | `file_ready` | archivo elegido, esperando confirmación | — |
+| `retry_better` | repite la misma transcripción con un modelo mayor | — |
+| `transcribe_partial` | terminó pero se perdieron bloques por el camino | — |
 | `file_ready_cancel` | elige otro archivo sin transcribir | — |
 | `transcribe_start` | usuario confirma y lanza la transcripción | `model`, `device`, `source` (file/mic/meeting/media), `minutes` |
 | `transcribe_start_meeting` | la transcripción viene de una reunión grabada | — |
@@ -452,6 +454,53 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `share` | usa el botón compartir | `channel` |
 | `pro_interest` | clic en "Quiero Gate32 Pro" | — |
 | `return_visit` | visita con historial local previo | `days_since_first` |
+
+### Calidad de transcripción: la primera prueba real con voz (2026-08-16)
+
+El propietario grabó 2:49 de un vídeo de cocina con el micrófono, modelo
+**Equilibrado** (`whisper-base`), en español. Veredicto suyo: *"la
+transcripción es mala, se salta muchísiiimo texto"*. Tenía razón, y había
+**dos causas distintas** que conviene no mezclar.
+
+**1 · El modelo pequeño no da para esto, y eso no lo arregla el código.**
+`whisper-base` son 74 M de parámetros. En el texto se ve el tipo de error que
+comete: *gazpacho* → «campancho», *pepino* → «pino», *aceite* → «acelete»,
+*pedúnculo huela* → «peducro huella». Son errores acústicos de un modelo
+pequeño con habla rápida y vocabulario de dominio, no un fallo de integración.
+También aparece un **bucle de repetición** («el acelete» ocho veces), que es
+el modo de fallo clásico de Whisper en tamaños pequeños y se come el resto de
+su bloque.
+
+**2 · El troceado era nuestro, y sí era un fallo.** Cortábamos a mano en
+ventanas de 30 s y cosíamos por el punto medio de cada segmento.
+transformers.js **ya implementa** el algoritmo de audio largo de Whisper, que
+cose casando *tokens* en el solape. Cuando una frase caía en la costura y el
+modelo no la repetía igual en los dos bloques, no la reclamaba ninguno y se
+perdía entera. Con seis costuras en tres minutos, eso explica el "se salta
+muchísimo". Ahora se le entregan bloques de dos minutos y trocea la
+biblioteca: una costura cada dos minutos en lugar de una cada veinticinco
+segundos.
+
+**[NO VERIFICADO]** No puedo medir la mejora desde aquí: el entorno no llega
+al CDN de modelos, así que ninguna prueba automática ejecuta Whisper de
+verdad. Lo dice el usuario o no lo sabemos. Es la misma limitación que con el
+troceado de MP3.
+
+**Lo que esto obliga a mirar, y es incómodo:** 21 de las 27 transcripciones
+completadas usaron **Equilibrado**, que es el valor por defecto. Si `base` da
+esta calidad en español, la mayoría de nuestros usuarios se está llevando esta
+impresión. Subir el modelo por defecto a Preciso triplicaría la descarga
+inicial (80 → 250 MB), que es justo el punto donde más gente se cae. Por eso
+la primera medida no es cambiar el valor por defecto sino **ofrecer repetir
+con el modelo siguiente desde el propio resultado**, sin recargar el archivo:
+convierte "esto no sirve" en "con el otro sí" al precio de una espera, y de
+paso mide cuánta gente lo necesita.
+
+| Señal | Qué diría |
+|---|---|
+| `retry_better` / `transcribe_done` alto | El modelo por defecto se queda corto para el uso real → cambiarlo pese al coste de descarga |
+| `retry_better` casi nulo | O el resultado basta, o el botón no se ve. Comprobar lo segundo antes de concluir lo primero |
+| `transcribe_partial` frecuente | Los bucles de repetición y los bloques vacíos son sistemáticos, no anécdota |
 
 ### El botón de confirmar (desplegado 2026-08-16, sin datos todavía)
 

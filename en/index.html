@@ -301,6 +301,11 @@
       </div>
 
       <p class="edit-hint">Click any text to fix it. Click a timestamp to jump to that point in the audio.</p>
+        <div id="retry-better" class="retry-better" hidden>
+          <p class="retry-hint">Skipped sentences, or words it got wrong? A larger model improves this a lot. No need to load the file again.</p>
+          <button id="retry-btn" class="btn accent small" type="button">Redo with a better model</button>
+        </div>
+
       <div id="segments" class="segments"></div>
 
       <div id="usecase" class="usecase" hidden>
