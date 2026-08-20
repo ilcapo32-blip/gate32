@@ -8,6 +8,8 @@ export interface HistoryEntry {
   title: string;
   date: number;
   minutes: number;
+  /** Duración real en segundos. Ausente en entradas guardadas antes de existir. */
+  seconds?: number;
   segments: Segment[];
 }
 

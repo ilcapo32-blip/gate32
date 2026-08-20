@@ -248,6 +248,8 @@ interface Current {
   id: string;
   title: string;
   minutes: number;
+  /** Duración real. `minutes` se redondea a 1 como mínimo y miente en las notas de voz. */
+  seconds?: number;
   segments: Segment[];
   device: "webgpu" | "wasm" | "?";
   fromHistory: boolean;
@@ -392,6 +394,7 @@ async function importJSON(file: File | Blob, name: string): Promise<boolean> {
       id: `${Date.now()}`,
       title: name.replace(/\.json$/i, ""),
       minutes: Math.max(1, Math.round((segments[segments.length - 1]?.end ?? 0) / 60)),
+      seconds: segments[segments.length - 1]?.end ?? 0,
       segments,
       device: "?",
       fromHistory: true,
@@ -532,6 +535,7 @@ async function startTranscription(
     id: `${Date.now()}`,
     title: name,
     minutes,
+    seconds: duration,
     segments: [],
     device: "?",
     fromHistory: false,
@@ -697,6 +701,7 @@ function finishTranscription(
     title: current.title,
     date: Date.now(),
     minutes: current.minutes,
+    seconds: current.seconds,
     segments,
   });
 
@@ -799,11 +804,23 @@ function modelLabel(q: ModelQuality): string {
 
 // ── resultado y edición ──
 
+/**
+ * Duración legible. `minutes` nunca baja de 1 porque alimenta el historial y la
+ * analítica, así que una nota de voz de 21 segundos se anunciaba como "1 min":
+ * una cifra falsa en la primera línea del resultado, que es justo donde pedimos
+ * que se fíen de nosotros. Las entradas guardadas antes de existir `seconds`
+ * siguen mostrando minutos.
+ */
+function humanLength(minutes: number, seconds?: number): string {
+  if (seconds !== undefined && seconds < 60) return `${Math.max(1, Math.round(seconds))} s`;
+  return `${minutes} min`;
+}
+
 function renderResult(metaText: string): void {
   if (!current) return;
   resultTitle.textContent = current.title;
   const micNote = meetingNoMic && !current.fromHistory ? ` · ${t("meeting_mic_off")}` : "";
-  resultMeta.textContent = `${current.minutes} min · ${metaText}${micNote}`;
+  resultMeta.textContent = `${humanLength(current.minutes, current.seconds)} · ${metaText}${micNote}`;
   if (!current.fromHistory) show(player);
   else hide(player);
 
@@ -1454,7 +1471,7 @@ function renderRecents(): void {
       day: "numeric",
       month: "short",
     });
-    chip.innerHTML = `<strong></strong><span>${date} · ${entry.minutes} min</span>`;
+    chip.innerHTML = `<strong></strong><span>${date} · ${humanLength(entry.minutes, entry.seconds)}</span>`;
     const strong = chip.querySelector("strong");
     if (strong) strong.textContent = entry.title;
     chip.addEventListener("click", () => openFromHistory(entry));
@@ -1469,6 +1486,7 @@ function openFromHistory(entry: HistoryEntry): void {
     id: entry.id,
     title: entry.title,
     minutes: entry.minutes,
+    seconds: entry.seconds,
     segments: entry.segments.map((s) => ({ ...s })),
     device: "?",
     fromHistory: true,
