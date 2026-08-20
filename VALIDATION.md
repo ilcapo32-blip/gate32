@@ -475,6 +475,83 @@ transcripciones completadas, el disparador de MONETIZATION.md §4 (< 5 clics con
 ≥ 300 activados) **sigue sin poder evaluarse**: la muestra es diez veces menor
 que la que se pactó. No es un no; es que todavía no hay pregunta.
 
+### Octava medición (2026-08-20) · 787 visitas, ventana 30/07–20/08
+
+**Denominador:** filas de página visibles 189 (`/en`) + 38 (`/`) = **227**; hay
+41 visitas en filas ocultas tras "Show more", parte de ellas las cuatro páginas
+de caso de uso. La activación va como horquilla por eso.
+
+| Métrica | Valor | Antes | Lectura |
+|---|---|---|---|
+| Activación (`transcribe_done` / páginas) | **14,2–16,7 %** | 13,9–15,9 % | Cuarta medición seguida por encima del umbral |
+| Finalización (`done`/`start`) | 38/60 = **63,3 %** | 58,7 → 60,4 | **Tres subidas seguidas; "sano" era ≥ 60 %** |
+| Export (`export`/`done`) | 21/38 = **55,3 %** | 56,2 % | Estable |
+| Errores (`error`/`start`) | 17/60 = 28,3 % | 30,4 % | |
+| De decodificación | 12/60 = **20,0 %** | 20,8 % | **La mitad (6 de 12) son por tamaño** |
+| Sin persistencia | 44/60 = **73,3 %** | 75,5 % | Deja de empeorar por primera vez; la bajada cabe en el ruido |
+| Vuelta (`return_visit`) | **31** | 20 | +55 %, más rápido que el tráfico |
+| Éxitos en WASM | 5/38 = **13,2 %** | ~0 | El camino sin GPU deja de ser inservible |
+
+**Comprobación de consistencia:** `transcribe_done_webgpu` (33) +
+`transcribe_done_wasm` (5) = 38 = `transcribe_done`. Cuadra exacto. El reparto
+por modelo suma 40 (28 equilibrado + 12 preciso) porque **GoatCounter cuenta
+visitas por ruta, no impactos**: quien repite con otro modelo en la misma visita
+aparece en las dos filas de modelo y una sola vez en `done`. Conviene tenerlo
+presente: todos estos números son visitas únicas, no eventos brutos.
+
+#### El hallazgo que cambia la estrategia: los umbrales son inalcanzables
+
+`pro_interest` no aparece en el top 30, cuyo último puesto tiene 3 visitas. Son
+**seis mediciones seguidas en cero o casi**. Y `install_shown` = **3** en los
+cuatro días que lleva desplegado, con `install_click` por debajo de 3 (no
+aparece).
+
+Lo importante no es que los dos números sean bajos. Es que **los umbrales que
+escribí para decidir no se pueden alcanzar a este ritmo**:
+
+- El disparador de MONETIZATION.md §4 exige `pro_interest` < 5 **con ≥ 300
+  activados**. Llevamos 38 en 21 días: al ritmo actual, 300 activados son
+  **5,5 meses**.
+- El umbral de instalación exige **≥ 40 avisos mostrados**. Van 3 en cuatro
+  días.
+
+Es decir: la pregunta "¿paga alguien por esto?" **no se puede responder
+esperando**. O el tráfico se multiplica por diez, o se responde por otra vía.
+
+**Conclusión de método:** el cuello de botella ya no es la calidad del producto.
+Finalización 63,3 % y subiendo tres mediciones seguidas, export estable en el
+55 %, `return_visit` creciendo más rápido que el tráfico, y el camino sin GPU
+por fin funcionando. El producto hace lo que promete. **Lo que falta es gente.**
+
+Eso reordena la prioridad: la vía B2B de `EMBED.md` necesita **una
+conversación**, no trescientos usuarios, y por tanto es la única que puede dar
+respuesta en semanas y no en medio año.
+
+#### GEO: el salto real de esta medición
+
+| Origen | Visitas | Antes |
+|---|---|---|
+| Reddit (web + app + hilo) | 207 | 180 |
+| **Google** | **106** | 84 |
+| podnews.net | 34 | 29 |
+| **chatgpt.com** | **18** | **1** |
+| gemini.google.com | 6 | 6 |
+| www.bing.com | 15 | 14 |
+| thepodosphere.com | 1 | — (nuevo, no lo habíamos publicado nosotros) |
+
+**ChatGPT pasa de 1 a 18.** Es el mayor salto proporcional del cuadro y el
+primer indicio serio de que el trabajo de GEO (`llms.txt`, datos estructurados,
+respuestas honestas sobre lo que no hacemos) devuelve tráfico. Sumado a Gemini,
+24 visitas llegan desde asistentes.
+
+**España pasa de 71 a 115 visitas (15 %)**, segundo país tras EE. UU. (199).
+India se consolida en el 5 %. Puerto Rico mantiene 23, coherente con la
+inferencia sobre el boletín de Tropical Podcasting, que como referrer marcado
+suma 2.
+
+**Equipo:** Chrome 71 %, Safari 21 % (baja desde 26 %), Firefox 7 %. Escritorio
+76 %, móvil 24 %.
+
 ### Por qué no sabemos para qué se usa (2026-08-07, corregido)
 
 La encuesta de caso de uso existía desde el principio, pero solo se mostraba
