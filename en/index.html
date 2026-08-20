@@ -343,6 +343,11 @@
           <button id="retry-btn" class="btn accent small" type="button">Redo with a better model</button>
         </div>
 
+        <div id="doubt" class="doubt-bar" hidden>
+          <p class="doubt-title"><span class="doubt-mark" aria-hidden="true">?</span> <strong id="doubt-count"></strong></p>
+          <p class="doubt-note">Whisper never tells you it is unsure: when it cannot make something out, it writes a sentence that looks right. These lines have something odd about them — repeated text, too many words for the time they take, or almost none. Click their timestamp to hear the audio and check them.</p>
+        </div>
+
       <div id="segments" class="segments"></div>
 
       <div id="usecase" class="usecase" hidden>

@@ -585,3 +585,63 @@ producto completa está en `PRODUCT.md` y el plan de validación en
 posicionamiento ES-first, SEO acumulativo con páginas de casos de uso,
 producto (editor + exports) muy por encima de las demos, y hoja de ruta hacia
 capas con retención (actas, lotes, diarización) donde sí hay pago.
+
+## 6 · Evidencia posterior al lanzamiento
+
+Lo que sigue se añade a medida que aparece. Cada entrada dice **qué se vio**,
+**cuánto pesa** y **qué se hizo**, en ese orden, porque la tentación es contar
+la conclusión y dar la fuente por buena.
+
+### 6a · El diferenciador no es la precisión, es la incertidumbre (2026-08-20)
+
+**Fuente:** hilo de r/aiToolForBusiness, «¿Por qué es tan difícil encontrar una
+alternativa a gotranscript que se las arregle con audio medio hecho un lío?»,
+de hace un mes, 10 votos y 14 comentarios. Vistos 6 de esos 14 en capturas; del
+resto no se afirma nada.
+
+**Cuánto pesa: menos de lo que parece, y por un motivo concreto.** El
+comentario mejor valorado recomienda Prismascribe; otro se autopromociona
+abiertamente («DaDaScribe, que yo mismo creé», «99,5 % de precisión» sin decir
+sobre qué corpus); otro suelta «Hedy es bastante buena» sin un dato; y el
+último lo firma el Community Manager de Fireflies. Las herramientas
+mencionadas **no son señal de demanda, son colocación**. Lo que sí vale es el
+planteamiento del problema y la coincidencia de los dos comentaristas sin
+producto que vender.
+
+**Qué se vio.** Dos personas llegan por separado a lo mismo: pasado cierto
+punto estas herramientas envuelven los mismos modelos, así que el diferenciador
+no es la precisión sino **cómo manejan la incertidumbre**. Textualmente:
+*«prefiero un transcript que diga [no se entiende] con una marca de tiempo, en
+vez de uno que inventa una oración limpia que luego no me doy cuenta»*, y
+*«extra si enlaza cada parte cuestionable de vuelta al audio»*.
+
+**Por qué se le hace caso pese al ruido del hilo:** coincide con tres fallos
+propios ya documentados. «Gazpacho» salió «campancho»; «aceite» salió
+«acelete» ocho veces; y en la prueba del 20/08 una nota de voz de 21 segundos
+salió con «te voy a estar **despedonando** la hora» — una palabra que no
+existe, dentro de una frase con su puntuación y su cadencia. El pase de
+corrección solo sirve **si ya sabes qué está mal**. Faltaba el paso anterior.
+
+**Qué se hizo.** `src/lib/doubt.ts`: marcado de líneas dudosas sobre señales
+observables en la salida (eco del bloque anterior, palabra en bucle, palabras
+por segundo imposibles, segundos de audio para casi ninguna palabra, y las
+frases de subtítulo que Whisper escribe sobre el silencio).
+
+**Lo que no se pudo hacer, y por qué.** La confianza del modelo no está
+disponible: el pipeline de transformers.js llama a `model.generate` y se queda
+solo con los identificadores de token, descartando las puntuaciones
+(`transformers.js:28748-28762`). Sacarlas exigiría reimplementar el troceado y
+el cosido que delegamos en la librería a propósito — y que, cuando lo hacíamos
+nosotros, provocó el fallo de las costuras que se comió frases enteras.
+
+**La mitad que ya teníamos.** Lo de «enlazar cada parte cuestionable de vuelta
+al audio» ya estaba hecho desde antes: pulsar la hora de una línea salta a ese
+punto del audio. Anotado porque en el primer análisis se estimó como trabajo
+pendiente y no lo era.
+
+**Lo que queda como hipótesis, no como plan.** La versión fuerte de esto es
+**contrastar dos modelos**: donde Equilibrado y Preciso discrepan es
+exactamente donde hay que mirar, y donde coinciden se puede confiar. Es
+gratis en señal y caro en cómputo (duplica el tiempo), lo que le da forma de
+capa de pago para quien transcribe en serio. No se construye hasta ver si el
+marcado gratuito se usa: `doubt_seek` sobre `doubt_shown` lo dirá.

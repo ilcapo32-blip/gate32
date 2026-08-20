@@ -296,6 +296,43 @@ try {
 
   await page.evaluate(() => window.__g32.showResult([{ start: 0, end: 2, text: "x" }]));
 
+  // Marcado de líneas dudosas. Whisper nunca avisa de que duda: escribe una
+  // frase con su puntuación y su cadencia. En la prueba del 20/08 una nota de
+  // voz salió con "te voy a estar despedonando la hora" y nada indicaba dónde
+  // mirar.
+  await page.evaluate(() => {
+    window.__g32.showResult([
+      { start: 0, end: 4, text: "esto lo dijo una vez" },
+      { start: 4, end: 8, text: "Esto lo dijo una vez." },
+      { start: 8, end: 30, text: "ya" },
+      { start: 30, end: 34, text: "y aquí sigue hablando con toda normalidad, sin nada raro." },
+    ]);
+  });
+  check("avisa de cuántas líneas conviene comprobar", await page.locator("#doubt").isVisible());
+  check(
+    "y dice el número exacto",
+    ((await page.locator("#doubt-count").textContent()) ?? "").includes("2"),
+  );
+  check("marca el eco del bloque anterior", await page.locator(".segment.doubtful").count() === 2);
+  check(
+    "no marca la línea que está bien",
+    await page.locator('.segment[data-index="3"]').evaluate((el) => !el.classList.contains("doubtful")),
+  );
+  check(
+    "explica por qué está marcada sin tener que adivinarlo",
+    /repetido|stuck|enganchado/i.test(
+      (await page.getAttribute('.segment[data-index="1"]', "title")) ?? "",
+    ),
+  );
+  // Un texto limpio no debe enseñar el aviso: si marcara siempre algo, la marca
+  // dejaría de significar nada y se ignoraría entera.
+  await page.evaluate(() => {
+    window.__g32.showResult([
+      { start: 0, end: 4, text: "Buenas tardes, perdona la hora pero me acaba de contestar." },
+    ]);
+  });
+  check("con texto limpio no aparece el aviso", await page.locator("#doubt").isHidden());
+
   // El pase de corrección. Sale del caso real: 69 minutos sobre Claude y
   // Whisper escribió "Cloud" 90 veces. Todo lo demás correcto y el texto igual
   // de inútil para estudiar o citar.

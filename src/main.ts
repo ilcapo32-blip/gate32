@@ -35,6 +35,7 @@ import {
   MINUTES_PER_PART,
 } from "./lib/meeting";
 import { LANGUAGES, needsBiggerModel } from "./lib/languages";
+import { findDoubts, type DoubtReason } from "./lib/doubt";
 import { initAnalytics, track, trackVisit } from "./lib/analytics";
 import { ensureStorage, humanBytes } from "./lib/storage";
 import {
@@ -101,6 +102,8 @@ const retryBtn = document.querySelector<HTMLButtonElement>("#retry-btn");
 const recoveryBox = document.querySelector<HTMLElement>("#recovery");
 const recoveryBtn = document.querySelector<HTMLButtonElement>("#recovery-btn");
 const recoveryNote = document.querySelector<HTMLElement>("#recovery-note");
+const doubtBox = document.querySelector<HTMLElement>("#doubt");
+const doubtCount = document.querySelector<HTMLElement>("#doubt-count");
 const installBox = document.querySelector<HTMLElement>("#install");
 const installBtn = document.querySelector<HTMLButtonElement>("#install-btn");
 
@@ -400,6 +403,7 @@ async function importJSON(file: File | Blob, name: string): Promise<boolean> {
       fromHistory: true,
     };
     editTracked = false;
+  doubtTracked = false;
     hide(errorBox);
     track("json_import", { segments: segments.length });
     renderResult(t("json_imported"));
@@ -474,6 +478,7 @@ async function startTranscription(
 
   busy = true;
   editTracked = false;
+  doubtTracked = false;
   hide(errorBox);
   hide(resultSection);
   hide(waitSurvey);
@@ -744,13 +749,44 @@ function nextQuality(q: ModelQuality): ModelQuality | null {
 }
 
 /** Pinta la lista de segmentos editables. Se repinta tras una corrección. */
+/** Solo una vez por transcripción: mide personas avisadas, no repintados. */
+let doubtTracked = false;
+
 function renderSegments(): void {
   if (!current) return;
-segmentsBox.replaceChildren();
+
+  // Marcado de líneas dudosas. Whisper nunca dice que duda: cuando no entiende
+  // algo escribe una frase con su puntuación y su cadencia, y no hay forma de
+  // saber cuál revisar. Se recalcula en cada repintado porque el pase de
+  // corrección y la edición a mano cambian el texto.
+  const doubts = findDoubts(current.segments);
+  if (doubtBox && doubtCount) {
+    if (doubts.size > 0) {
+      doubtCount.textContent = t(doubts.size === 1 ? "doubt_one" : "doubt_many", {
+        n: String(doubts.size),
+      });
+      show(doubtBox);
+      if (!doubtTracked) {
+        doubtTracked = true;
+        track("doubt_shown", { n: doubts.size });
+        track(`doubt_shown_${doubts.size === 1 ? "1" : doubts.size < 5 ? "pocas" : "muchas"}`);
+      }
+    } else {
+      hide(doubtBox);
+    }
+  }
+
+  segmentsBox.replaceChildren();
   current.segments.forEach((seg, i) => {
     const row = document.createElement("div");
     row.className = "segment";
     row.dataset["index"] = String(i);
+
+    const reason = doubts.get(i);
+    if (reason) {
+      row.classList.add("doubtful");
+      row.title = t(`doubt_why_${reason}` as `doubt_why_${DoubtReason}`);
+    }
 
     const time = document.createElement("button");
     time.type = "button";
@@ -758,6 +794,10 @@ segmentsBox.replaceChildren();
     time.textContent = clock(seg.start);
     time.addEventListener("click", () => {
       if (current?.fromHistory) return;
+      // Que alguien pulse la hora de una línea marcada es la señal de que la
+      // marca sirve: ha ido a comprobarla con el audio, que es todo lo que se
+      // le pedía.
+      if (reason) track("doubt_seek");
       player.currentTime = seg.start;
       void player.play();
     });
@@ -1492,6 +1532,7 @@ function openFromHistory(entry: HistoryEntry): void {
     fromHistory: true,
   };
   editTracked = false;
+  doubtTracked = false;
   hide(errorBox);
   renderResult(t("from_history"));
 }

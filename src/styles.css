@@ -911,3 +911,67 @@ body.embed .toolbar { position: static; }
   color: var(--ink-soft);
   line-height: 1.45;
 }
+
+/* ── líneas dudosas ── */
+/*
+ * Tercer aviso en la misma columna, después del de instalar y el de repetir con
+ * otro modelo. Si los tres llevaran relleno naranja, la pantalla sería una
+ * sucesión de cajas y ninguna diría nada. Este va sin relleno y con una barra
+ * lateral: presente, subordinado a los otros dos.
+ */
+
+.doubt-bar {
+  margin: 0.9rem 0;
+  padding: 0.6rem 0 0.6rem 0.85rem;
+  border-left: 3px solid var(--accent);
+}
+
+.doubt-title {
+  margin: 0;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+/* La misma marca que llevan las líneas señaladas, para que se reconozcan. */
+.doubt-mark {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-radius: 999px;
+  width: 1.05rem;
+  height: 1.05rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.doubt-note {
+  margin: 0.3rem 0 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+/*
+ * El subrayado de puntos es el gesto que ya significa "revisa esto" en
+ * cualquier procesador de texto: se entiende sin leyenda. No se usa el rojo de
+ * error porque no sabemos que esté mal, solo que conviene mirarlo.
+ */
+.segment.doubtful .seg-text {
+  text-decoration: underline dotted var(--accent);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+}
+
+/* La marca va pegada a la hora porque la hora es justo lo que hay que pulsar
+   para comprobarla: el aviso y la acción son el mismo control. */
+.segment.doubtful .seg-time::after {
+  content: "?";
+  margin-left: 0.25rem;
+  font-weight: 700;
+}

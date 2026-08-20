@@ -445,6 +445,22 @@ hacer.
 "nadie lo ve" (el navegador solo dispara `beforeinstallprompt` si cumple sus
 criterios y la app no está ya instalada).
 
+#### Marcado de líneas dudosas: umbrales antes del dato (2026-08-20)
+
+Se despliega en la misma ventana, así que conviene fijar antes qué contaría
+como funcionar. El denominador es `doubt_shown` (personas a las que se avisó,
+una vez por transcripción, no por repintado).
+
+| Señal | Umbral | Qué implica |
+|---|---|---|
+| `doubt_seek` / `doubt_shown` | ≥ 20 % | La marca dirige la revisión: construir el contraste de dos modelos como capa de pago |
+| `doubt_seek` / `doubt_shown` | 5–20 % | Se ve pero no se usa: revisar redacción y posición antes de invertir más |
+| `doubt_seek` / `doubt_shown` | < 5 % con ≥ 40 avisos | No interesa señalar la duda; la hipótesis del hilo de Reddit no aplica a este público |
+| `doubt_shown_muchas` / `doubt_shown` | > 40 % | **Falso positivo sistemático**: si a la mayoría se le marcan cinco o más líneas, los umbrales están mal y hay que apretarlos, porque una marca que sale siempre no dice nada |
+
+La última fila es la que más importa vigilar: el riesgo de esta función no es
+que no se use, es que marque de más y el usuario aprenda a ignorarla.
+
 #### Distribución: Google se consolida, España se dispara
 
 Google 100 visitas (**15 %**), igual proporción que la medición anterior pero
@@ -497,6 +513,9 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `retry_better` | repite la misma transcripción con un modelo mayor | — |
 | `fix_replace` | corrige un término en toda la transcripción | — |
 | `fix_undo` | deshace la corrección | — |
+| `doubt_shown` | hay líneas dudosas y se avisa de cuántas | `n` |
+| `doubt_shown_1` / `_pocas` / `_muchas` | cuántas, en el nombre (GoatCounter no guarda propiedades) | — |
+| `doubt_seek` | pulsa la hora de una línea marcada: ha ido a comprobarla | — |
 | `install_shown` | el navegador permite instalar y se ofrece tras transcribir | — |
 | `install_click` | pulsa «Instalar»; abre el diálogo del navegador | — |
 | `install_accepted` / `install_dismissed` | qué respondió a ese diálogo | — |
