@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transcribir notas de voz de WhatsApp a texto, gratis y sin subirlas — Gate32</title>
+  <meta name="description" content="Pasa a texto una nota de voz de WhatsApp, Telegram o la grabadora del móvil. Acepta el formato OGG tal cual, sin convertir. Gratis, sin registro y sin subir el audio a ningún servidor: se transcribe en tu propio equipo." />
+  <link rel="canonical" href="https://gate32.autoritasai.com/notas-de-voz/" />
+  <meta property="og:title" content="Pasar una nota de voz a texto sin subirla a ningún sitio — Gate32" />
+  <meta property="og:description" content="Notas de voz de WhatsApp o Telegram a texto, en tu propio equipo. Acepta OGG sin convertir, sin registro y sin límite de duración." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gate32.autoritasai.com/notas-de-voz/" />
+  <meta property="og:image" content="https://gate32.autoritasai.com/og.png" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#1c1c1a" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Cómo paso una nota de voz de WhatsApp a texto?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Descarga el audio de la nota de voz y arrástralo a Gate32. Desde WhatsApp Web o la aplicación de escritorio se descarga con el menú de la propia nota; desde el móvil, con «Compartir» y guardando el archivo. Gate32 acepta el OGG de WhatsApp tal cual, sin convertirlo, y devuelve el texto con marcas de tiempo por frase." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Se sube mi nota de voz a algún servidor?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. El reconocimiento de voz se ejecuta dentro de tu navegador con un modelo que se descarga una sola vez. Puedes comprobarlo: con el modelo ya descargado, corta la conexión y la transcripción sigue funcionando. Es la única prueba de privacidad que no hay que creerse, y en notas de voz importa porque suelen ser conversaciones familiares, médicas o de trabajo." }
+      },
+      {
+        "@type": "Question",
+        "name": "Mi teléfono ya transcribe las notas de voz, ¿para qué sirve esto?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Si tu teléfono lo ofrece y te sirve, úsalo: es más rápido. Gate32 tiene sentido cuando esa función no está disponible en tu teléfono o tu idioma, cuando la nota es larga y quieres repasarla con el audio sincronizado, o cuando necesitas el texto como archivo para corregirlo, citarlo o guardarlo — en TXT, Markdown, SRT, VTT o JSON." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Hay que convertir el archivo OGG u OPUS a MP3 antes?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. Gate32 lee OGG y OPUS directamente, que es el formato en que WhatsApp guarda sus notas de voz, y también MP3, WAV, M4A, FLAC, AAC, MP4, WEBM y MOV. No hace falta ningún conversor intermedio." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Funciona desde el móvil?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sí, pero va mejor en un ordenador. En el móvil hay que guardar primero el audio y la transcripción es más lenta, porque el modelo se ejecuta con el procesador del propio teléfono. Para una nota de voz corta es perfectamente viable; para varias o para una nota muy larga, compensa hacerlo en el ordenador." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuánto puede durar la nota de voz?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No hay tope de minutos ni de tamaño impuesto por nosotros. Se ha probado con un archivo de 69 minutos y 99 MB sin perder texto. El límite real es la memoria del equipo, y para audios de más de 90 minutos conviene un ordenador con memoria holgada." }
+      }
+    ]
+  }
+  </script>
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Gate32, inicio">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="currentColor" opacity="0.14"/><path d="M6 20 V12 M10 23 V9 M14 26 V6 M18 24 V8 M22 21 V11 M26 19 V13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>
+      <span>Gate<b>32</b></span>
+    </a>
+    <nav class="site-nav" aria-label="Secciones">
+      <a href="/subtitulos/">Subtítulos</a>
+      <a href="/reuniones/">Reuniones</a>
+      <a href="/#faq">Preguntas</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Pasa una nota de voz a texto <em>sin subirla a ningún sitio</em></h1>
+      <p class="hero-sub">
+        Arrastra el audio de WhatsApp, Telegram o la grabadora del móvil y Gate32 lo transcribe
+        <strong>en tu propio equipo</strong>. Acepta el OGG tal cual, sin convertirlo, y devuelve
+        el texto con marcas de tiempo para repasarlo escuchando.
+      </p>
+      <ul class="badges" aria-label="Ventajas">
+        <li>✓ Acepta OGG y OPUS sin convertir</li>
+        <li>✓ Sin subir el audio</li>
+        <li>✓ Sin registro</li>
+        <li>✓ Sin límite de duración</li>
+      </ul>
+      <p><a class="btn accent" href="/">Abrir el transcriptor →</a></p>
+    </section>
+
+    <section class="info">
+      <h2>Los siete minutos que no tienes</h2>
+      <p>
+        Una nota de voz de siete minutos ocupa siete minutos. No se puede hojear, no se puede
+        buscar dentro, no se puede leer en una reunión ni en el metro sin auriculares, y si dentro
+        había una dirección o una hora hay que volver a escucharla entera para encontrarla.
+        Convertirla en texto la vuelve algo que se lee en veinte segundos.
+      </p>
+      <p>
+        Y hay un motivo menos obvio: las notas de voz son de lo más personal que se manda. Un
+        diagnóstico, una bronca familiar, una negociación de trabajo. Subir eso al servidor de un
+        tercero para que te lo transcriba es un intercambio que mucha gente no haría si se parara
+        a pensarlo. Aquí no hay tal intercambio, porque no hay servidor.
+      </p>
+      <ol class="steps">
+        <li>
+          <strong>1 · Saca el archivo de la conversación</strong>
+          <p>En WhatsApp Web o en la aplicación de escritorio, el menú de la propia nota de voz permite descargarla. En el móvil, «Compartir» y guardar el archivo. Sale un <code>.ogg</code>, que es el formato en que WhatsApp guarda las notas de voz.</p>
+        </li>
+        <li>
+          <strong>2 · Arrástralo</strong>
+          <p>No hay que convertirlo a MP3 ni pasar por ningún conversor: Gate32 lee OGG y OPUS directamente. La primera vez se descarga el modelo (unos 80 MB) y queda guardado; a partir de ahí arranca al instante y funciona sin conexión.</p>
+        </li>
+        <li>
+          <strong>3 · Repasa escuchando y expórtalo</strong>
+          <p>El texto sale por frases con su marca de tiempo. Pulsa una hora y salta a ese punto del audio, corrige lo que haga falta y descárgalo en TXT, Markdown, SRT, VTT o JSON.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="info">
+      <h2>Cuando el audio es malo, que se note</h2>
+      <p>
+        Las notas de voz se graban andando por la calle, con ruido, con el micrófono tapado por un
+        dedo o con la boca demasiado cerca. Ningún sistema de reconocimiento lo saca todo limpio
+        de ahí, y el problema no es ese: el problema es que
+        <strong>los sistemas de reconocimiento no avisan cuando dudan</strong>. Cuando no entienden
+        algo escriben una frase con su puntuación y su cadencia, que parece correcta y no lo es.
+      </p>
+      <p>
+        Gate32 marca las líneas que tienen algo raro — texto repetido, más palabras de las que caben
+        en el tiempo que ocupan, segundos de audio convertidos en dos palabras — y te dice cuántas
+        son. Pulsas su hora, escuchas ese trozo y decides. No se afirma que estén mal: se dice
+        <em>dónde mirar</em>, que es lo que faltaba.
+      </p>
+      <p>
+        Y si el reconocimiento se equivoca siempre en el mismo nombre propio, se corrige una vez y
+        se arregla en toda la transcripción.
+      </p>
+    </section>
+
+    <section class="info" id="faq">
+      <h2>Preguntas sobre notas de voz</h2>
+      <details>
+        <summary>¿Cómo paso una nota de voz de WhatsApp a texto?</summary>
+        <p>Descarga el audio y arrástralo aquí. Desde WhatsApp Web o la aplicación de escritorio, con el menú de la propia nota; desde el móvil, con «Compartir» y guardando el archivo. Gate32 acepta el OGG tal cual.</p>
+      </details>
+      <details>
+        <summary>Mi teléfono ya transcribe las notas de voz, ¿para qué sirve esto?</summary>
+        <p>Si tu teléfono lo ofrece y te sirve, úsalo: es más rápido. Esto tiene sentido cuando esa función no está en tu teléfono o en tu idioma, cuando la nota es larga y quieres repasarla con el audio sincronizado, o cuando necesitas el texto como archivo para corregirlo, citarlo o guardarlo.</p>
+      </details>
+      <details>
+        <summary>¿Hay que convertir el OGG a MP3 antes?</summary>
+        <p>No. Se leen OGG y OPUS directamente, además de MP3, WAV, M4A, FLAC, AAC, MP4, WEBM y MOV.</p>
+      </details>
+      <details>
+        <summary>¿Se sube mi nota de voz a algún servidor?</summary>
+        <p>No. El modelo se descarga una vez y el reconocimiento ocurre dentro de tu navegador. Compruébalo: con el modelo ya descargado, corta la conexión y sigue funcionando.</p>
+      </details>
+      <details>
+        <summary>¿Funciona desde el móvil?</summary>
+        <p>Sí, pero va mejor en un ordenador. En el móvil hay que guardar primero el audio y la transcripción es más lenta, porque el modelo corre con el procesador del propio teléfono. Para una nota corta es viable; para varias o para una muy larga, compensa el ordenador.</p>
+      </details>
+      <details>
+        <summary>¿Y si la nota está en otro idioma?</summary>
+        <p>Hay 47 idiomas seleccionables y detección automática. En español, inglés y las lenguas mayoritarias la calidad es buena con cualquier modelo. En idiomas con menos datos de entrenamiento los modelos pequeños pierden precisión: la aplicación lo avisa al elegir el idioma y recomienda subir de modelo.</p>
+      </details>
+      <details>
+        <summary>¿Cuánto puede durar la nota?</summary>
+        <p>No hay tope por nuestra parte. Probado con 69 minutos y 99 MB sin perder texto. El límite es la memoria del equipo; por encima de 90 minutos conviene un ordenador con memoria holgada.</p>
+      </details>
+      <details>
+        <summary>¿Sirve para audios de Telegram o de la grabadora del móvil?</summary>
+        <p>Sí. Al navegador le da igual de qué aplicación venga el archivo: lo que importa es el formato, y los habituales están todos cubiertos.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p><strong>Gate32</strong> · <a href="/">Transcriptor</a> · <a href="/subtitulos/">Subtítulos</a> · <a href="/entrevistas/">Entrevistas</a> · <a href="/clases/">Clases y audios largos</a> · <a href="/reuniones/">Reuniones</a></p>
+    <p class="contact">Contacto: <a href="mailto:hpartida@autoritasai.com">hpartida@autoritasai.com</a></p>
+    <p class="footnote">Tus archivos no salen de tu dispositivo. <a href="https://github.com/ilcapo32-blip/gate32" rel="noopener">Código abierto</a>.</p>
+  </footer>
+
+  <script type="module" src="/src/landing.ts"></script>
+</body>
+</html>

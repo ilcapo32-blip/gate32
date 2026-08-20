@@ -37,6 +37,10 @@
       "Records and transcribes Meet, Zoom or Teams meetings by capturing the tab's audio, with no bot joining the call, mixed with your microphone",
       "Transcribes videos, live streams, webinars and radio playing in another browser tab",
       "Records straight from your microphone in the browser",
+      "Flags the doubtful lines in the transcript (repeated text, impossible pace, filler sentences over silence) and links each one to its point in the audio",
+      "Fixes one term across the whole transcript at once, for the proper nouns speech recognition always gets wrong the same way",
+      "Installs as an app and keeps the model between visits",
+      "Transcribes WhatsApp and Telegram voice notes in OGG and OPUS without converting them",
       "Generates SRT and VTT subtitles with configurable line length (32, 37 or 42 characters)",
       "Editor synced with the audio for correcting before export",
       "Exports TXT, Markdown, SRT, VTT and JSON, and reopens the JSON on another machine",
@@ -84,6 +88,16 @@
         "@type": "Question",
         "name": "Can I transcribe a YouTube video or a live stream from the browser?",
         "acceptedAnswer": { "@type": "Answer", "text": "Yes, on desktop Chrome or Edge. Gate32 captures the sound another browser tab is playing and transcribes it, without using your microphone. It works with videos, live streams, webinars, online radio and podcasts in their web player. It does not work with paid streaming services such as Netflix, Disney+ or Prime Video, because browsers block capture of protected content." }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I turn a WhatsApp voice note into text?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Download the voice note's audio and drop it into Gate32. It accepts WhatsApp's OGG and OPUS format as is, with no conversion, and returns the text with per-sentence timestamps. Because recognition runs in the browser, the voice note is never uploaded to any server." }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I know which parts of the transcript to trust?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Gate32 flags the lines with something anomalous about them — repeated text, more words than fit the time they occupy, seconds of audio turned into two words, or the subtitle boilerplate speech recognition writes over silence — and tells you how many there are. Clicking a flagged timestamp jumps to that point in the audio so you can check it. It does not claim they are wrong: it points at where to look, because speech recognition never tells you when it is unsure." }
       },
       {
         "@type": "Question",
@@ -464,6 +478,14 @@
       <details>
         <summary>Can I transcribe a YouTube video or a live stream I'm watching?</summary>
         <p>Yes. The "Transcribe a video or stream from another tab" button captures the sound that tab is playing, without using your microphone. It works well for live streams, webinars, online radio and videos with no captions. It does not work with paid streaming services (Netflix, Disney+, Prime Video): browsers block capture of protected content. And transcribing for yourself is not the same as republishing someone else's work.</p>
+      </details>
+      <details>
+        <summary>How do I turn a WhatsApp voice note into text?</summary>
+        <p>Download the voice note's audio and drop it here. WhatsApp's OGG and OPUS format is accepted as is, with no conversion, and the text comes back with per-sentence timestamps. Because recognition runs in your browser, the note is never uploaded to any server.</p>
+      </details>
+      <details>
+        <summary>How do I know which parts of the transcript to trust?</summary>
+        <p>Speech recognition never tells you when it is unsure: when it cannot make something out, it writes a sentence with punctuation and cadence that looks right. Gate32 flags the lines with something anomalous about them — repeated text, more words than fit the time they occupy, seconds of audio turned into two words — and tells you how many there are. Click the timestamp to jump to that point in the audio. It does not claim they are wrong: it points at where to look.</p>
       </details>
       <details>
         <summary>How accurate is it? Which languages are supported?</summary>

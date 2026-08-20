@@ -31,6 +31,7 @@ export default defineConfig({
         entrevistas: page("entrevistas/index.html"),
         clases: page("clases/index.html"),
         reuniones: page("reuniones/index.html"),
+        notasDeVoz: page("notas-de-voz/index.html"),
         embed: page("embed/index.html"),
       },
     },

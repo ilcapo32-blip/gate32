@@ -35,6 +35,10 @@
       "Graba y transcribe reuniones de Meet, Zoom o Teams capturando el audio de la pestaña, sin meter ningún bot en la llamada y mezclando tu micrófono",
       "Transcribe vídeos, directos, webinars y radios que suenen en otra pestaña del navegador",
       "Graba con el micrófono directamente desde la web",
+      "Marca las líneas dudosas de la transcripción (texto repetido, ritmo imposible, frases de relleno sobre el silencio) y enlaza cada una con su punto del audio",
+      "Corrige un término en toda la transcripción de una vez, para los nombres propios que el reconocimiento falla siempre igual",
+      "Se instala como aplicación y conserva el modelo entre visitas",
+      "Transcribe notas de voz de WhatsApp o Telegram en formato OGG y OPUS sin convertirlas",
       "Genera subtítulos SRT y VTT con longitud de línea configurable (32, 37 o 42 caracteres)",
       "Editor sincronizado con el audio para corregir antes de exportar",
       "Exporta TXT, Markdown, SRT, VTT y JSON, y reabre el JSON en otro equipo",
@@ -82,6 +86,16 @@
         "@type": "Question",
         "name": "¿Puedo transcribir un vídeo de YouTube o un directo desde el navegador?",
         "acceptedAnswer": { "@type": "Answer", "text": "Sí, con Chrome o Edge de escritorio. Gate32 captura el sonido que reproduce otra pestaña del navegador y lo transcribe, sin usar el micrófono. Funciona con vídeos, directos, webinars, radios en línea y pódcast en su reproductor web. No funciona con plataformas de streaming de pago como Netflix, Disney+ o Prime Video, porque el navegador bloquea la captura de contenido protegido." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cómo paso una nota de voz de WhatsApp a texto?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Descarga el audio de la nota de voz y arrástralo a Gate32. Acepta el formato OGG y OPUS de WhatsApp tal cual, sin convertirlo, y devuelve el texto con marcas de tiempo por frase. Como el reconocimiento ocurre en el navegador, la nota de voz no se sube a ningún servidor." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cómo sé de qué partes de la transcripción fiarme?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Gate32 marca las líneas que tienen algo anómalo — texto repetido, más palabras de las que caben en el tiempo que ocupan, segundos de audio convertidos en dos palabras, o las frases de subtítulo que el reconocimiento escribe sobre el silencio — y dice cuántas son. Pulsando su marca de tiempo salta a ese punto del audio para comprobarlas. No se afirma que estén mal: se señala dónde mirar, porque el reconocimiento de voz nunca avisa de que duda." }
       },
       {
         "@type": "Question",
@@ -470,6 +484,14 @@
         <p>Sí. El botón «Transcribir un vídeo o directo de otra pestaña» captura el sonido que reproduce esa pestaña, sin usar tu micrófono. Va bien con directos, webinars, radios en línea y vídeos sin subtítulos. No funciona con plataformas de streaming de pago (Netflix, Disney+, Prime Video): el navegador impide capturar contenido protegido. Y transcribir para ti no es lo mismo que republicar el texto de una obra ajena.</p>
       </details>
       <details>
+        <summary>¿Cómo paso una nota de voz de WhatsApp a texto?</summary>
+        <p>Descarga el audio de la nota y arrástralo aquí. Se acepta el OGG y el OPUS de WhatsApp tal cual, sin convertirlo, y el texto sale con marcas de tiempo por frase. Como el reconocimiento ocurre en tu navegador, la nota no se sube a ningún servidor. Más detalle en <a href="/notas-de-voz/">notas de voz</a>.</p>
+      </details>
+      <details>
+        <summary>¿Cómo sé de qué partes de la transcripción fiarme?</summary>
+        <p>El reconocimiento de voz nunca avisa de que duda: cuando no entiende algo escribe una frase con su puntuación y su cadencia, que parece correcta. Gate32 marca las líneas con algo anómalo —texto repetido, más palabras de las que caben en el tiempo que ocupan, segundos de audio convertidos en dos palabras— y dice cuántas son. Pulsa su marca de tiempo y salta a ese punto del audio. No se afirma que estén mal: se señala dónde mirar.</p>
+      </details>
+      <details>
         <summary>¿Qué precisión tiene? ¿Qué idiomas soporta?</summary>
         <p>Usa Whisper de OpenAI en tu dispositivo, con tres tamaños de modelo. Puedes elegir entre 47 idiomas o dejar que lo detecte solo. El modo Preciso ofrece muy buena calidad en español, inglés y las demás lenguas mayoritarias; en idiomas con menos datos de entrenamiento (vietnamita, tailandés, urdu…) los modelos pequeños pierden bastante y conviene subir de tamaño — la app te lo avisa al elegir. Audio con mucho ruido o solapamiento de voces reduce la precisión, como en cualquier transcriptor.</p>
       </details>
@@ -498,7 +520,8 @@
       <a href="/subtitulos/">Subtítulos SRT/VTT</a> ·
       <a href="/entrevistas/">Entrevistas confidenciales</a> ·
       <a href="/reuniones/">Reuniones de Meet, Zoom o Teams</a> ·
-      <a href="/clases/">Clases y audios largos</a>
+      <a href="/clases/">Clases y audios largos</a> ·
+      <a href="/notas-de-voz/">Notas de voz de WhatsApp</a>
     </p>
     <p class="contact">
       Detrás de Gate32 hay una persona, no una empresa: Héctor Partida. Escribe a

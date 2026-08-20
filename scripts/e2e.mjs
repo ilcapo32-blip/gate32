@@ -147,16 +147,33 @@ try {
   check("JSON-LD enumera funcionalidades", (app?.featureList ?? []).length >= 5);
   check("JSON-LD menciona la captura de reunión", /reuni/i.test(features));
   check("JSON-LD menciona los subtítulos", /SRT/i.test(features));
+  check("JSON-LD menciona el marcado de líneas dudosas", /dudos/i.test(features));
+  check("JSON-LD menciona las notas de voz", /nota[s]? de voz|WhatsApp/i.test(features));
   const faq = parsed.find((d) => d && d["@type"] === "FAQPage");
   const preguntas = (faq?.mainEntity ?? []).map((q) => q.name).join(" | ");
   check("FAQ estructurada cubre las reuniones", /reuni/i.test(preguntas));
   check("FAQ estructurada cubre los vídeos de otra pestaña", /v[ií]deo/i.test(preguntas));
+  check("FAQ estructurada cubre las notas de voz", /nota de voz/i.test(preguntas));
+  check("FAQ estructurada cubre de qué fiarse", /fiarme|fiarse/i.test(preguntas));
+  // Marcar en JSON-LD una pregunta que no está escrita en la página es marcado
+  // inválido, y es fácil añadir solo una de las dos mitades.
+  const visibles = await page.locator("main details summary").allTextContents();
+  for (const q of ["nota de voz de WhatsApp", "fiarme"]) {
+    check(
+      `la pregunta sobre "${q}" también está visible en la página`,
+      visibles.some((v) => v.includes(q)),
+    );
+  }
 
   // Una página nueva sin enlaces internos casi no se posiciona: /reuniones/
   // solo estaba enlazada desde el pie.
   check(
     "la home enlaza /reuniones/ desde el cuerpo",
     (await page.locator('main a[href="/reuniones/"]').count()) > 0,
+  );
+  check(
+    "la home enlaza /notas-de-voz/ desde el cuerpo",
+    (await page.locator('main a[href="/notas-de-voz/"]').count()) > 0,
   );
 
   // 2 · confirmación, decodificación y fase de modelo
@@ -531,15 +548,43 @@ try {
   check("/reuniones/ dice que sirve para vídeos y clases", /YouTube/i.test(reunionesTxt));
   check("/reuniones/ avisa del contenido protegido", /Netflix/i.test(reunionesTxt));
 
+  // Página nueva: la consulta en español de más volumen que sabemos servir.
+  const notas = await page.goto(`${BASE}/notas-de-voz/`, { waitUntil: "load" });
+  check("/notas-de-voz/ responde 200", (notas?.status() ?? 0) === 200);
+  const notasTxt = (await page.locator("main").textContent()) ?? "";
+  check("/notas-de-voz/ nombra WhatsApp", /WhatsApp/.test(notasTxt));
+  check("/notas-de-voz/ dice que acepta OGG sin convertir", /OGG/i.test(notasTxt));
+  // Lo que más nos diferencia aquí es no prometer de más: el móvil va peor y se
+  // dice en la propia página en vez de que lo descubran transcribiendo.
+  check("/notas-de-voz/ es honesta con el móvil", /mejor en un ordenador/i.test(notasTxt));
+  check("/notas-de-voz/ lleva al transcriptor", (await page.locator('a[href="/"]').count()) > 0);
+
   // El sitemap alimenta el aviso a los buscadores: si una página no está,
   // IndexNow no la envía y nadie se entera de que existe.
   const sitemap = await (await page.request.get(`${BASE}/sitemap.xml`)).text();
-  for (const ruta of ["/", "/en/", "/subtitulos/", "/entrevistas/", "/clases/", "/reuniones/"]) {
+  for (const ruta of [
+    "/",
+    "/en/",
+    "/subtitulos/",
+    "/entrevistas/",
+    "/clases/",
+    "/reuniones/",
+    "/notas-de-voz/",
+  ]) {
     check(`sitemap incluye ${ruta}`, sitemap.includes(`https://gate32.autoritasai.com${ruta}<`));
   }
+  // Sin lastmod no hay ninguna señal de qué ha cambiado; estuvo ausente en las
+  // siete primeras páginas del sitemap sin que nadie lo notara.
+  check("el sitemap dice cuándo cambió cada página", (sitemap.match(/<lastmod>/g) ?? []).length >= 7);
   const llms = await (await page.request.get(`${BASE}/llms.txt`)).text();
   check("llms.txt describe la captura de pestaña", /captura de pesta/i.test(llms));
   check("llms.txt dice qué no funciona (streaming de pago)", /Netflix/i.test(llms));
+  // Regla 7 del proyecto: lo que no se ve al abrir la página se desincroniza
+  // sin que nadie lo note. Estas tres capacidades existían en la aplicación y
+  // no en ninguna superficie que lean buscadores ni modelos.
+  check("llms.txt describe el marcado de líneas dudosas", /dudos/i.test(llms));
+  check("llms.txt describe las notas de voz", /notas de voz/i.test(llms));
+  check("llms.txt dice que se instala como aplicación", /Instalable/i.test(llms));
 
   // 3e · página de integración: la misma app sin la web alrededor. Si algún
   // elemento que la aplicación exige faltara, main.ts lanzaría al arrancar y
