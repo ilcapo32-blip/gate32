@@ -32,6 +32,8 @@ export default defineConfig({
         clases: page("clases/index.html"),
         reuniones: page("reuniones/index.html"),
         notasDeVoz: page("notas-de-voz/index.html"),
+        integrar: page("integrar/index.html"),
+        integrate: page("en/integrate/index.html"),
         embed: page("embed/index.html"),
       },
     },

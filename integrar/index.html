@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Añadir transcripción a tu plataforma sin tocar el audio de tus usuarios — Gate32</title>
+  <meta name="description" content="Transcripción integrable para plataformas de pódcast, cursos y vídeo. Se ejecuta en el navegador de cada usuario, así que no hay factura por minuto ni su audio llega a tus servidores. Un iframe, sin SDK, sin clave de API, licencia MIT." />
+  <link rel="canonical" href="https://gate32.autoritasai.com/integrar/" />
+  <link rel="alternate" hreflang="es" href="https://gate32.autoritasai.com/integrar/" />
+  <link rel="alternate" hreflang="en" href="https://gate32.autoritasai.com/en/integrate/" />
+  <link rel="alternate" hreflang="x-default" href="https://gate32.autoritasai.com/en/integrate/" />
+  <meta property="og:title" content="Transcripción dentro de tu producto, sin factura por minuto — Gate32" />
+  <meta property="og:description" content="El modelo corre en el navegador de tus usuarios. Ni audio en tus servidores, ni coste que crezca con el uso, ni clave de API. Un iframe." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gate32.autoritasai.com/integrar/" />
+  <meta property="og:image" content="https://gate32.autoritasai.com/og.png" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#1c1c1a" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Cómo añado transcripción a mi plataforma sin procesar el audio en mis servidores?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Integrando Gate32 como iframe. El modelo de reconocimiento se descarga una vez en el navegador de cada usuario final y se ejecuta ahí, así que el audio nunca sale de su equipo ni llega a tu infraestructura. No hay SDK que instalar, ni clave de API que emitir, ni servidor nuestro al que llamar." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuánto cuesta por minuto de audio?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Nada. La inferencia ocurre en la máquina del usuario final, así que no hay factura por minuto ni por tu parte ni por la nuestra, y tu coste de transcripción no crece con el uso. Los pesos del modelo se sirven desde el CDN de Hugging Face, o desde tu propio dominio si prefieres no depender de un tercero." }
+      },
+      {
+        "@type": "Question",
+        "name": "Ya tenemos transcripción. ¿Por qué íbamos a cambiarla?",
+        "acceptedAnswer": { "@type": "Answer", "text": "La mayoría de plataformas establecidas ya la tienen, y el argumento honesto no es que os falte una funcionalidad. Es que la que tenéis os cobra por minuto y obliga a que el audio de vuestros clientes pase por vuestros servidores, lo que os convierte en tratantes de sus datos personales. La transcripción en el navegador no hace ninguna de las dos cosas. Sustituir algo que funciona es una venta más difícil que rellenar un hueco, y fingir lo contrario se nota en la primera respuesta." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Qué pasa con nosotros si Gate32 se abandona?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Gate32 lo construye y lo mantiene una sola persona, y es razonable preguntarlo. La respuesta es la licencia: MIT, código completo y público, sin backend. Si esto se abandonara, tu equipo se queda con un build estático que sigue funcionando, que podéis clonar, servir desde vuestro dominio y modificar sin pedir permiso. No hay servidor que apagar, ni API que cortar, ni claves que caduquen. Con un servicio de transcripción en la nube, que cierre o suba precios sí te deja sin funcionalidad." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Qué limitaciones hay que contarle al usuario?",
+        "acceptedAnswer": { "@type": "Answer", "text": "La primera vez se descarga el modelo (50-250 MB según el tamaño, cacheado después) y la interfaz enseña progreso real en MB. Sin WebGPU va mucho más lento, y la página lo avisa antes de empezar. No separa hablantes todavía. Los archivos muy largos pueden fallar por memoria del navegador: un episodio de más de una hora en un equipo modesto es el límite práctico. La captura de pestaña necesita Chrome o Edge de escritorio." }
+      },
+      {
+        "@type": "Question",
+        "name": "Si el código es MIT, ¿qué estoy pagando?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Justo lo que la licencia no da: una versión mantenida y probada contra los cambios de navegadores y modelos, soporte de integración, y prioridad en las funcionalidades que necesites. Siempre puedes clonarlo y servirlo tú gratis, y que esa opción exista es precisamente lo que elimina el riesgo de depender de un solo mantenedor." }
+      }
+    ]
+  }
+  </script>
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Gate32, inicio">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="currentColor" opacity="0.14"/><path d="M6 20 V12 M10 23 V9 M14 26 V6 M18 24 V8 M22 21 V11 M26 19 V13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>
+      <span>Gate<b>32</b></span>
+    </a>
+    <nav class="site-nav" aria-label="Secciones">
+      <a href="/">Transcriptor</a>
+      <a href="#probar">Probarlo</a>
+      <a href="/en/integrate/">EN</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Transcripción dentro de tu producto, <em>sin factura por minuto</em></h1>
+      <p class="hero-sub">
+        El modelo se ejecuta en <strong>el navegador de cada uno de tus usuarios</strong>. Su audio
+        no llega a tus servidores, tu coste no crece con el uso y no hay ninguna clave de API que
+        emitir. Un iframe.
+      </p>
+      <ul class="badges" aria-label="Qué te da">
+        <li>✓ Sin coste por minuto</li>
+        <li>✓ Sin audio en tu infraestructura</li>
+        <li>✓ Sin SDK ni clave de API</li>
+        <li>✓ Licencia MIT</li>
+      </ul>
+      <p><a class="btn accent" href="#probar">Probarlo en esta misma página →</a></p>
+    </section>
+
+    <section class="info">
+      <h2>El argumento, corregido por una respuesta real</h2>
+      <p>
+        La primera versión de esta propuesta daba por hecho que a las plataformas les faltaba
+        transcripción. Una empresa de alojamiento de pódcast contestó que <em>«no vamos a hacer
+        cambios en nuestra herramienta de transcripción ahora mismo»</em>: ya la tenían. Eso es
+        cierto para cualquier plataforma establecida, así que el argumento no es <em>«os falta una
+        funcionalidad»</em>.
+      </p>
+      <p>
+        Es este: <strong>la transcripción que tenéis os cobra por minuto y obliga a que el audio de
+        vuestros clientes pase por vuestros servidores.</strong> Lo primero se come un margen que
+        crece justo cuando el producto va bien. Lo segundo os convierte en tratantes de datos
+        personales ajenos, con todo lo que eso arrastra. La transcripción en el navegador no hace
+        ninguna de las dos cosas, porque no hay servidor en el camino.
+      </p>
+      <p>
+        Sustituir algo que ya funciona es una venta más difícil que rellenar un hueco. Preferimos
+        decirlo aquí a que lo descubras en la primera reunión.
+      </p>
+      <p class="hero-sub">
+        Barry Krantz, consejero delegado de Blubrry, en The New Media Show: el alojamiento, el
+        almacenamiento y la distribución <em>«se han convertido en materias primas; la diferencia
+        competitiva viene ahora de las herramientas, servicios, soporte, analítica y flujos de
+        trabajo construidos alrededor de la infraestructura»</em>. Es el problema de negocio, dicho
+        por el cliente.
+      </p>
+    </section>
+
+    <section class="info" id="probar">
+      <h2>Pruébalo de verdad, aquí</h2>
+      <p>
+        Ni un vídeo ni capturas: la misma versión que recibirían tus usuarios, funcionando dentro de
+        esta página. Se carga cuando tú lo pides, así que leer esto no cuesta nada.
+      </p>
+      <p><button id="demo-btn" class="btn accent" type="button">Cargar el transcriptor integrado</button></p>
+      <div id="demo-slot" class="demo-slot"></div>
+      <p class="hero-sub">
+        Suelta cualquier archivo de audio o vídeo. La primera vez se descarga el modelo con progreso
+        real; a partir de ahí arranca al instante y funciona sin conexión.
+      </p>
+    </section>
+
+    <section class="info">
+      <h2>La integración entera</h2>
+      <pre class="embed-code" id="embed-code">&lt;iframe
+  src="https://gate32.autoritasai.com/embed/?lang=es&amp;model=balanced"
+  style="width:100%;height:760px;border:0;border-radius:12px"
+  allow="microphone"
+  title="Transcripción"
+&gt;&lt;/iframe&gt;</pre>
+      <p><button id="copy-embed" class="btn ghost small" type="button">Copiar</button></p>
+      <p>Eso es todo. No hay SDK, no hay clave de API, no hay servidor al que llamar.</p>
+      <table class="compare">
+        <caption>Parámetros</caption>
+        <thead><tr><th>Parámetro</th><th>Valores</th><th>Efecto</th></tr></thead>
+        <tbody>
+          <tr><td><code>lang</code></td><td><code>en</code>, <code>es</code></td><td>Idioma de la interfaz</td></tr>
+          <tr><td><code>model</code></td><td><code>fast</code>, <code>balanced</code>, <code>accurate</code></td><td>Fija el modelo y quita la decisión al usuario</td></tr>
+          <tr><td><code>brand</code></td><td><code>0</code></td><td>Oculta la línea de atribución a Gate32</td></tr>
+        </tbody>
+      </table>
+      <p class="hero-sub">
+        <code>allow="microphone"</code> solo hace falta si quieres que tus usuarios puedan grabar
+        directamente; para transcribir archivos no es necesario.
+      </p>
+    </section>
+
+    <section class="info">
+      <h2>Lo que verá tu usuario</h2>
+      <p>
+        Suelta un archivo, el modelo se descarga una vez, y obtiene el texto con marcas de tiempo por
+        frase, editable, con exportación a TXT, Markdown, SRT, VTT y JSON. Los subtítulos salen ya
+        formateados a 32 (CEA-608), 37 (BBC) o 42 (Netflix) caracteres por línea. Las líneas que el
+        modelo probablemente ha entendido mal salen marcadas, y al pulsarlas suena ese momento del
+        audio.
+      </p>
+      <p class="hero-sub">
+        ⚠️ <strong>Lo que hay que decirle, y no ocultar.</strong> La primera vez hay que esperar a
+        que baje el modelo. Sin WebGPU va mucho más lento. No separa hablantes todavía. Los archivos
+        muy largos pueden fallar por memoria del navegador: un episodio de más de una hora en un
+        equipo modesto es el límite práctico. La captura de pestaña necesita Chrome o Edge de
+        escritorio.
+      </p>
+    </section>
+
+    <section class="info">
+      <h2>Esto lo hace una sola persona. Por qué eso no es tu riesgo</h2>
+      <p>
+        Gate32 lo construye y lo mantiene una sola persona. Para quien va a apoyar una funcionalidad
+        de su producto en algo ajeno, la primera duda razonable es: ¿y si mañana desaparece?
+      </p>
+      <p>
+        La respuesta es la licencia. <strong>MIT, código completo y público, sin backend.</strong> Si
+        esto se abandonara, tu equipo se queda con un build estático que sigue funcionando: clonarlo,
+        servirlo desde vuestro dominio y modificarlo, sin pedir permiso a nadie. No hay servidor que
+        apagar, ni API que cortar, ni claves que caduquen.
+      </p>
+      <p>
+        Compáralo con integrar un servicio de transcripción en la nube: ahí el riesgo de que cierre o
+        suba precios <em>sí</em> te deja sin funcionalidad. Aquí el peor escenario es dejar de recibir
+        actualizaciones de algo que ya tienes.
+      </p>
+      <p>
+        ¿Y entonces qué se paga? Lo que la licencia no da: una versión mantenida y probada contra los
+        cambios de navegadores y modelos, soporte de integración, y prioridad en las funcionalidades
+        que necesites.
+      </p>
+    </section>
+
+    <section class="info" id="hablamos">
+      <h2>Habla con quien lo construye</h2>
+      <p>
+        No hay equipo comercial ni formulario para reservar una demo. Escribes y te contesta la
+        persona que ha escrito el código:
+        <a href="mailto:hpartida@autoritasai.com">hpartida@autoritasai.com</a>, o abre un asunto en
+        <a href="https://github.com/ilcapo32-blip/gate32/issues" rel="noopener">GitHub</a>.
+      </p>
+      <p class="hero-sub">
+        Cosas útiles que contar: qué transcriben vuestros usuarios, cuántos minutos al mes pasan
+        aproximadamente por vuestro proveedor actual, y si necesitáis algún idioma más allá del
+        español y el inglés.
+      </p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p><strong>Gate32</strong> · <a href="/">Transcriptor</a> · <a href="/en/integrate/">English version</a></p>
+    <p class="contact">Contacto: <a href="mailto:hpartida@autoritasai.com">hpartida@autoritasai.com</a></p>
+    <p class="footnote">Los archivos de tus usuarios no salen de su dispositivo. <a href="https://github.com/ilcapo32-blip/gate32" rel="noopener">Código abierto</a>.</p>
+  </footer>
+
+  <script type="module" src="/src/integrate.ts"></script>
+</body>
+</html>

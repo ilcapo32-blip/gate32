@@ -696,6 +696,48 @@ try {
     "analítica: evento de feature Pro registrado",
     gcEvents.some((e) => String(e).startsWith("pro_feature")),
   );
+  // Durante dos semanas las páginas SEO cargaron un script que solo importaba
+  // estilos: no producían ni una visita medible, así que no había forma de
+  // saber si /reuniones/ o /notas-de-voz/ traían gente. Un fallo silencioso,
+  // igual que el radar en verde sin abrir issues.
+  for (const ruta of ["/reuniones/", "/notas-de-voz/", "/integrar/", "/en/integrate/"]) {
+    const seoPage = await gcCtx.newPage();
+    await seoPage.goto(`${BASE}${ruta}`, { waitUntil: "load" });
+    await seoPage
+      .waitForFunction(() => "goatcounter" in window, null, { timeout: 5000 })
+      .catch(() => {});
+    check(
+      `${ruta} reporta su visita a la analítica`,
+      await seoPage.evaluate(() => "goatcounter" in window),
+    );
+    await seoPage.close();
+  }
+
+  // La página B2B: su demo se carga solo al pulsar. Si se montara con la
+  // página, cada visita ociosa arrancaría el embudo entero y ensuciaría las
+  // únicas métricas de las que nos fiamos.
+  const b2b = await gcCtx.newPage();
+  await b2b.goto(`${BASE}/en/integrate/`, { waitUntil: "load" });
+  check("B2B: la demo no se monta sola", (await b2b.locator(".demo-frame").count()) === 0);
+  const b2bTxt = (await b2b.locator("main").textContent()) ?? "";
+  check("B2B: el argumento es el coste por minuto", /per-minute/i.test(b2bTxt));
+  check(
+    "B2B: y que el audio no pasa por sus servidores",
+    // El texto va partido en varias líneas del HTML: el patrón tiene que
+    // tolerar el salto o falla por el maquetado, no por el contenido.
+    /never\s+reaches\s+your\s+servers/i.test(b2bTxt),
+  );
+  check("B2B: responde a qué pasa si el proyecto se abandona", /MIT/.test(b2bTxt));
+  check("B2B: enseña el iframe entero", /<iframe/.test((await b2b.locator("#embed-code").textContent()) ?? ""));
+  await b2b.click("#demo-btn");
+  check("B2B: al pulsar aparece el transcriptor real", (await b2b.locator(".demo-frame").count()) === 1);
+  await b2b.waitForTimeout(300);
+  check(
+    "B2B: la prueba de integración se registra",
+    (await b2b.evaluate(() => window.__gc ?? [])).includes("integrate_demo"),
+  );
+  await b2b.close();
+
   await gcCtx.close();
 
   check("sin errores JS de página", pageErrors.length === 0);

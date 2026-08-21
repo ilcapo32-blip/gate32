@@ -552,6 +552,44 @@ suma 2.
 **Equipo:** Chrome 71 %, Safari 21 % (baja desde 26 %), Firefox 7 %. Escritorio
 76 %, móvil 24 %.
 
+### Las páginas SEO no se estaban midiendo (2026-08-20)
+
+`/subtitulos/`, `/entrevistas/`, `/clases/`, `/reuniones/` y `/notas-de-voz/`
+cargan `src/landing.ts`, que durante dos semanas **solo importaba los
+estilos**. Nunca arrancaban la analítica, así que no produjeron ni una visita
+medible: toda la estrategia SEO estaba sin instrumentar y no había forma de
+saber si una página traía gente o no.
+
+Es la misma familia de fallo que el radar en verde sin abrir issues: algo que
+parece funcionar porque nadie mira la salida. Corregido, y cubierto por E2E —
+se comprueba que cada página arranca GoatCounter, no que el archivo exista.
+
+**Dos consecuencias para leer las mediciones anteriores:**
+
+1. **El denominador de página era 227, no una horquilla hasta 268.** Las filas
+   ocultas de GoatCounter no contenían las páginas de caso de uso, porque esas
+   páginas no reportaban nada. La activación de la octava medición es
+   **38/227 = 16,7 %**, no «14,2–16,7 %». Todas las horquillas anteriores
+   estaban sesgadas a la baja por el mismo motivo.
+2. **`return_visit` va a subir sin que nadie vuelva más.** `landing.ts` ahora
+   también llama a `trackVisit()`, así que quien regresa entrando por una
+   página de caso de uso pasa a contarse y antes no. La próxima medición no
+   debe leer esa subida como crecimiento de retención.
+
+### Umbral B2B: el único alcanzable (2026-08-20)
+
+La octava medición dejó claro que los umbrales de monetización B2C piden
+cientos de activaciones y hacemos decenas. El embudo B2B tiene otra escala,
+y por eso su umbral sí se puede evaluar:
+
+| Señal | Umbral | Qué implica |
+|---|---|---|
+| `integrate_contact` o un correo recibido | **≥ 1** | Hay conversación: se responde y se aprende del caso real |
+| `integrate_demo` | ≥ 5 sin ningún contacto | Miran y no escriben: el problema está en la página, no en la oferta |
+| `integrate_demo` = 0 tras 30 días indexada | — | Nadie busca esto, o no nos encuentran: revisar el canal antes que el mensaje |
+
+Es n = 1, no n = 300. Ahí está la diferencia con `pro_interest`.
+
 ### Por qué no sabemos para qué se usa (2026-08-07, corregido)
 
 La encuesta de caso de uso existía desde el principio, pero solo se mostraba
@@ -593,6 +631,9 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `doubt_shown` | hay líneas dudosas y se avisa de cuántas | `n` |
 | `doubt_shown_1` / `_pocas` / `_muchas` | cuántas, en el nombre (GoatCounter no guarda propiedades) | — |
 | `doubt_seek` | pulsa la hora de una línea marcada: ha ido a comprobarla | — |
+| `integrate_demo` | una plataforma carga la demo del embed en la página B2B | — |
+| `integrate_copy` | copia el iframe de integración | — |
+| `integrate_contact` | pulsa el correo de contacto en la página B2B | — |
 | `install_shown` | el navegador permite instalar y se ofrece tras transcribir | — |
 | `install_click` | pulsa «Instalar»; abre el diálogo del navegador | — |
 | `install_accepted` / `install_dismissed` | qué respondió a ese diálogo | — |
