@@ -36,6 +36,7 @@ import {
 } from "./lib/meeting";
 import { LANGUAGES, needsBiggerModel } from "./lib/languages";
 import { findDoubts, type DoubtReason } from "./lib/doubt";
+import { markedIndexes, addMark } from "./lib/marks";
 import { initAnalytics, track, trackVisit } from "./lib/analytics";
 import { ensureStorage, humanBytes } from "./lib/storage";
 import {
@@ -102,6 +103,11 @@ const retryBtn = document.querySelector<HTMLButtonElement>("#retry-btn");
 const recoveryBox = document.querySelector<HTMLElement>("#recovery");
 const recoveryBtn = document.querySelector<HTMLButtonElement>("#recovery-btn");
 const recoveryNote = document.querySelector<HTMLElement>("#recovery-note");
+const markBtn = document.querySelector<HTMLButtonElement>("#mark-btn");
+const markLabel = document.querySelector<HTMLElement>("#mark-label");
+const markBar = document.querySelector<HTMLElement>("#marks");
+const markCount = document.querySelector<HTMLElement>("#marks-count");
+const markNext = document.querySelector<HTMLButtonElement>("#marks-next");
 const doubtBox = document.querySelector<HTMLElement>("#doubt");
 const doubtCount = document.querySelector<HTMLElement>("#doubt-count");
 const installBox = document.querySelector<HTMLElement>("#install");
@@ -253,6 +259,8 @@ interface Current {
   minutes: number;
   /** Duración real. `minutes` se redondea a 1 como mínimo y miente en las notas de voz. */
   seconds?: number;
+  /** Segundos marcados a mano durante la grabación, si la hubo. */
+  marks?: number[];
   segments: Segment[];
   device: "webgpu" | "wasm" | "?";
   fromHistory: boolean;
@@ -547,6 +555,10 @@ async function startTranscription(
   };
   // El origen lo declara quien llama, no se deduce del nombre: un archivo que
   // el usuario hubiera llamado "reunion-3.mp3" se contaba como grabación.
+  // Igual que el origen: lo declara quien llama y se consume aquí, para que un
+  // archivo elegido después de una grabación no herede sus marcas.
+  current.marks = pendingMarks.length > 0 ? pendingMarks : undefined;
+  pendingMarks = [];
   const source = pendingSource;
   pendingSource = "file";
   if (source !== "meeting") meetingNoMic = false;
@@ -707,6 +719,7 @@ function finishTranscription(
     date: Date.now(),
     minutes: current.minutes,
     seconds: current.seconds,
+    marks: current.marks,
     segments,
   });
 
@@ -759,6 +772,21 @@ function renderSegments(): void {
   // algo escribe una frase con su puntuación y su cadencia, y no hay forma de
   // saber cuál revisar. Se recalcula en cada repintado porque el pase de
   // corrección y la edición a mano cambian el texto.
+  // Los momentos que la persona marcó mientras grababa. No compiten con las
+  // líneas dudosas: una dice "esto lo señalaste tú", la otra "esto lo señala la
+  // máquina", y un bloque puede llevar las dos.
+  const marcados = markedIndexes(current.segments, current.marks ?? []);
+  if (markBar && markCount) {
+    if (marcados.size > 0) {
+      markCount.textContent = t(marcados.size === 1 ? "marks_one" : "marks_many", {
+        n: String(marcados.size),
+      });
+      show(markBar);
+    } else {
+      hide(markBar);
+    }
+  }
+
   const doubts = findDoubts(current.segments);
   if (doubtBox && doubtCount) {
     if (doubts.size > 0) {
@@ -781,6 +809,8 @@ function renderSegments(): void {
     const row = document.createElement("div");
     row.className = "segment";
     row.dataset["index"] = String(i);
+
+    if (marcados.has(i)) row.classList.add("marked");
 
     const reason = doubts.get(i);
     if (reason) {
@@ -1037,6 +1067,51 @@ dropzone.addEventListener("drop", (e) => {
   if (f && !busy) void handleFile(f, f.name);
 });
 
+// ── momentos marcados durante la grabación ──
+//
+// Cinco personas en un hilo de r/Journalism describen por separado el mismo
+// apaño hecho a mano: anotar la hora mientras entrevistan, al oír algo que
+// servirá de cita, para no tener que releer la entrevista entera después. Y uno
+// de ellos pide que le recuerden el nombre de una aplicación descatalogada que
+// hacía justo esto. Nadie se lo supo decir.
+//
+// El botón solo existe mientras se graba, y sirve igual para el micrófono y
+// para la captura de pestaña: en una reunión también hay frases que uno quiere
+// reencontrar.
+
+/** Segundos transcurridos de grabación en cada pulsación. */
+let marks: number[] = [];
+/** Instante en que arrancó la grabación en curso, para calcular el desfase. */
+let recStartedAt = 0;
+/** Las marcas de la última grabación, a la espera de su transcripción. */
+let pendingMarks: number[] = [];
+
+function startMarking(): void {
+  marks = [];
+  recStartedAt = Date.now();
+  if (markLabel) markLabel.textContent = t("mark_btn");
+  if (markBtn) show(markBtn);
+}
+
+function stopMarking(): void {
+  pendingMarks = marks;
+  marks = [];
+  if (markBtn) hide(markBtn);
+}
+
+markBtn?.addEventListener("click", () => {
+  if (!recStartedAt) return;
+  const antes = marks.length;
+  marks = addMark(marks, (Date.now() - recStartedAt) / 1000);
+  // Solo se cuenta la marca nueva: el doble toque colapsa en una y contarlo
+  // como dos inflaría la única señal que dice si esto se usa.
+  if (marks.length > antes) track("mark_added");
+  if (markLabel) markLabel.textContent = t("mark_done", { n: String(marks.length) });
+  window.setTimeout(() => {
+    if (markLabel && markBtn && !markBtn.hidden) markLabel.textContent = t("mark_btn");
+  }, 1400);
+});
+
 // ── grabación con micrófono ──
 
 let stopMic: (() => void) | null = null;
@@ -1065,6 +1140,7 @@ recordBtn.addEventListener("click", async () => {
       recordLabel.textContent = t("record");
       micRecording = false;
       stopMic = null;
+      stopMarking();
       if (parts.length === 0) return;
       const stamp = new Date().toTimeString().slice(0, 5).replace(":", ".");
       const name = `${t("recording_prefix")}-${stamp}`;
@@ -1075,6 +1151,7 @@ recordBtn.addEventListener("click", async () => {
     });
     micRecording = true;
     const t0 = Date.now();
+    startMarking();
     recordBtn.classList.add("recording");
     if (meetingBtn) meetingBtn.disabled = true;
     if (mediaBtn) mediaBtn.disabled = true;
@@ -1177,6 +1254,7 @@ function wireTabCapture(mode: TabMode, btn: HTMLButtonElement): void {
         window.clearInterval(st.timer);
         st.recording = false;
         st.stop = null;
+        stopMarking();
         reset();
         if (parts.length === 0) return;
         const stamp = new Date().toTimeString().slice(0, 5).replace(":", ".");
@@ -1201,6 +1279,7 @@ function wireTabCapture(mode: TabMode, btn: HTMLButtonElement): void {
       });
 
       const t0 = Date.now();
+      startMarking();
       if (tabHint) hide(tabHint);
       recordBtn.disabled = true;
       if (other) other.disabled = true;
@@ -1304,6 +1383,25 @@ installBtn?.addEventListener("click", async () => {
   installPrompt = null;
   installWanted = false;
   if (installBox) hide(installBox);
+});
+
+// Recorrer los momentos marcados es lo que ahorra el trabajo: quien marcó ocho
+// citas en una entrevista de hora y media quiere ir a las ocho, no buscarlas.
+let markCursor = -1;
+markNext?.addEventListener("click", () => {
+  if (!current) return;
+  const idx = [...markedIndexes(current.segments, current.marks ?? [])].sort((a, b) => a - b);
+  if (idx.length === 0) return;
+  markCursor = (markCursor + 1) % idx.length;
+  const i = idx[markCursor] as number;
+  const row = segmentsBox.querySelector<HTMLElement>(`.segment[data-index="${i}"]`);
+  row?.scrollIntoView({ block: "center", behavior: "smooth" });
+  const seg = current.segments[i];
+  if (seg && !current.fromHistory) {
+    player.currentTime = seg.start;
+    void player.play();
+  }
+  track("mark_used");
 });
 
 // ── pase de corrección ──
@@ -1527,6 +1625,7 @@ function openFromHistory(entry: HistoryEntry): void {
     title: entry.title,
     minutes: entry.minutes,
     seconds: entry.seconds,
+    marks: entry.marks,
     segments: entry.segments.map((s) => ({ ...s })),
     device: "?",
     fromHistory: true,
@@ -1598,6 +1697,26 @@ if (new URLSearchParams(location.search).has("e2e")) {
         mimeType: "audio/webm",
       };
       showRecovery();
+    },
+    // No se puede grabar de verdad desde Playwright: se simula el ciclo. El
+    // botón aparece con la grabación, y el resultado se pinta con las marcas
+    // dadas para que la comprobación no dependa del reloj.
+    markStart(): void {
+      startMarking();
+    },
+    markFinish(segments: Segment[], atSeconds: number[]): void {
+      stopMarking();
+      current = {
+        id: "e2e",
+        title: "e2e-grabacion",
+        minutes: 1,
+        seconds: 60,
+        marks: atSeconds,
+        segments,
+        device: "?",
+        fromHistory: true,
+      };
+      renderResult("e2e");
     },
     // El navegador solo revela si conserva el almacenamiento al empezar una
     // transcripción de verdad; sin esto el aviso nunca se daría por necesario.

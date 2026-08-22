@@ -645,3 +645,68 @@ exactamente donde hay que mirar, y donde coinciden se puede confiar. Es
 gratis en señal y caro en cómputo (duplica el tiempo), lo que le da forma de
 capa de pago para quien transcribe en serio. No se construye hasta ver si el
 marcado gratuito se usa: `doubt_seek` sobre `doubt_shown` lo dirá.
+
+### 6b · Marcar el momento mientras grabas (2026-08-21)
+
+**Fuente:** hilo de r/Journalism, «La transcripción de la entrevista está
+tardando muchísimo más de lo que esperaba», 18 votos y 52 comentarios. Vistos
+unos 25 de los 52 en capturas; del resto no se afirma nada.
+
+**Cuánto pesa: mucho más que el hilo anterior.** Aquí no hay colocación de
+producto: son periodistas contándose entre ellos cómo trabajan, y el hilo está
+etiquetado «Tools and Resources», así que recomendar herramientas es lo
+esperado. Las coincidencias son espontáneas.
+
+**Qué se vio, en orden de valor.**
+
+1. **Que el proceso sea local es criterio de compra declarado, no una manía
+   nuestra.** dnohunter (8 votos): *«Yo uso MacWhisper porque es local, no está
+   en la nube, y no tiene suscripción»*. eurydicey, marcado como reportero:
+   *«Yo también uso MacWhisper por esta razón»*. Acrobatic_Count_6594: *«La
+   empresa para la que trabajo es bastante estricta con otros programas de
+   transcripción»*. Y cowperthwaite, reportero verificado, recomienda instalarse
+   Whisper a mano.
+   **El hueco concreto:** todos resuelven lo local con MacWhisper (solo Mac, de
+   pago) o instalando Whisper (solo técnicos). **El 53 % de nuestro tráfico es
+   Windows.** Local, sin instalar y en cualquier sistema no lo ofrece ninguno de
+   los mencionados.
+
+2. **El motivo del marcado de líneas dudosas, dicho por un tercero.**
+   markhachman: *«la IA y las personas pueden tener dificultades para distinguir
+   el carraspeo vocal del acento en las palabras clave. "Él estaba, uh, al
+   tanto" es muchísimo distinto a "Él no estaba enterado"»*. Y todo el hilo lo
+   resuelve **a mano**: comprobar las partes importantes, ir a la marca de
+   tiempo y escuchar. Ninguna herramienta mencionada les dice dónde mirar.
+
+3. **La diarización cambia de categoría.** En VALIDATION.md figuraba como *una*
+   petición aislada. Aquí el autor la nombra en la pregunta, Many_Reporter8026
+   (7 votos) cuenta que una entrevista de tres voces salió *«básicamente un
+   desastre»* y **se cambió de herramienta por eso**, y otro menciona Otter por
+   lo mismo. Tres hilos independientes y un cambio de herramienta documentado:
+   pasa a ser la carencia más importante del producto. Sigue pendiente
+   comprobar si existe un modelo de identificación de hablantes viable en el
+   navegador con transformers.js.
+
+4. **Marcar el momento mientras grabas — construido el 21/08.**
+   Specialist_Pepper734 pide que alguien recuerde una aplicación de Android de
+   hace diez años: un botón grande que al pulsarlo marcaba el momento **y
+   retrocedía 30 segundos**. Nadie se lo supo decir. Y no es un caso aislado:
+   LunacyBin (20 votos), Special-Edna-K (8), bewarethecarebear, PatrioticHotDog
+   y da_newsdude describen **el mismo apaño hecho a mano**, anotar la hora al
+   oír una buena cita. Special-Edna-K lo resume: *«no necesitas transcribirlo
+   todo si ya sabes dónde están las citas»*.
+   Cinco personas describiendo el mismo remedio casero es una funcionalidad
+   pidiendo existir, y el grabador ya estaba hecho. En `src/lib/marks.ts`.
+
+**Y un aviso sobre el precio.** El competidor real de este público no es otro
+SaaS: es Word (300 minutos gratis al mes), subir el audio a YouTube en privado,
+las notas de voz de Apple, Zencastr, TurboScribe con tres archivos al día, o
+pegárselo a ChatGPT. Saltan de plan gratuito en plan gratuito. Solo mew5175
+defiende pagar, y con una condición: *«si de verdad vas a transcribir un montón
+de entrevistas»*. El que paga es el profesional intensivo, no el ocasional.
+
+**Qué no se hizo: publicar en el hilo.** Estaba saturado —una docena larga de
+herramientas ya recomendadas— y llegar el segundo día como proveedor a una
+lista de recomendaciones es quedar sepultado. Además no se leyeron las normas
+de r/Journalism, y el día anterior un comentario en r/legaltech se había
+retirado por no llevar la etiqueta de proveedor.

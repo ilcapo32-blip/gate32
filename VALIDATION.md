@@ -137,6 +137,13 @@ que haya publicaciones con `?ref=x` circulando.
   contexto de mercado, **no demanda**.
 - **0 clics** en el CTA "¿qué te haría pagar?": nadie ha llegado a expresarlo.
 
+**Corrección (2026-08-21):** esto queda desfasado. En r/Journalism el autor la
+nombra en la pregunta, un comentarista con 7 votos **se cambió de herramienta
+por ella**, y otro cita Otter por lo mismo; sumado a r/aiToolForBusiness son
+tres hilos independientes. Sigue sin ser palanca de precio demostrada, pero ya
+no es "una petición aislada": es la carencia más nombrada del producto. Ver
+RESEARCH.md §6b.
+
 No es, por tanto, "la función más pedida": es *la única* pedida, una vez. Al
 regalarla el competidor sigue sin ser palanca de precio, pero la decisión de
 construirla no puede apoyarse en demanda observada — solo en el argumento de
@@ -628,6 +635,8 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `retry_better` | repite la misma transcripción con un modelo mayor | — |
 | `fix_replace` | corrige un término en toda la transcripción | — |
 | `fix_undo` | deshace la corrección | — |
+| `mark_added` | marca un momento mientras graba | — |
+| `mark_used` | salta a un momento marcado en la transcripción | — |
 | `doubt_shown` | hay líneas dudosas y se avisa de cuántas | `n` |
 | `doubt_shown_1` / `_pocas` / `_muchas` | cuántas, en el nombre (GoatCounter no guarda propiedades) | — |
 | `doubt_seek` | pulsa la hora de una línea marcada: ha ido a comprobarla | — |

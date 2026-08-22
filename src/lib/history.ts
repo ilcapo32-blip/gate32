@@ -10,6 +10,8 @@ export interface HistoryEntry {
   minutes: number;
   /** Duración real en segundos. Ausente en entradas guardadas antes de existir. */
   seconds?: number;
+  /** Momentos marcados a mano durante la grabación. */
+  marks?: number[];
   segments: Segment[];
 }
 

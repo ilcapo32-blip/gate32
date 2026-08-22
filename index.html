@@ -222,6 +222,13 @@
               <span data-label>Transcribir un vídeo o directo de otra pestaña</span>
             </button>
           </div>
+          <!-- Marcar momentos mientras se graba. Sale de r/Journalism, donde
+               cinco personas describen por separado el mismo apaño a mano:
+               anotar la hora al oír una cita para no releer la entrevista
+               entera después. Solo aparece con una grabación en curso. -->
+          <button id="mark-btn" class="btn accent mark-btn" type="button" hidden>
+            <span aria-hidden="true">⚑</span> <span id="mark-label">Marcar este momento</span>
+          </button>
           <span class="privacy-inline">🔒 El procesado es 100 % local: el archivo no se sube a ningún servidor.</span>
         </div>
         <p id="meeting-hint" class="mobile-note" hidden></p>
@@ -359,6 +366,11 @@
         <div id="retry-better" class="retry-better" hidden>
           <p class="retry-hint">¿Se ha saltado frases o ha entendido mal palabras? Con un modelo mayor mejora bastante. No hay que volver a cargar el archivo.</p>
           <button id="retry-btn" class="btn accent small" type="button">Repetir con un modelo mejor</button>
+        </div>
+
+        <div id="marks" class="marks-bar" hidden>
+          <p class="marks-title"><span class="marks-flag" aria-hidden="true">⚑</span> <strong id="marks-count"></strong></p>
+          <button id="marks-next" class="btn ghost small" type="button">Ir al siguiente</button>
         </div>
 
         <div id="doubt" class="doubt-bar" hidden>

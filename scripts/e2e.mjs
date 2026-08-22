@@ -313,6 +313,52 @@ try {
 
   await page.evaluate(() => window.__g32.showResult([{ start: 0, end: 2, text: "x" }]));
 
+  // Marcar momentos mientras se graba. Sale de r/Journalism, donde cinco
+  // personas describen por separado el mismo apaño a mano: anotar la hora al
+  // oír una cita para no releer la entrevista entera después.
+  check("sin grabar, no hay botón de marcar", await page.locator("#mark-btn").isHidden());
+  await page.evaluate(() => window.__g32.markStart());
+  check("al grabar aparece el botón de marcar", await page.locator("#mark-btn").isVisible());
+  await page.click("#mark-btn");
+  check(
+    "pulsarlo confirma cuántas marcas llevas",
+    /1/.test((await page.locator("#mark-label").textContent()) ?? ""),
+  );
+  await page.evaluate(() => {
+    // Se pulsa DESPUÉS de oír la frase, así que la marca mira 20 segundos atrás.
+    window.__g32.markFinish(
+      [
+        { start: 0, end: 20, text: "relleno del principio" },
+        { start: 20, end: 40, text: "la cita que quería recordar" },
+        { start: 40, end: 60, text: "lo que vino luego" },
+      ],
+      [42],
+    );
+  });
+  check("al terminar desaparece el botón", await page.locator("#mark-btn").isHidden());
+  check("se avisa de cuántos momentos marcaste", await page.locator("#marks").isVisible());
+  check(
+    "señala lo que se acababa de decir",
+    await page
+      .locator('.segment[data-index="1"]')
+      .evaluate((el) => el.classList.contains("marked")),
+  );
+  check(
+    "y no lo que vino después de pulsar",
+    await page
+      .locator('.segment[data-index="2"]')
+      .evaluate((el) => !el.classList.contains("marked")),
+  );
+  check("se puede saltar de una marca a la siguiente", await page.locator("#marks-next").isVisible());
+  await page.click("#marks-next");
+  check(
+    "sin marcas la barra no aparece",
+    await page.evaluate(() => {
+      window.__g32.showResult([{ start: 0, end: 2, text: "x" }]);
+      return document.querySelector("#marks")?.hasAttribute("hidden") ?? false;
+    }),
+  );
+
   // Marcado de líneas dudosas. Whisper nunca avisa de que duda: escribe una
   // frase con su puntuación y su cadencia. En la prueba del 20/08 una nota de
   // voz salió con "te voy a estar despedonando la hora" y nada indicaba dónde
@@ -645,6 +691,20 @@ try {
   const phonePage = await phone.newPage();
   await phonePage.goto(`${BASE}/`, { waitUntil: "load" });
   check("móvil: aviso de rendimiento visible", await phonePage.locator("#mobile-note").isVisible());
+  // Defecto real, vivo desde el 16/08 hasta que lo destapó el botón de marcar:
+  // `.btn` fija `display: inline-flex` y eso anula el atributo `hidden`, así que
+  // en móvil, Safari y Firefox estos dos botones se veían sin poder funcionar —
+  // y sin manejador, porque su cableado va dentro de `if (canCaptureTab())`.
+  // Se pulsaban y no pasaba nada de nada.
+  check(
+    "móvil: no se ofrece capturar una pestaña, que ahí no existe",
+    (await phonePage.locator("#meeting-btn").isHidden()) &&
+      (await phonePage.locator("#media-btn").isHidden()),
+  );
+  check(
+    "móvil: tampoco el botón de marcar sin grabación",
+    await phonePage.locator("#mark-btn").isHidden(),
+  );
   check(
     "móvil: modelo Rápido por defecto",
     (await phonePage.locator("#model-quality").inputValue()) === "fast",

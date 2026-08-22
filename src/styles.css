@@ -1,5 +1,16 @@
 /* Gate32 · diseño de producto: claridad y confianza. */
 
+/*
+ * El atributo `hidden` del navegador lo anula cualquier regla de autor que fije
+ * `display`, y `.btn` fija `display: inline-flex`. Consecuencia real, viva desde
+ * el 16 de agosto: en móvil, Safari y Firefox los botones de captura de pestaña
+ * se veían pese a llevar `hidden`, y como su cableado está dentro de
+ * `if (canCaptureTab())` no tenían ni manejador. Se pulsaban y no pasaba nada.
+ *
+ * Va lo primero de la hoja para que ninguna regla posterior pueda repetirlo.
+ */
+[hidden] { display: none !important; }
+
 :root {
   --bg: #fafaf7;
   --surface: #ffffff;
@@ -1004,4 +1015,46 @@ body.embed .toolbar { position: static; }
   line-height: 1.6;
   overflow-x: auto;
   color: var(--ink);
+}
+
+/* ── momentos marcados durante la grabación ── */
+/*
+ * Se distingue de las líneas dudosas a propósito: aquella es una advertencia de
+ * la máquina y va en naranja; esta es una decisión de la persona y va en verde,
+ * el color que en esta paleta significa "esto está bien". Un bloque puede
+ * llevar las dos cosas sin que se confundan.
+ */
+
+.marks-bar {
+  margin: 0.9rem 0;
+  padding: 0.6rem 0 0.6rem 0.85rem;
+  border-left: 3px solid var(--ok);
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.marks-title {
+  margin: 0;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.marks-flag { color: var(--ok); }
+
+.segment.marked {
+  background: color-mix(in srgb, var(--ok) 9%, transparent);
+  box-shadow: inset 3px 0 0 var(--ok);
+}
+
+/* El botón de marcar solo existe mientras se graba, y tiene que poder pulsarse
+   sin mirar: es lo que se hace en mitad de una entrevista. */
+.mark-btn {
+  margin-top: 0.5rem;
+  align-self: flex-start;
+  min-height: 2.6rem;
+  padding-inline: 1.1rem;
 }

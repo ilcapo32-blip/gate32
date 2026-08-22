@@ -72,6 +72,9 @@
             <span class="rec-dot" aria-hidden="true"></span>
             <span id="record-label">Record with the microphone</span>
           </button>
+          <button id="mark-btn" class="btn accent mark-btn" type="button" hidden>
+            <span aria-hidden="true">⚑</span> <span id="mark-label">Mark this moment</span>
+          </button>
           <span class="privacy-inline">🔒 Processing is 100% local: your file is never uploaded.</span>
         </div>
         <!-- Confirmation before starting. With four models and 47 languages,
@@ -197,6 +200,11 @@
         <div id="retry-better" class="retry-better" hidden>
           <p class="retry-hint">Skipped sentences, or words it got wrong? A larger model improves this a lot.</p>
           <button id="retry-btn" class="btn accent small" type="button">Redo with a better model</button>
+        </div>
+
+        <div id="marks" class="marks-bar" hidden>
+          <p class="marks-title"><span class="marks-flag" aria-hidden="true">⚑</span> <strong id="marks-count"></strong></p>
+          <button id="marks-next" class="btn ghost small" type="button">Go to the next one</button>
         </div>
 
         <div id="doubt" class="doubt-bar" hidden>
