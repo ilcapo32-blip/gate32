@@ -191,3 +191,48 @@ AdSense** sino un patrocinio estático de una línea —texto plano, sin script,
 sin cookie, vendido directamente— o una red sin rastreo tipo EthicalAds
 (**[SIN VERIFICAR]**: exige audiencia técnica y tiene mínimos propios). Eso
 además esquiva los apartados 7.2 y 7.3 enteros.
+
+## 8 · Qué es Gate32 dentro de la cartera (2026-08-24)
+
+Existen tres proyectos y solo uno de ellos puede ser el que pague las facturas.
+Conviene escribir cuál es el papel de Gate32 para dejar de medirlo por una vara
+que no le corresponde.
+
+### 8.1 · Por qué Gate32 convierte peor, y no es un fallo de ejecución
+
+Lo que se le pide al comprador no es lo mismo en los tres casos:
+
+| | Gate32 | PresuTool | Accy |
+|---|---|---|---|
+| Quién paga | un particular | una pyme | un comercio o su agencia |
+| Qué le empuja a pagar | privacidad = **preferencia** | tiempo ahorrado = **conveniencia** | multa con fecha = **obligación** |
+| Alternativa gratis | muchas, y los modelos son ficheros públicos | Excel y WhatsApp | ninguna seria |
+| Coste de operar | 0 € | número de WhatsApp + n8n + LLM: **no es 0 €** | 0 € (Cloudflare gratuito) |
+
+**Una obligación convierte mejor que una conveniencia, y una conveniencia mejor
+que una preferencia.** Gate32 vende la de abajo del todo, en un mercado donde
+los pesos del modelo son descargables gratis. Nueve mediciones con producto
+sano y `pro_interest` en cero no son mala suerte: son ese ordenamiento.
+
+### 8.2 · Qué se hace con Gate32 a partir de ahora
+
+No se archiva —cuesta 0 € y hace lo que promete— pero **deja de ser el proyecto
+del que se espera MRR**:
+
+- **Se mantiene desplegado**, con SEO y GEO, porque el tráfico compone solo y
+  porque lo aprendido aquí (`llms.txt`, datos estructurados, embudo medido,
+  posicionamiento honesto) es exactamente el canal principal de los otros dos.
+- **Se termina el único defecto que paga**: los archivos grandes, 8 de 15
+  errores de decodificación dos mediciones seguidas.
+- **Se mantiene viva la vía B2B** de `EMBED.md`, que es n = 1 y cuesta una
+  conversación, no trescientos usuarios.
+- **Se dejan de construir funciones nuevas.** Las horas de construcción van a
+  donde el comprador tiene una fecha límite encima.
+
+### 8.3 · Lo que aplica a los tres
+
+Cobrar de forma recurrente en España exige **alta de autónomo o sociedad**, y
+un Merchant of Record (Polar o Lemon Squeezy) para no gestionar el IVA europeo.
+Es la misma puerta para Gate32 Pro, para PresuTool y para Accy, y no depende de
+programar nada: conviene resolverla antes de tener el primer cliente esperando,
+no después.
