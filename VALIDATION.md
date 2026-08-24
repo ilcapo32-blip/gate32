@@ -701,6 +701,56 @@ país con el 21 %, y aparece Honduras con el 15 %.
 (`mark_added`, `edit_used`, la visita a `/reuniones/`). La finalización del
 78 % de hoy no es comparable con la serie.
 
+#### Conclusión de la novena medición
+
+**1 · El producto está en su mejor momento y da igual.** Activación 19,4 %,
+finalización 64,9 % con cuatro subidas seguidas, export 58 %, errores a la
+baja, el camino sin GPU consolidado. Todas las métricas de producto son las
+mejores del proyecto. Y la única métrica que cuenta para el objetivo declarado
+—que esto genere MRR— sigue en **cero exacto**: `pro_interest` cero en siete
+mediciones, `install_click` cero, `integrate_contact` cero, correos recibidos
+cero. Mejorar el producto ya no mueve el número que importa.
+
+**2 · El ritmo ha subido y aun así no alcanza.** Transcripciones completadas:
+27 (14/08) → 32 (16/08) → 38 (20/08) → 50 (24/08). Son **1,8/día** en la
+ventana anterior y **3,0/día** en esta: el ritmo se ha multiplicado por 1,6. Con
+ese ritmo sostenido, las 300 activaciones que exige el disparador de
+MONETIZATION.md §4 llegan en **unos 83 días**, frente a los 5,5 meses que
+calculamos en la octava. Mejor, y sigue sin servir: la pregunta «¿paga
+alguien?» no se puede responder esperando tres meses.
+
+**3 · Instalar no puede arreglar la retención, y esto es aritmética, no
+opinión.** `install_shown` / `transcribe_done` = 10/50 = **20 %**. El aviso
+solo alcanza a una de cada cinco transcripciones completadas —hace falta un
+navegador que lo permita y no tenerlo ya instalado—, mientras que el problema
+que pretendía resolver, `storage_not_persisted`, afecta al **76,6 %**. Aunque
+todo el mundo pulsara, el techo estructural es el 20 %. El umbral escrito
+(≥ 40 mostrados) sigue sin alcanzarse y no se declara fracaso todavía, pero la
+instalación deja de ser la respuesta a la persistencia: es, como mucho, una
+mejora para quien ya vuelve.
+
+**4 · El canal ha cambiado de dueño.** Entre la séptima y esta:
+Reddit 180 → 207 → 269 (×1,5 en total, y **hoy 3 impactos**), Google 84 → 106 →
+158 (×1,9), **ChatGPT 1 → 18 → 57 (×57)**. Hoy ChatGPT es el 25 % de los
+impactos y Reddit el 3 %. Reddit exige trabajo manual cada vez, se agota en
+cuanto el hilo baja, y en la última semana ha costado **dos retiradas por
+normas** (r/legaltech por falta de flair de vendedor, r/aiToolForBusiness).
+GEO y SEO acumulan sin trabajo repetido y sin riesgo de normas.
+
+**5 · Qué se sigue de todo esto.** El cuello de botella es la demanda, no el
+producto, por segunda medición consecutiva. Por tanto:
+
+- **Sí:** GEO/SEO, que es lo único que compone solo, y la vía B2B de
+  `EMBED.md`, que es la única con umbral n = 1 en vez de n = 300.
+- **Sí, con excepción:** el único trabajo de producto que se paga es el fallo
+  de archivos grandes —**8 de 15 errores de decodificación (53 %), dos
+  mediciones seguidas**—, porque cae justo sobre el caso de uso que traen las
+  páginas SEO (clases, entrevistas, reuniones): archivos largos.
+- **No:** diarización. Es lo más pedido en los hilos de Reddit, pero la
+  viabilidad en navegador está **[SIN VERIFICAR]** y ningún usuario nuestro la
+  ha pedido con un evento. Construirla ahora sería volver a mejorar producto
+  contra un cuello de botella de demanda.
+
 ### Por qué no sabemos para qué se usa (2026-08-07, corregido)
 
 La encuesta de caso de uso existía desde el principio, pero solo se mostraba
