@@ -121,3 +121,73 @@ mejor situada, no un ingreso. El orden se mantiene: medir primero
 - `pro_feature` {diarizacion|lotes|actas} — captura qué construir primero.
 - Encuesta post-export (E4 de VALIDATION.md) — casos de uso dominantes.
 - Todo visible en gate32.goatcounter.com sin coste.
+
+## 7 · Publicidad: descartada, con umbral para revisarla (2026-08-24)
+
+La pregunta era razonable —es la vía de monetización más obvia para algo
+gratuito— y se descarta por tres motivos independientes. Cualquiera de los tres
+bastaría; los tres juntos no dejan discusión.
+
+### 7.1 · La aritmética: son 1,5 $ al mes
+
+La publicidad monetiza atención a escala, y la escala es la que es: **258
+páginas vistas en 25 días** (novena medición) = 10,3/día ≈ **310 al mes**.
+
+Con un RPM generoso de 5 $ para tráfico de herramientas y geografía mixta
+(EE. UU., España, India, Honduras), eso son **1,55 $/mes**. El umbral de pago
+de AdSense es de **100 $**: el primer cobro llegaría en **64 meses**, más de
+cinco años. Multiplicando el tráfico por diez seguirían siendo ~15 $/mes.
+
+Puesto al lado de lo que ya hay sobre la mesa:
+
+| Vía | Un mes de ingreso | Equivalente en publicidad |
+|---|---|---|
+| Un cliente B2B a 50 €/mes | 50 € | **32 meses** de anuncios |
+| Una descarga de pago a 5,99 € | 5,99 € | **4 meses** de anuncios |
+
+Una sola venta supera un trimestre entero de publicidad. No es que la
+publicidad rinda poco: es que **no está en la misma escala del problema**.
+
+### 7.2 · El bloqueo técnico: los anuncios no cargarían
+
+`vercel.json` fija `Cross-Origin-Embedder-Policy: credentialless` en **todas**
+las rutas (`/(.*)`). Google documenta que **Google Publisher Tag —el servidor
+de anuncios que hay debajo de AdSense— no soporta páginas con COEP**, y los
+iframes de otro origen siguen restringidos tanto con `require-corp` como con
+`credentialless` salvo que el propio iframe lo acepte.
+
+Quitar COEP de la portada no es gratis: el aislamiento entre orígenes es lo que
+habilita los hilos de WASM, que es el camino por el que hoy pasa el **16 % de
+las transcripciones completadas** y el único que existe para quien no tiene
+WebGPU. Se estaría cambiando el camino sin GPU —que costó semanas hacer
+funcionar— por 1,55 $ al mes.
+
+### 7.3 · El coste de posicionamiento: se rompe justo lo que crece
+
+Todo el argumento del producto es que el audio no sale del dispositivo y que no
+rastreamos a nadie; por eso la analítica es GoatCounter sin cookies y no Google
+Analytics. Meter anuncios significa scripts de terceros, cookies y **banner de
+consentimiento** (RGPD/ePrivacy, y el mercado objetivo es España) sobre el
+primer pintado de un embudo cuya métrica principal es la activación.
+
+Peor: `llms.txt`, la FAQ con datos estructurados y la tabla comparativa —donde
+criticamos a los competidores precisamente por privacidad— son lo que sostiene
+el canal que crece **×57**, ChatGPT. Contradecir esas afirmaciones daña la
+única fuente que compone sola, para ganar el equivalente a un café al trimestre.
+
+### 7.4 · Cuándo volver a mirarlo
+
+No es un "nunca", es un "no a esta escala". Se revisa si se cumplen **las dos**
+condiciones:
+
+1. **≥ 10.000 páginas vistas al mes** (hoy: 310). Ahí la publicidad da unos
+   50 $/mes, que ya paga infraestructura.
+2. **Pago directo y B2B probados y fallidos.** Mientras cualquiera de los dos
+   siga vivo, los anuncios compiten contra ellos: no se puede cobrar por un
+   producto y a la vez enseñar anuncios a quien paga.
+
+Si se llegase a ese punto, la forma compatible con el discurso **no es
+AdSense** sino un patrocinio estático de una línea —texto plano, sin script,
+sin cookie, vendido directamente— o una red sin rastreo tipo EthicalAds
+(**[SIN VERIFICAR]**: exige audiencia técnica y tiene mínimos propios). Eso
+además esquiva los apartados 7.2 y 7.3 enteros.
