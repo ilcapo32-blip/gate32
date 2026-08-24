@@ -597,6 +597,110 @@ y por eso su umbral sí se puede evaluar:
 
 Es n = 1, no n = 300. Ahí está la diferencia con `pro_interest`.
 
+### Novena medición (2026-08-24) · 1024 registros, ventana 30/07–24/08
+
+| Métrica | Valor | Antes | Lectura |
+|---|---|---|---|
+| Activación (`transcribe_done` / páginas) | 50/258 = **19,4 %** | 16,7 % | Mejor dato del proyecto |
+| Finalización (`done`/`start`) | 50/77 = **64,9 %** | 63,3 % | **Cuarta subida seguida**: 58,7 → 60,4 → 63,3 → 64,9 |
+| Export (`export`/`done`) | 29/50 = **58,0 %** | 55,3 % | Sube |
+| Errores (`error`/`start`) | 20/77 = 26,0 % | 28,3 % | Baja |
+| De decodificación | 15/77 = 19,5 % | 20,0 % | **8 de 15 son por tamaño (53 %)** |
+| Sin persistencia | 59/77 = **76,6 %** | 73,3 % | **Peor dato de la serie**: 65 → 73,9 → 75,5 → 73,3 → 76,6 |
+| Éxitos en WASM | 8/50 = 16,0 % | 13,2 % | El camino sin GPU se consolida |
+
+**La bajada anterior de `storage_not_persisted` era ruido.** Se leyó como «deja
+de empeorar por primera vez» y no era una mejora: la serie sigue subiendo.
+
+**`return_visit` = 35 no se compara con las mediciones anteriores.** Desde el
+20/08 las páginas de caso de uso también llaman a `trackVisit()`, así que el
+evento cuenta vueltas que antes no contaba. La subida es del contador, no de la
+gente.
+
+#### Corrección de método: los referrers cuentan impactos, no visitas
+
+La aritmética lo confirma exacto. **Hoy:** 16 páginas + 95 eventos = 111 =
+Totals, y los referrers suman 108. **Global:** 258 páginas + 703 eventos
+visibles ≈ 961, con 1024 de Totals una vez añadidas las filas ocultas, y los
+referrers suman 962.
+
+Es decir, cada evento se atribuye también a su referrer. Consecuencia que
+invalida cómo se venían leyendo: **una fuente que trae gente comprometida
+aparece inflada frente a una que trae gente que rebota**, porque quien completa
+una transcripción dispara ocho o diez eventos y quien se va dispara uno.
+
+«Google, 158» no son 158 visitas: son 158 impactos de un número menor de
+visitas. La proporción entre fuentes sigue valiendo como tendencia; el valor
+absoluto no. Corrige la lectura de todas las mediciones anteriores.
+
+#### La alarma del marcado de dudas saltó, y era correcta
+
+El umbral escrito en la octava medición, antes de tener un solo dato:
+`doubt_shown_muchas / doubt_shown` por encima del 40 % significaba falso
+positivo sistemático.
+
+**Salió al 100 %.** Nueve transcripciones marcadas, las nueve con cinco líneas
+o más señaladas. Hoy, 4 de 5. A todo el que se le marcaba algo se le marcaba
+media transcripción, y una marca que sale siempre no informa de nada — que es
+literalmente lo que la alarma vigilaba.
+
+**Qué se hizo el mismo día:**
+
+1. **Apretadas solo las reglas de ritmo**, que son las frágiles porque dependen
+   de que las marcas de tiempo de Whisper reflejen el habla real: `fast` de 6 a
+   7,5 palabras/segundo y de 5 a 8 palabras mínimas; `slow` de 8 a 12 segundos y
+   de 0,4 a 0,3 palabras/segundo. Eco y frase de subtítulo se quedan igual:
+   son concluyentes.
+2. **Techo de desconfianza.** Si se marcaría más de una cuarta parte de los
+   bloques, lo probable no es que el audio sea un desastre sino que los tiempos
+   de ese archivo no cuadran: se descartan las reglas de ritmo y se conservan
+   solo las concluyentes. Con menos de 8 bloques el techo no se aplica, porque
+   en una nota de voz de dos bloques marcar uno ya es el 50 %.
+3. **Se registra el motivo** (`doubt_por_repeat`, `doubt_por_fast`,
+   `doubt_por_slow`, `doubt_por_boilerplate`). Faltaba, y por eso hubo que
+   apretar **adivinando** qué regla sobraba. La próxima vez el dato lo dirá.
+
+**Lección de método, que vale más que el arreglo:** el umbral se escribió antes
+de mirar, saltó solo, y señalaba un defecto real. Es la primera vez en el
+proyecto que una alarma preinscrita funciona como se pretendía.
+
+#### Instalar: primera señal, y no es buena
+
+`install_shown` = 10 en total, 4 hoy. **`install_click` no aparece**, ni
+siquiera en la lista de hoy, que baja hasta 1. Hoy son 4 mostrados y 0 clics.
+
+El umbral era: por debajo del 5 % **con al menos 40 mostrados** significa que la
+instalación no es el camino. Vamos por 10, así que **todavía no se puede
+concluir**. Pero la tendencia no acompaña, y conviene decirlo ahora en vez de
+descubrirlo dentro de un mes.
+
+#### Marcar momentos: sin señal
+
+`mark_added` = 1, del propio propietario probándolo. Cero uso externo. Se
+desplegó ayer; no hay nada que leer todavía.
+
+#### Distribución: ChatGPT es el canal que crece
+
+| Origen | Impactos (global) | Antes |
+|---|---|---|
+| Reddit (web + app + hilo) | 269 | 207 |
+| Google | 158 | 106 |
+| **chatgpt.com** | **57** | 18 |
+| podnews.net | 34 | 34 |
+| bing.com | 15 | 15 |
+| gemini.google.com | 6 | 6 |
+
+**Hoy, ChatGPT es el 25 % de los impactos** (28 de 111) y Google el 37 %.
+Reddit hoy: 3. El canal que se construyó con `llms.txt` y datos estructurados
+ha pasado de 1 a 57 en tres mediciones, y hoy pesa más que Reddit.
+
+**España 143 (14 %) y la India 60 (6 %)** en global. Hoy la India es el primer
+país con el 21 %, y aparece Honduras con el 15 %.
+
+**Aviso sobre el día de hoy:** está contaminado con pruebas del propietario
+(`mark_added`, `edit_used`, la visita a `/reuniones/`). La finalización del
+78 % de hoy no es comparable con la serie.
+
 ### Por qué no sabemos para qué se usa (2026-08-07, corregido)
 
 La encuesta de caso de uso existía desde el principio, pero solo se mostraba
@@ -639,6 +743,7 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `mark_used` | salta a un momento marcado en la transcripción | — |
 | `doubt_shown` | hay líneas dudosas y se avisa de cuántas | `n` |
 | `doubt_shown_1` / `_pocas` / `_muchas` | cuántas, en el nombre (GoatCounter no guarda propiedades) | — |
+| `doubt_por_repeat` / `_fast` / `_slow` / `_boilerplate` | qué regla disparó el marcado | — |
 | `doubt_seek` | pulsa la hora de una línea marcada: ha ido a comprobarla | — |
 | `integrate_demo` | una plataforma carga la demo del embed en la página B2B | — |
 | `integrate_copy` | copia el iframe de integración | — |

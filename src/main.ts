@@ -798,6 +798,11 @@ function renderSegments(): void {
         doubtTracked = true;
         track("doubt_shown", { n: doubts.size });
         track(`doubt_shown_${doubts.size === 1 ? "1" : doubts.size < 5 ? "pocas" : "muchas"}`);
+        // El motivo, y no solo el número. Cuando el 24/08 saltó la alarma de
+        // marcado excesivo hubo que apretar los umbrales **adivinando** qué
+        // regla sobraba, porque esto no se registraba. Con el motivo dentro del
+        // nombre —GoatCounter no guarda propiedades— la próxima vez se sabe.
+        for (const razon of new Set(doubts.values())) track(`doubt_por_${razon}`);
       }
     } else {
       hide(doubtBox);

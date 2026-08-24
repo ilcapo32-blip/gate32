@@ -92,14 +92,45 @@ function loops(list: string[]): boolean {
   return false;
 }
 
+// Umbrales apretados el 2026-08-24 porque saltó la alarma escrita en
+// VALIDATION.md antes de tener datos: `doubt_shown_muchas / doubt_shown` debía
+// quedar por debajo del 40 % y salió al **100 %**. Es decir, a todo el que se
+// le marcaba algo se le marcaban cinco líneas o más. Una marca que sale siempre
+// no dice nada, que era exactamente el fallo que la alarma vigilaba.
+//
+// Se aprietan solo las reglas de ritmo, que son las frágiles: dependen de que
+// las marcas de tiempo de Whisper reflejen el habla real, y no siempre lo
+// hacen. Las otras dos —eco y frase de subtítulo— son concluyentes y se quedan
+// como estaban.
+
 /** Palabras por segundo por encima de esto no lo sostiene nadie hablando. */
-const FAST_WPS = 6;
+const FAST_WPS = 7.5;
 /** Por debajo de esto, y durando lo suyo, falta texto. */
-const SLOW_WPS = 0.4;
-/** Un bloque corto no da para juzgar el ritmo: una palabra de más lo dispara. */
-const MIN_WORDS_FAST = 5;
-/** Solo se juzga "lento" lo que dura bastante; dos segundos callados son normales. */
-const MIN_SECONDS_SLOW = 8;
+const SLOW_WPS = 0.3;
+/** Con cinco palabras, un límite mal puesto por el modelo ya disparaba la regla. */
+const MIN_WORDS_FAST = 8;
+/** Ocho segundos con tres palabras es una pausa normal, no un fallo. */
+const MIN_SECONDS_SLOW = 12;
+
+/**
+ * Proporción de bloques marcados a partir de la cual se desconfía del propio
+ * marcado.
+ *
+ * Si se señala más de una cuarta parte de la transcripción, lo más probable no
+ * es que el audio sea un desastre: es que las reglas de ritmo están fallando en
+ * bloque, porque las marcas de tiempo de ese archivo no cuadran. En ese caso se
+ * conservan solo las dos reglas concluyentes y se tiran las de ritmo.
+ */
+const MAX_MARKED_RATIO = 0.25;
+
+/**
+ * Bloques mínimos para que la proporción signifique algo.
+ *
+ * En una nota de voz de dos bloques, marcar uno ya es el 50 % y el techo la
+ * silenciaría entera. La proporción solo tiene sentido cuando hay transcripción
+ * suficiente para que "una cuarta parte" quiera decir algo.
+ */
+const MIN_SEGMENTS_FOR_RATIO = 8;
 
 /**
  * Devuelve, por índice de bloque, el motivo por el que conviene comprobarlo.
@@ -109,6 +140,8 @@ const MIN_SECONDS_SLOW = 8;
  */
 export function findDoubts(segments: Segment[]): Map<number, DoubtReason> {
   const out = new Map<number, DoubtReason>();
+  /** Reglas concluyentes: no dependen de que los tiempos sean fiables. */
+  const firmes = new Map<number, DoubtReason>();
 
   segments.forEach((seg, i) => {
     const w = words(seg.text);
@@ -117,16 +150,19 @@ export function findDoubts(segments: Segment[]): Map<number, DoubtReason> {
 
     if (BOILERPLATE.some((b) => norm.includes(b))) {
       out.set(i, "boilerplate");
+      firmes.set(i, "boilerplate");
       return;
     }
 
     const prev = segments[i - 1];
     if (w.length >= 2 && prev && normalize(prev.text) === norm) {
       out.set(i, "repeat");
+      firmes.set(i, "repeat");
       return;
     }
     if (loops(w)) {
       out.set(i, "repeat");
+      firmes.set(i, "repeat");
       return;
     }
 
@@ -145,5 +181,10 @@ export function findDoubts(segments: Segment[]): Map<number, DoubtReason> {
     }
   });
 
+  // Marcar media transcripción no informa de nada: si se pasa del techo, se
+  // devuelven solo las reglas que no dependen de los tiempos.
+  if (segments.length >= MIN_SEGMENTS_FOR_RATIO && out.size / segments.length > MAX_MARKED_RATIO) {
+    return firmes;
+  }
   return out;
 }
