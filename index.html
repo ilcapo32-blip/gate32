@@ -183,7 +183,13 @@
 
         <div id="dropzone" class="dropzone" role="button" tabindex="0"
              aria-label="Elegir o arrastrar archivo de audio o vídeo">
-          <input type="file" id="file-input" class="visually-hidden" />
+          <!-- El control expuesto es el dropzone de arriba, que ya lleva role,
+               tabindex y aria-label. Este input es el mecanismo, no el control:
+               visually-hidden lo saca de la vista pero lo deja enfocable y en el
+               árbol de accesibilidad, así que con teclado y lector de pantalla se
+               caía en un campo de archivo que no se anuncia. Fuera del recorrido. -->
+          <input type="file" id="file-input" class="visually-hidden"
+                 tabindex="-1" aria-hidden="true" />
           <svg viewBox="0 0 24 24" aria-hidden="true" class="drop-icon"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0 4 4m-4-4L8 8M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
           <strong>Arrastra un archivo de audio o vídeo</strong>
           <span>o haz clic para elegirlo · MP3, WAV, M4A, OGG, MP4, WEBM…</span>
