@@ -710,3 +710,59 @@ herramientas ya recomendadas— y llegar el segundo día como proveedor a una
 lista de recomendaciones es quedar sepultado. Además no se leyeron las normas
 de r/Journalism, y el día anterior un comentario en r/legaltech se había
 retirado por no llevar la etiqueta de proveedor.
+
+---
+
+### Abogado penalista pidiendo justo nuestro argumento, y por qué no es cliente (2026-08-30)
+
+Hilo de r/Lawyertalk que mandó el propietario en cinco capturas. **Reddit está
+bloqueado desde el entorno de desarrollo**, así que solo se ha leído lo que
+entra en el recuadro: ni el resto del hilo ni las normas completas del
+subreddit.
+
+**Qué pide.** Un penalista que trabaja solo y **a tarifa fija**. Necesita notas
+del mismo día para protegerse: un cliente de hace ocho años reapareció en
+órdenes de arresto e intentó echarle la culpa, y lo que le salvó fue el
+archivo. Su caso difícil no son las consultas agendadas —esas ya las anota—
+sino **las llamadas imprevistas** mientras está en el juzgado.
+
+**Lo que confirma.** Tres comentaristas distintos convergen, sin que nadie se
+lo pregunte, en que lo único aceptable para material amparado por el secreto
+profesional es **local y sin conexión**. Uno afirma que en su estado la
+transcripción con IA destruye la confidencialidad y remite a leer la política
+de privacidad. El propio autor cuenta que usa Descript solo para material no
+confidencial y que **fue al colegio de abogados de su provincia a asegurarse
+de que estaba aprobado** antes de usarlo.
+
+Es la confirmación externa más fuerte que tenemos del argumento central de
+Gate32, y viene de gente que no es nuestro público, en otro idioma, y a la que
+nadie preguntó.
+
+**Y aun así no son clientes.** Tres motivos, por orden de gravedad:
+
+1. **No quiere una transcripción.** Lo dice él: *«no necesito una
+   transcripción directa; la ventaja de la IA es que va armando un resumen
+   mientras hablas»*. Gate32 no transcribe en tiempo real.
+2. **Una llamada tiene dos voces.** Una nota que no distingue quién dijo qué
+   vale menos como prueba. Gate32 no separa hablantes.
+3. **El problema ocurre en un móvil, en un juzgado.** Gate32 es una
+   herramienta de navegador; en un teléfono cae al respaldo WASM.
+
+Los dos primeros son las afirmaciones prohibidas de la regla 3. Este hilo es la
+prueba de por qué son prohibidas: aquí habría sido facilísimo escribir «justo
+lo que buscas» y ser desmentido en el primer uso, delante de abogados.
+
+**Lo que sí vale como posicionamiento.** Este comprador **consulta a su colegio
+profesional antes de adoptar una herramienta**. En esa conversación no gana el
+que promete privacidad: gana el que la puede demostrar. Desconectar la red y
+ver que sigue funcionando es exactamente el artefacto que sobrevive a esa
+consulta. Va a `EMBED.md`/`LAUNCH.md` como argumento, no como funcionalidad.
+
+**Qué no se hizo: comentar.** El AutoModerator del propio subreddit, visible en
+la captura, dice dos cosas que zanjan el asunto: que la comunidad es para
+abogados y que quien no lo sea borre su publicación para evitar sanción, y que
+participar en contenido generado por bots puede marcar la cuenta como
+astroturfing con **expulsión permanente extensible a todo Reddit**. Ya hay
+precedente propio: un comentario en r/legaltech se retiró por no llevar la
+etiqueta de proveedor. La regla 5 existe para leer las normas antes, no
+después.
