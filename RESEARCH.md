@@ -766,3 +766,86 @@ astroturfing con **expulsión permanente extensible a todo Reddit**. Ya hay
 precedente propio: un comentario en r/legaltech se retiró por no llevar la
 etiqueta de proveedor. La regla 5 existe para leer las normas antes, no
 después.
+
+---
+
+### r/podcasting confirma dos decisiones nuestras y señala el hueco que no cubrimos (2026-08-30)
+
+Nueve capturas de un hilo de r/podcasting con 23 comentarios, mandadas por el
+propietario. **Reddit sigue bloqueado desde el entorno**, así que solo se ha
+leído lo que entra en los recuadros.
+
+Pregunta del autor: lanza su podcast en rss.com gratis y quiere transcripción
+en las notas de cada episodio. Salen recomendados, sin orden: Otter, Whisper
+local, Audacity con OpenVINO, NotebookLM, Transcript LOL, Turboscribe,
+Rev.com, CastKeeper, Voxtext, MacWhisper, Sonix, CastMagic, SoundMadeSeen,
+Transcript Workbench Pro, Revoldiv, podcasts-ai.com, WhisperX y faster-whisper.
+
+**Dos comentarios coinciden en lo mismo, y no es la precisión.**
+
+> *«Lo que destroza una transcripción en las notas del show es que te devuelvan
+> un solo bloque gigante sin etiquetas de quién habla. Es la parte que vas a
+> estar corrigiendo a mano cada semana.»* — Cernete
+
+> *«Whisper, por sí sola, te deja una pared de texto sin diferenciar. Una
+> transcripción de entrevista sin marcadores de anfitrión/invitado se vuelve
+> casi ilegible en las notas. Todos se dan cuenta en el episodio dos.»* — garse
+
+**Gate32 no separa hablantes.** Es la afirmación prohibida número 3, y resulta
+que es el criterio de compra de nuestro segmento principal. No se puede
+maquillar: para un podcast de entrevistas somos, hoy, la pared de texto.
+
+**Y garse regala la salida barata**, que no necesita diarización ninguna:
+grabar a cada persona en su propia pista, transcribir cada archivo por
+separado —cada línea es de esa persona por definición, no hay nada que
+adivinar— y entrelazar las dos por marca de tiempo. Un podcaster que graba en
+remoto con pistas locales o «doble-end» ya tiene esos archivos.
+
+Eso **sí cabe en el navegador y sin modelo nuevo**: dos archivos, una etiqueta
+por archivo, mezcla por timestamp. Es la respuesta a la queja principal de
+nuestro público construida enteramente dentro de nuestras restricciones. Queda
+propuesto, no hecho.
+
+**Lo que el hilo confirma de lo que ya decidimos.**
+
+1. *El prompt inicial.* Cernete explica que lo que pongas en el prompt inicial
+   de Whisper sesga toda la transcripción, y que ahí se arreglan solos los
+   nombres propios; MacWhisper lo llama «vocabulary». Es exactamente el
+   mecanismo que buscamos tras el incidente de **«Claude» → «Cloud» noventa
+   veces**, y que `formats.ts` documenta como imposible: `prompt_ids` está
+   documentado en transformers.js **pero sin implementar**. Un experto de fuera
+   nombra el mecanismo correcto y confirma que nuestra sustitución —corregir
+   después, con reemplazo en toda la transcripción— es la forma que nos queda.
+2. *Las alucinaciones sobre el silencio.* garse avisa de que Whisper suelta
+   líneas basura repetidas en los tramos callados, normalmente créditos de
+   subtítulo vistos en el entrenamiento, y recomienda una implementación con
+   detección de actividad de voz. Nosotros no lo prevenimos: lo **marcamos**,
+   en `doubt.ts`, con la razón `boilerplate` y la lista literal de esas frases
+   («amara org», «gracias por ver el vídeo», «thanks for watching»…), más las
+   razones `repeat`, `fast` y `slow`. Distinto enfoque —él evita, nosotros
+   señalamos para que se compruebe— y llegamos por nuestra cuenta al mismo
+   fenómeno.
+
+**Un punto estructural que no teníamos.** krishh155 separa dos cosas que todos
+mezclan: un texto pegado en la descripción del episodio es texto en esa
+descripción y nada más. Para que una **app** de podcasts muestre una
+transcripción de verdad tiene que ir en el feed RSS como etiqueta
+`podcast:transcript` apuntando a un archivo **VTT o SRT**, y eso es una función
+del alojador, no de la herramienta de transcripción. En plan gratuito, la
+transcripción sirve para tu web y para el buscador.
+
+Gate32 exporta VTT y SRT. Es decir: exportamos justo el artefacto que encaja en
+esa etiqueta. La página de caso de uso de podcast debería decirlo con esas
+palabras, porque es un detalle que el propio público desconoce.
+
+**Sobre publicar.** No se ha comentado. Pero este hilo cambia lo que creíamos
+de r/podcasting, que es el subreddit que ya nos citó su norma: aquí comentan
+al menos cuatro proveedores de su propio producto, y DanielJLewis lo hace con
+un **«aviso requerido por el moderador»** enumerando todas sus afiliaciones. La
+norma parece ser *declarar*, no *abstenerse*. No se afirma más: las normas no
+se han podido leer desde aquí y el radar tiene el endpoint para comprobarlo
+(`/r/<sub>/about/rules.json`). Antes de escribir nada ahí, que lo compruebe.
+
+Y si se escribe, la limitación va delante, no escondida: cualquier comentario
+nuestro en este hilo tiene que decir que no separamos hablantes, justo después
+de que dos personas hayan explicado que es lo que más les duele.
