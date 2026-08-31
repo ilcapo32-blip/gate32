@@ -849,3 +849,45 @@ se han podido leer desde aquí y el radar tiene el endpoint para comprobarlo
 Y si se escribe, la limitación va delante, no escondida: cualquier comentario
 nuestro en este hilo tiene que decir que no separamos hablantes, justo después
 de que dos personas hayan explicado que es lo que más les duele.
+
+#### Las normas de r/podcasting, leídas (2026-08-30)
+
+La entrada anterior dejó en suspenso si la norma era declarar o abstenerse.
+El propietario mandó la captura de la página *About*, así que ya no hace falta
+suponer. Las tres que nos afectan, literales:
+
+> **3.** Do not post links to your podcast as new links. These are okay in
+> comments, when relevant.
+>
+> **6.** Links to deals are okay but do not post affiliate links or *your*
+> for-profit content **as new links**. **These are okay in comments, when
+> relevant.** Please disclose affiliate links.
+>
+> **7.** Promotional posts for products and services are prohibited unless
+> pre-approved by the moderators.
+
+La distinción es **publicación frente a comentario**, y las tres normas la
+repiten. Un hilo nuevo promocional está prohibido sin aprobación previa. Un
+comentario **relevante** que enlace contenido propio de pago está permitido de
+forma explícita, dos veces.
+
+Eso encaja con lo que nos pasó: nos citaron la norma **con el post ya
+publicado**. Publicamos un hilo, que es justo lo prohibido. Comentar nunca lo
+estuvo.
+
+Así que r/podcasting **no es un subreddit cerrado para nosotros**: es un
+subreddit donde solo se puede entrar respondiendo a alguien, que además es lo
+que dice la regla 4 de la casa. Se recupera un canal que llevaba semanas dado
+por perdido, y se recupera leyendo, no negociando.
+
+Dos matices antes de escribir nada ahí:
+
+- La norma exige declarar **los enlaces de afiliado**; no dice literalmente que
+  haya que declarar la autoría. Se declara igual, por la regla 1 (reddiquette)
+  y porque DanielJLewis publica con un «aviso requerido por el moderador», lo
+  que sugiere que en la práctica los moderadores lo piden.
+- **Relevante** es la palabra que hace el trabajo. En el hilo de las
+  transcripciones lo somos para quien pidió algo gratis y sin instalar —el
+  autor pidió exactamente eso—, y **no** lo somos para un podcast de
+  entrevistas, porque no separamos hablantes. Un comentario nuestro que no diga
+  eso en la primera línea se lo desmonta garse en la respuesta.
