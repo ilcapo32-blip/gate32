@@ -751,6 +751,80 @@ producto, por segunda medición consecutiva. Por tanto:
   ha pedido con un evento. Construirla ahora sería volver a mejorar producto
   contra un cuello de botella de demanda.
 
+### Décima medición (2026-10-13) · ventana 30/07–13/10, el panel completo
+
+Primera lectura del panel entero —todas las filas, no solo las seis primeras—.
+Y la primera que contesta una pregunta de estrategia en vez de describir el uso.
+
+**El denominador, otra vez.** El total de GoatCounter marca 6.391 «visits», y no
+son visitas: los eventos se guardan como rutas y el total los suma. Las filas de
+página son cinco y suman **906 vistas** (`/en` 625, `/` 276, `/reuniones` 3,
+`/subtitulos` 1, `/embed` 1). Todo lo que sigue usa 906, no 6.391.
+
+| | | |
+|---|---|---|
+| Activación | 492 `transcribe_start` / 906 vistas | **54,3 %** |
+| Finalización | 311 `transcribe_done` / 492 | **63,2 %** |
+| **Se pierden** | | **181 transcripciones** |
+| Exportan | 277 `export` / 311 terminadas | 89,1 % |
+| Vuelven | 184 `return_visit` / 906 | 20,3 % |
+
+Una activación del 54 % es altísima para una herramienta sin registro, y el 89 %
+de exportación dice que a quien termina le sirve. **La fuga está en medio:** de
+las 181 que no acaban, **108 se cancelan** (33 durante la inferencia, 14
+descargando el modelo, 7 por inactividad) y **63 dan error** —de los cuales 41
+al descodificar, 25 de ellos por archivo grande—.
+
+#### De dónde viene la gente: el hallazgo
+
+| Fuente | Visitas | |
+|---|---|---|
+| (desconocido) | 2.598 | 40,7 % |
+| **chatgpt.com** | **1.675** | **26,2 %** |
+| reddit.com | 823 | 12,9 % |
+| Google | 551 | 8,6 % |
+| Bing | 327 | 5,1 % |
+
+**ChatGPT manda casi el doble de tráfico que Google y Bing juntos (1,9×).** La
+apuesta por el GEO —`llms.txt`, contenido estructurado y citable— no es una
+teoría: es el canal más grande que tenemos identificado, y además el que menos
+gente está disputando. El 40,7 % desconocido incluye tráfico directo y
+asistentes que no mandan referente, así que la cifra real de IA es un suelo, no
+un techo.
+
+#### La hipótesis de la app nativa, contrastada
+
+Surgió al ver a LoroNote —transcripción offline para iPhone— publicar 7.591 $ en
+28 días y 1.295 $ de MRR con 258 suscripciones. La idea: publicar app de Android
+e iOS con pago único y derivar desde la web gratuita. Los datos la contradicen
+en tres ejes independientes:
+
+1. **El público es de escritorio.** Móvil y tablet son **966 de 6.391 (15,1 %)**;
+   monitores, 85 %. Windows 67 %, macOS 17 %, Android 10 %, iOS 5 %.
+2. **WebGPU no es el obstáculo.** `no_webgpu` son **33 sobre 906 vistas (3,6 %)**.
+   La hipótesis de «llegan al móvil y no pueden usarlo» es falsa.
+3. **Tenerlo en el dispositivo no se pide.** El diálogo de instalación se ofreció
+   **138 veces y se pulsó 10 (7,2 %)**; 15 instalaciones completadas.
+
+> **El matiz que hay que decir.** `beforeinstallprompt` no existe en iOS, así que
+> esas 138 son casi todas de Chrome en escritorio y Android. El número mide «¿te
+> instalas esta web?», no «¿te bajarías esta app del móvil?». Contradice la
+> hipótesis, no la liquida.
+
+Y el dato que decide el modelo de negocio antes que el canal: **9 eventos `pro_*`
+en total** —4 `pro_interest`, 2 `pro_feature`, 2 de diarización, 1 de actas—
+sobre 492 transcripciones. Nadie está pidiendo pagar. Un pago único necesita algo
+donde anclarse, y hoy no lo hay.
+
+**Decisión: no se construye app nativa.** No por la idea, que es buena y tiene a
+LoroNote como prueba de que alguien paga por esto, sino porque su canal es el ASO
+dentro de la App Store —lo dice él mismo— y el nuestro ya está funcionando y es
+otro. Perseguir el suyo abandonando el nuestro, con el público en escritorio y
+sin señal de pago, es cambiar lo que funciona por lo que funciona a otro.
+
+Lo que sí sale de aquí, por orden: **las 181 transcripciones que no terminan**,
+que es la mayor fuga medida del producto y se arregla escribiendo código.
+
 ### Por qué no sabemos para qué se usa (2026-08-07, corregido)
 
 La encuesta de caso de uso existía desde el principio, pero solo se mostraba
