@@ -775,6 +775,43 @@ las 181 que no acaban, **108 se cancelan** (33 durante la inferencia, 14
 descargando el modelo, 7 por inactividad) y **63 dan error** —de los cuales 41
 al descodificar, 25 de ellos por archivo grande—.
 
+#### Las 181 que no terminan: dónde están exactamente
+
+De las 492 transcripciones empezadas, 181 no llegan al final. El reparto:
+
+| | |
+|---|---|
+| Cancelaciones | **108** — 33 durante la inferencia, 14 descargando el modelo, 7 por inactividad |
+| Errores | **63** — de los cuales **41 al descodificar** |
+
+Y el desglose por formato de esos 41 señala una sola causa:
+**mp4 16 · m4a 9 · mov 6 · mp3 6 · mkv/ogg/avi/bz2/mhtml 1 cada uno.** Treinta y
+uno de cuarenta y uno son contenedores de la familia MP4. Y 25 de los 41 llegan
+etiquetados como «grande».
+
+La causa está escrita en el propio código, en el comentario de `decodeParts`:
+
+> «El troceado que teníamos **solo sabe leer MP3**.»
+
+`chunkRanges` corta por límites de trama MP3. Ante un MP4, M4A o MOV devuelve
+`null`, así que el archivo entero cae en `decodeAudioData` de una pieza. Y ahí
+el problema no es el audio final —a 16 kHz mono una hora son 115 MB— sino que el
+navegador **descodifica primero al ritmo nativo y remuestrea después**: una hora
+de estéreo a 48 kHz son 1,38 GB antes de convertirse en nada. Es el mismo fallo
+que se llevó por delante el webinar de 1 h 35 min en agosto, solo que entonces
+se arregló para WebM grabado por nosotros y no para lo que sube la gente.
+
+**Decisión: se escribe un demultiplexor mínimo de MP4** que localice la pista de
+audio en el átomo `moov`, extraiga las tramas AAC y las pase a `AudioDecoder` de
+WebCodecs, troceadas igual que ya se hace con MP3. Chrome es el 84 % del tráfico
+y WebCodecs está ahí desde hace años.
+
+No se añade `mp4box.js`: el proyecto tiene **una sola dependencia** a propósito,
+ya hay un analizador de tramas MP3 y otro de Atom escritos a mano, y de esa
+biblioteca haría falta una fracción pequeña. Si el demultiplexor propio se
+complica más de lo previsto, se reconsidera —y se anota aquí, no en una
+conversación.
+
 #### De dónde viene la gente: el hallazgo
 
 | Fuente | Visitas | |
@@ -816,7 +853,29 @@ en total** —4 `pro_interest`, 2 `pro_feature`, 2 de diarización, 1 de actas�
 sobre 492 transcripciones. Nadie está pidiendo pagar. Un pago único necesita algo
 donde anclarse, y hoy no lo hay.
 
-**Decisión: no se construye app nativa.** No por la idea, que es buena y tiene a
+**Decisión corregida (2026-10-13), tras una objeción que era buena.** El
+fundador señaló el sesgo que invalidaba mi lectura: *«el GEO lleva a la gente a
+visitar la web y todo empezó con un solo post en Reddit, nada más»*. Tiene
+razón. Quien llega desde ChatGPT está, por construcción, delante de un ordenador
+leyendo ChatGPT. El 15 % de móvil no mide la demanda móvil: mide **el canal por
+el que hemos crecido sin proponérnoslo**. Medir apetito de app en un público que
+llegó por texto a una herramienta de navegador es medir el canal.
+
+Así que la app se hace, **y se empieza por Google Play**, que además es lo
+correcto por una razón técnica concreta: Google acepta las TWA —envolver la PWA
+que ya existe, con sus manifiestos ya escritos— y Apple las rechaza por la
+directriz 4.2. El mismo trabajo vale en una tienda y no en la otra.
+
+Lo que sigue en pie de la medición, y hay que vigilarlo: **9 eventos `pro_*` en
+492 transcripciones**. No hay todavía ninguna señal de que alguien quiera pagar,
+así que el precio es una hipótesis sin validar y la app es el experimento que la
+valida, no su consecuencia.
+
+Lo que no cambia: **las 181 transcripciones que no terminan van primero.** Una
+app que falla con los mismos MP4 que falla la web no arregla nada, lo multiplica
+por dos tiendas.
+
+~~Decisión anterior: no se construye app nativa.~~ No por la idea, que es buena y tiene a
 LoroNote como prueba de que alguien paga por esto, sino porque su canal es el ASO
 dentro de la App Store —lo dice él mismo— y el nuestro ya está funcionando y es
 otro. Perseguir el suyo abandonando el nuestro, con el público en escritorio y
