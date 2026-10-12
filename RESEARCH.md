@@ -806,6 +806,11 @@ por archivo, mezcla por timestamp. Es la respuesta a la queja principal de
 nuestro público construida enteramente dentro de nuestras restricciones. Queda
 propuesto, no hecho.
 
+**Hecho el 2026-10-13** (`src/lib/speakers.ts`), y ampliado a las reuniones:
+la captura de Gate32 ya tenía dos pistas —tu micrófono y la pestaña— que se
+mezclaban en una. Ahora se graban también por separado y salen como diálogo
+entre «Tú» y «Los demás». Detalle y medición en PRODUCT.md y VALIDATION.md.
+
 **Lo que el hilo confirma de lo que ya decidimos.**
 
 1. *El prompt inicial.* Cernete explica que lo que pongas en el prompt inicial

@@ -43,7 +43,11 @@ No es cierto y no se escribe en ningún sitio:
 
 1. Que exporte "todos los formatos" — son TXT, MD, SRT, VTT y JSON.
 2. Que transcriba en tiempo real — no lo hace.
-3. Que separe hablantes — no lo hace.
+3. Que separe hablantes **sin matizar** — solo lo hace por pistas: cuando
+   cada voz va en su propio archivo (entrevista a doble pista, de 2 a 4
+   archivos soltados juntos) o en una reunión grabada con Gate32 («Tú» y «Los
+   demás», sin distinguir entre los demás). En un archivo único mezclado no
+   distingue a nadie. Se escribe siempre con esa condición delante.
 
 Y la privacidad se argumenta **con la prueba verificable** (desconectar la red
 y ver que sigue funcionando), nunca como promesa absoluta.

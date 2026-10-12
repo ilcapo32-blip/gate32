@@ -884,6 +884,70 @@ sin señal de pago, es cambiar lo que funciona por lo que funciona a otro.
 Lo que sí sale de aquí, por orden: **las 181 transcripciones que no terminan**,
 que es la mayor fuga medida del producto y se arregla escribiendo código.
 
+### Lo construido tras la décima medición (2026-10-13, sin datos de campo todavía)
+
+**1 · El demultiplexor MP4, ahora con su propio evento.** Leía bien los MP4,
+M4A y MOV grandes, pero al terminar contaba como `decode_chunked`, el mismo
+evento que el troceado de MP3: no habría forma de saber si estaba salvando los
+31 de 41 errores que venía a salvar. Ahora deja `decode_mp4`.
+
+Qué decide en la próxima medición: `decode_mp4` tiene que aparecer, y
+`transcribe_error_decode_grande` con extensión mp4, m4a o mov tiene que bajar.
+Si `decode_mp4` sale a cero y esos errores siguen igual, el demultiplexor no
+está entrando en el campo —navegador sin `AudioDecoder`, o un códec que no es
+AAC— y hay que mirar cuál antes de tocar nada más.
+
+**2 · Separación de hablantes, por pistas.** La queja número uno del público
+principal (garse y Cernete en r/podcasting: «una pared de texto sin
+diferenciar») y la afirmación prohibida número tres. Se hace **sin modelo y sin
+adivinar**: cuando cada voz llega en su propio archivo, cada línea es de esa
+persona por definición.
+
+- *Varios archivos a la vez (2 a 4):* se pregunta si son la misma
+  conversación grabada a doble pista. Sí → se transcriben por separado y se
+  entrelazan por tiempo, con el nombre sacado del archivo («ana.wav» → Ana;
+  «zoom_0_1729384551.m4a» → Persona 1). No → el primero, como siempre.
+- *Reuniones grabadas con Gate32:* además de la mezcla, que sigue siendo la
+  grabación que se guarda y se recupera, se graban aparte tu micrófono y la
+  pestaña. Sale un diálogo entre «Tú» y «Los demás», y se quita del micrófono
+  el eco de lo que sonó por los altavoces. Entre los demás no distingue: llegan
+  mezclados por la propia videollamada.
+- *Resultado:* el nombre aparece solo cuando cambia quien habla, se cambia con
+  un clic en todas sus líneas, y va a TXT y Markdown por turnos, a SRT al
+  cambiar de persona, a VTT con la etiqueta de voz estándar `<v Nombre>` y a
+  JSON. En una entrevista, pulsar la hora de una línea hace sonar el archivo
+  de quien la dijo.
+
+Lo que **no** hace, y así se dice en la web, en `llms.txt` y en la regla 3:
+un archivo único con todas las voces mezcladas sigue saliendo sin nombres.
+
+Qué medir y qué decide cada cosa:
+
+| Evento | Qué responde |
+|---|---|
+| `speakers_done_meeting` frente a `transcribe_start_meeting` | cuántas reuniones salen ya como diálogo; debería ser casi todas las que tienen micrófono |
+| `speakers_split_failed` + `speakers_split_empty` | si la grabación separada falla en equipos reales; más del 10 % de `meeting_start` es un problema |
+| `tracks_offered` | cuánta gente suelta varios archivos a la vez; hasta hoy era invisible, porque se tomaba el primero sin decir nada |
+| `tracks_declined` frente a `tracks_offered` | si dicen que no, soltaban archivos sueltos a la vez: es demanda de **lotes**, medida gratis |
+| `tracks_accepted_2` / `_3` / `_4` | cuántas voces tienen las entrevistas reales |
+| `speaker_rename` frente a `speakers_done` | si los nombres por defecto sirven o se cambian siempre |
+| `speakers_track_decode_failed` / `speakers_track_failed` | pistas que no se pudieron leer o transcribir |
+
+Un aviso sobre la serie: el botón Pro `diarizacion` cambia de texto («Separar
+hablantes» → «Voces de un solo archivo»). Los clics de antes y de después no
+son comparables; desde hoy mide justo lo que falta, que es separar voces dentro
+de un archivo mezclado.
+
+Lo que **no** está comprobado todavía, dicho claro: no se ha transcrito voz
+real con dos pistas, porque desde el entorno de desarrollo no se llega al CDN
+de los modelos. Las pruebas cubren la lógica (entrelazado, eco, turnos,
+nombres, formatos, entrega única de cada grabador) y el E2E cubre la pregunta,
+el renombrado y las exportaciones, pero no Whisper sobre dos archivos de
+verdad. Los umbrales del eco (60 % de palabras, 1,5 s de margen) salen de
+casos construidos, no del campo. Y tres grabadores a la vez no se han medido
+en un equipo modesto. La prueba con audio real en la web publicada va antes de
+anunciarlo en ningún sitio.
+
 ### Por qué no sabemos para qué se usa (2026-08-07, corregido)
 
 La encuesta de caso de uso existía desde el principio, pero solo se mostraba
@@ -939,6 +1003,13 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `file_ready_cancel` | elige otro archivo sin transcribir | — |
 | `transcribe_start` | usuario confirma y lanza la transcripción | `model`, `device`, `source` (file/mic/meeting/media), `minutes` |
 | `transcribe_start_meeting` | la transcripción viene de una reunión grabada | — |
+| `decode_mp4` | un MP4/M4A/MOV grande se leyó con el demultiplexor propio | — |
+| `tracks_offered` | suelta de 2 a 4 archivos a la vez y se le pregunta si son una conversación | — |
+| `tracks_accepted` / `tracks_accepted_N` / `tracks_declined` | su respuesta, y cuántas pistas | — |
+| `speakers_done` / `speakers_done_meeting` / `speakers_done_interview` | la transcripción sale con hablantes | — |
+| `speaker_rename` | cambia el nombre de un hablante | — |
+| `speakers_track_decode_failed` / `speakers_track_failed` | una pista no se pudo leer o transcribir | — |
+| `speakers_split_failed` / `speakers_split_empty` | la grabación separada de una reunión no arrancó o salió vacía | — |
 | `meeting_click` | primer clic en «Grabar una reunión» (aún no comparte) | — |
 | `meeting_start` | la captura arranca de verdad | — |
 | `meeting_no_mic` | se capturó la pestaña pero no el micrófono | — |

@@ -37,6 +37,12 @@ import {
 import { LANGUAGES, needsBiggerModel } from "./lib/languages";
 import { findDoubts, type DoubtReason } from "./lib/doubt";
 import { markedIndexes, addMark } from "./lib/marks";
+import {
+  combineTracks,
+  labelFromFileName,
+  renameSpeaker,
+  type TrackKind,
+} from "./lib/speakers";
 import { initAnalytics, track, trackVisit } from "./lib/analytics";
 import { ensureStorage, humanBytes } from "./lib/storage";
 import {
@@ -271,6 +277,14 @@ let current: Current | null = null;
 let busy = false;
 let editTracked = false;
 let objectUrl: string | null = null;
+/**
+ * En una entrevista a varias pistas no hay mezcla: cada persona es un archivo.
+ * Con un solo reproductor sobre el primero, pulsar la hora de una línea de la
+ * segunda persona sonaría a silencio, o a su voz de fondo. Por eso suena el
+ * archivo de quien dijo esa línea. En una reunión no hace falta: la mezcla lo
+ * tiene todo.
+ */
+let voiceUrls = new Map<string, string>();
 
 // Una vez respondida la encuesta no se vuelve a preguntar en este dispositivo:
 // la descarga del modelo solo ocurre una vez, pero el usuario puede exportar
@@ -334,8 +348,21 @@ let meetingNoMic = false;
 // De dónde viene lo que se va a transcribir. Lo fija quien llama a handleFile.
 let pendingSource: "file" | "mic" | "meeting" | "media" = "file";
 
+/**
+ * Varias pistas de la misma conversación, una voz por pista.
+ *
+ * Viaja **pegado al archivo** —en `pending` y en `lastRun`— y no en una variable
+ * suelta a la espera de que alguien la recoja. Con una variable suelta, elegir
+ * otro archivo después de grabar una reunión habría transcrito las pistas de la
+ * reunión con el nombre del archivo nuevo.
+ */
+interface TrackPlan {
+  kind: TrackKind;
+  tracks: { label: string; file: Blob; parts?: Blob[] }[];
+}
+
 // Archivo elegido y a la espera de que se confirmen idioma y modelo.
-let pending: { file: File | Blob; name: string; parts?: Blob[] } | null = null;
+let pending: { file: File | Blob; name: string; parts?: Blob[]; plan?: TrackPlan } | null = null;
 
 // Lo último que se ha grabado, guardado aparte de todo lo demás. Existe porque
 // una hora y media de webinar se perdió entera: la grabación estaba bien y se
@@ -346,7 +373,19 @@ let recorded: { parts: Blob[]; name: string; mimeType: string } | null = null;
 // Lo último transcrito, para poder repetirlo con un modelo mejor sin que el
 // usuario tenga que volver a buscar el archivo. Es la diferencia entre "esto
 // no sirve" y "ah, vale, con el otro modelo sí".
-let lastRun: { file: File | Blob; name: string; quality: ModelQuality } | null = null;
+//
+// Guarda también los trozos y las pistas. Antes solo guardaba el archivo, y
+// eso tenía un fallo silencioso: una reunión larga llega en trozos de ocho
+// minutos y `file` es solo el primero, así que «repetir con un modelo mejor»
+// transcribía **los primeros ocho minutos** de una reunión de hora y media sin
+// decir nada.
+let lastRun: {
+  file: File | Blob;
+  name: string;
+  quality: ModelQuality;
+  parts?: Blob[];
+  plan?: TrackPlan;
+} | null = null;
 
 let waitSurveyShown = false;
 function showWaitSurvey(bytesDone: number): void {
@@ -399,7 +438,14 @@ async function importJSON(file: File | Blob, name: string): Promise<boolean> {
       if (typeof s.start !== "number" || typeof s.end !== "number" || typeof s.text !== "string") {
         return false;
       }
-      segments.push({ start: s.start, end: s.end, text: s.text });
+      // El hablante se conserva: un JSON exportado de una entrevista a dos
+      // pistas volvía sin etiquetas, como la pared de texto de siempre.
+      segments.push({
+        start: s.start,
+        end: s.end,
+        text: s.text,
+        ...(typeof s.speaker === "string" && s.speaker ? { speaker: s.speaker } : {}),
+      });
     }
     current = {
       id: `${Date.now()}`,
@@ -435,7 +481,12 @@ async function importJSON(file: File | Blob, name: string): Promise<boolean> {
  * que a la segunda vez ya está bien, y el aviso de archivo grande pasa a este
  * panel en lugar de un diálogo del navegador encima.
  */
-async function handleFile(file: File | Blob, name: string, parts?: Blob[]): Promise<void> {
+async function handleFile(
+  file: File | Blob,
+  name: string,
+  parts?: Blob[],
+  plan?: TrackPlan,
+): Promise<void> {
   if (busy) return;
 
   // Un JSON exportado por Gate32 se reabre en vez de transcribirse.
@@ -445,11 +496,16 @@ async function handleFile(file: File | Blob, name: string, parts?: Blob[]): Prom
     return;
   }
 
-  pending = { file, name, ...(parts ? { parts } : {}) };
+  pending = { file, name, ...(parts ? { parts } : {}), ...(plan ? { plan } : {}) };
   hide(errorBox);
   hide(resultSection);
   if (readyName) readyName.textContent = name;
-  const bytes = parts ? parts.reduce((n, p) => n + p.size, 0) : file.size;
+  const bytes =
+    plan?.kind === "interview"
+      ? plan.tracks.reduce((n, tr) => n + tr.file.size, 0)
+      : parts
+        ? parts.reduce((n, p) => n + p.size, 0)
+        : file.size;
   if (readySize) readySize.textContent = humanBytes(bytes, locale);
   // El aviso por tamaño va **antes** de decodificar. Un 22 % de los archivos
   // que se sueltan no se pueden leer, y la causa confirmada es la memoria del
@@ -477,10 +533,17 @@ async function startTranscription(
   file: File | Blob,
   name: string,
   pendingParts?: Blob[],
+  plan?: TrackPlan,
 ): Promise<void> {
   if (busy) return;
   pending = null;
-  lastRun = { file, name, quality: modelSelect.value as ModelQuality };
+  lastRun = {
+    file,
+    name,
+    quality: modelSelect.value as ModelQuality,
+    ...(pendingParts ? { parts: pendingParts } : {}),
+    ...(plan ? { plan } : {}),
+  };
   const parts = pendingParts;
   if (readyBox) hide(readyBox);
 
@@ -499,15 +562,39 @@ async function startTranscription(
   let audio: Float32Array;
   let duration: number;
   let chunked: boolean | undefined;
+  // Las pistas se descodifican **antes** que la mezcla, y si salen bien, la
+  // mezcla ni se toca: tres copias de una reunión de hora y media a 16 kHz son
+  // un gigabyte.
+  //
+  // Si falla una, depende de qué hay detrás. En una reunión existe la mezcla,
+  // que lo tiene todo: se transcribe esa, sin hablantes pero completa. En una
+  // entrevista no hay mezcla; cada archivo es una persona, así que se sigue con
+  // los que se pudieron leer y se dice cuál falta. Volver al primer archivo a
+  // secas borraría a los demás sin avisar.
+  const decoded = plan ? await decodeTracks(plan) : { ok: [], unreadable: [] };
+  const trackAudios =
+    plan && decoded.ok.length >= (plan.kind === "meeting" ? 2 : 1) ? decoded.ok : [];
+  const trackNote = decoded.unreadable.map((n) => t("done_track_unreadable", { name: n })).join("");
+  // La pista que sí se leyó, si no se va a usar, no puede quedarse ocupando
+  // memoria mientras se descodifica la mezcla: en una hora son 230 MB.
+  if (trackAudios.length === 0) decoded.ok.length = 0;
+  let viaMp4 = false;
   try {
-    // Una grabación larga llega partida en trozos independientes: se
-    // decodifican de uno en uno, que es lo único que no depende de que quepa
-    // el archivo entero en memoria.
-    ({ audio, duration, chunked } =
-      parts && parts.length > 1 ? await decodeParts(parts) : await decodeToMono16k(file));
+    if (trackAudios.length > 0) {
+      audio = trackAudios[0]?.audio ?? new Float32Array();
+      duration = Math.max(...trackAudios.map((tr) => tr.duration));
+    } else {
+      // Una grabación larga llega partida en trozos independientes: se
+      // decodifican de uno en uno, que es lo único que no depende de que quepa
+      // el archivo entero en memoria.
+      const d = parts && parts.length > 1 ? await decodeParts(parts) : await decodeToMono16k(file);
+      ({ audio, duration, chunked } = d);
+      viaMp4 = d.mp4 === true;
+    }
     // Se mide aparte: es el camino nuevo y hay que saber si de verdad salva
     // archivos que antes se perdían.
     if (chunked) track("decode_chunked");
+    if (viaMp4) track("decode_mp4");
   } catch (err) {
     // El nombre del evento lleva la causa: GoatCounter (plan gratuito) solo
     // registra el nombre, no las propiedades. Sin esto los fallos son opacos.
@@ -541,6 +628,11 @@ async function startTranscription(
   objectUrl = URL.createObjectURL(file);
   player.src = objectUrl;
   hide(player);
+  voiceUrls.forEach((u) => URL.revokeObjectURL(u));
+  voiceUrls = new Map();
+  if (plan?.kind === "interview" && trackAudios.length > 0) {
+    for (const tr of plan.tracks) voiceUrls.set(tr.label, URL.createObjectURL(tr.file));
+  }
 
   const quality = modelSelect.value as ModelQuality;
   const language = langSelect.value;
@@ -633,6 +725,10 @@ async function startTranscription(
       setProgress(0);
       show(partialBox);
       const tGen0 = performance.now();
+      if (plan && trackAudios.length > 0) {
+        transcribeTracks(plan.kind, trackAudios, language, quality, tGen0, tLoad0, trackNote);
+        return;
+      }
       transcriber.transcribe(audio, language, {
         onWindowProgress(done, total, partial) {
           setProgress((done / total) * 100);
@@ -683,12 +779,114 @@ async function startTranscription(
   });
 }
 
+/** Descodifica cada pista. Una que falle se salta: nunca tumba a las demás. */
+async function decodeTracks(plan: TrackPlan): Promise<{
+  ok: { label: string; audio: Float32Array; duration: number }[];
+  unreadable: string[];
+}> {
+  const ok: { label: string; audio: Float32Array; duration: number }[] = [];
+  const unreadable: string[] = [];
+  for (const tr of plan.tracks) {
+    try {
+      const d =
+        tr.parts && tr.parts.length > 1 ? await decodeParts(tr.parts) : await decodeToMono16k(tr.file);
+      if (d.duration >= 0.5) ok.push({ label: tr.label, audio: d.audio, duration: d.duration });
+      else unreadable.push(tr.label);
+    } catch {
+      track("speakers_track_decode_failed");
+      unreadable.push(tr.label);
+    }
+  }
+  return { ok, unreadable };
+}
+
+/**
+ * Transcribe las pistas una detrás de otra, con el modelo ya cargado, y las
+ * junta en una conversación.
+ *
+ * En serie y no a la vez: el worker es uno y el modelo ocupa lo que ocupa. Dos
+ * pistas cuestan el doble de tiempo que una, y por eso el progreso dice en qué
+ * pista va: una barra que llega al 100 % y vuelve a empezar sin explicación
+ * parece un fallo.
+ *
+ * Si una pista falla después de que otra haya salido bien, se entrega lo que
+ * hay y se dice qué falta. Lo que alguien tardó una hora en grabar no se tira
+ * porque falle la segunda mitad del trabajo (regla 8).
+ */
+function transcribeTracks(
+  kind: TrackKind,
+  items: { label: string; audio: Float32Array }[],
+  language: string,
+  quality: ModelQuality,
+  tGen0: number,
+  tLoad0: number,
+  decodeNote = "",
+): void {
+  const results: { label: string; segments: Segment[] }[] = [];
+  let failedBlocks = 0;
+
+  const finish = (note = decodeNote): void => {
+    track("speakers_done");
+    track(`speakers_done_${kind}`);
+    finishTranscription(
+      combineTracks(kind, results),
+      quality,
+      (performance.now() - tGen0) / 1000,
+      (performance.now() - tLoad0) / 1000,
+      failedBlocks,
+      note,
+    );
+  };
+
+  const runOne = (i: number): void => {
+    const item = items[i];
+    if (!item) {
+      finish();
+      return;
+    }
+    const prefix = t("track_progress", { i: String(i + 1), n: String(items.length) });
+    const tTrack0 = performance.now();
+    transcriber.transcribe(item.audio, language, {
+      onWindowProgress(done, total, partial) {
+        setProgress(((i + done / total) / items.length) * 100);
+        const tail = partial.slice(-2).map((x) => x.text).join(" ");
+        if (tail) partialBox.textContent = `${item.label}: …${tail.slice(-200)}`;
+        const elapsed = (performance.now() - tTrack0) / 1000;
+        const eta = done > 0 ? (elapsed / done) * (total - done) : 0;
+        statusDetail.textContent =
+          prefix +
+          (done < total ? t("block_progress", { done, total, eta: clock(eta) }) : t("finishing"));
+      },
+      onDone(segments, _seconds, failed) {
+        results.push({ label: item.label, segments });
+        failedBlocks += failed ?? 0;
+        runOne(i + 1);
+      },
+      onError(_stage, message) {
+        track("transcribe_error", { stage: "transcribe", kind: "inference" });
+        track("transcribe_error_inference");
+        track(`transcribe_error_inference_${quality}`);
+        transcriber.reset();
+        if (results.length > 0) {
+          track("speakers_track_failed");
+          finish(decodeNote + t("done_track_failed", { name: item.label }));
+          return;
+        }
+        showError(t("infer_error", { msg: message }), t("infer_hint"));
+      },
+    });
+  };
+
+  runOne(0);
+}
+
 function finishTranscription(
   segments: Segment[],
   quality: ModelQuality,
   genSeconds: number,
   totalSeconds: number,
   failed = 0,
+  note = "",
 ): void {
   if (!current) return;
   busy = false;
@@ -702,6 +900,7 @@ function finishTranscription(
   }
 
   current.segments = segments;
+  const speakers = new Set(segments.map((s) => s.speaker).filter(Boolean)).size;
   track("transcribe_done", {
     model: quality,
     device: current.device,
@@ -745,7 +944,9 @@ function finishTranscription(
       }) +
       // Un hueco en mitad del texto sin explicación se lee como que la
       // herramienta se ha comido una frase por su cuenta.
-      (failed > 0 ? t("done_failed", { n: failed }) : ""),
+      (failed > 0 ? t("done_failed", { n: failed }) : "") +
+      (speakers > 1 ? t("done_speakers", { n: String(speakers) }) : "") +
+      note,
   );
 }
 
@@ -810,7 +1011,8 @@ function renderSegments(): void {
   }
 
   segmentsBox.replaceChildren();
-  current.segments.forEach((seg, i) => {
+  const segs = current.segments;
+  segs.forEach((seg, i) => {
     const row = document.createElement("div");
     row.className = "segment";
     row.dataset["index"] = String(i);
@@ -833,6 +1035,21 @@ function renderSegments(): void {
       // marca sirve: ha ido a comprobarla con el audio, que es todo lo que se
       // le pedía.
       if (reason) track("doubt_seek");
+      const voice = seg.speaker ? voiceUrls.get(seg.speaker) : undefined;
+      if (voice && player.src !== voice) {
+        // Cambiar de archivo descarta la posición: hay que esperar a que el
+        // nuevo diga cuánto dura para poder saltar.
+        player.src = voice;
+        player.addEventListener(
+          "loadedmetadata",
+          () => {
+            player.currentTime = seg.start;
+            void player.play();
+          },
+          { once: true },
+        );
+        return;
+      }
       player.currentTime = seg.start;
       void player.play();
     });
@@ -853,7 +1070,36 @@ function renderSegments(): void {
       persistEditsSoon();
     });
 
-    row.append(time, text);
+    // Quién habla, solo cuando cambia: con el nombre delante de cada corte de
+    // Whisper la conversación parece una lista. Al pulsarlo se cambia en todas
+    // sus líneas —«Persona 2» o «Los demás» casi nunca es como se llama nadie.
+    const who = seg.speaker;
+    if (who && who !== segs[i - 1]?.speaker) {
+      const tag = document.createElement("button");
+      tag.type = "button";
+      tag.className = "seg-speaker";
+      tag.textContent = who;
+      tag.title = t("speaker_rename_hint");
+      tag.addEventListener("click", () => {
+        if (!current) return;
+        const next = window.prompt(t("speaker_rename", { name: who }), who);
+        if (next === null) return;
+        current.segments = renameSpeaker(current.segments, who, next);
+        const name = next.trim();
+        const url = voiceUrls.get(who);
+        if (url && name && name !== who && !voiceUrls.has(name)) {
+          voiceUrls.delete(who);
+          voiceUrls.set(name, url);
+        }
+        track("speaker_rename");
+        persistEditsSoon();
+        renderSegments();
+      });
+      row.classList.add("has-speaker");
+      row.append(time, tag, text);
+    } else {
+      row.append(time, text);
+    }
     segmentsBox.appendChild(row);
   });
 
@@ -1050,9 +1296,61 @@ dropzone.addEventListener("keydown", (e) => {
     fileInput.click();
   }
 });
+/** Más de cuatro voces en pistas separadas ya no es una entrevista. */
+const MAX_TRACKS = 4;
+
+/**
+ * Uno o varios archivos elegidos a la vez.
+ *
+ * Varios pueden ser una entrevista a doble pista —cada voz grabada en su propio
+ * archivo, que es como graban en remoto los podcasts— o simplemente archivos
+ * sueltos. No se adivina: se pregunta, porque transcribir como diálogo tres
+ * archivos que no tienen nada que ver mezclaría tres conversaciones línea a
+ * línea. Quien dice que no, se queda con lo de siempre: el primer archivo.
+ */
+function handleFiles(list: FileList | null | undefined): void {
+  if (busy) return;
+  const all = Array.from(list ?? []);
+  const audios = all.filter((f) => !/\.json$/i.test(f.name)).slice(0, MAX_TRACKS);
+  const [first, second] = audios;
+  if (!first || !second) {
+    const one = all[0];
+    if (one) void handleFile(one, one.name);
+    return;
+  }
+  const q = (s: string): string => (lang === "es" ? `«${s}»` : `“${s}”`);
+  track("tracks_offered");
+  const ok = confirm(
+    t("tracks_confirm", {
+      n: String(audios.length),
+      list: audios.map((f) => q(f.name)).join(", "),
+      a: first.name,
+    }),
+  );
+  if (!ok) {
+    track("tracks_declined");
+    void handleFile(first, first.name);
+    return;
+  }
+  track("tracks_accepted");
+  track(`tracks_accepted_${audios.length}`);
+  // Dos archivos pueden dar el mismo nombre («ana.wav» y «ana.mp3»): entonces
+  // el segundo pasa a «Persona 2», o las dos voces se fundirían en una.
+  const used = new Set<string>();
+  const tracks = audios.map((file, i) => {
+    const fallback = t("speaker_n", { n: String(i + 1) });
+    let label = labelFromFileName(file.name, fallback);
+    if (used.has(label)) label = fallback;
+    used.add(label);
+    return { label, file };
+  });
+  const ext = /\.[a-z0-9]{1,5}$/i.exec(first.name)?.[0] ?? "";
+  const name = audios.map((f) => f.name.replace(/\.[^.]+$/, "")).join(" + ") + ext;
+  void handleFile(first, name, undefined, { kind: "interview", tracks });
+}
+
 fileInput.addEventListener("change", () => {
-  const f = fileInput.files?.[0];
-  if (f) void handleFile(f, f.name);
+  handleFiles(fileInput.files);
   fileInput.value = "";
 });
 ["dragover", "dragenter"].forEach((ev) =>
@@ -1068,8 +1366,7 @@ fileInput.addEventListener("change", () => {
   }),
 );
 dropzone.addEventListener("drop", (e) => {
-  const f = (e as DragEvent).dataTransfer?.files?.[0];
-  if (f && !busy) void handleFile(f, f.name);
+  handleFiles((e as DragEvent).dataTransfer?.files);
 });
 
 // ── momentos marcados durante la grabación ──
@@ -1253,7 +1550,23 @@ function wireTabCapture(mode: TabMode, btn: HTMLButtonElement): void {
       // Se graba en trozos de pocos minutos, cada uno un archivo válido por su
       // cuenta. Una sola grabación de hora y media es indecodificable y ya
       // costó un webinar entero.
-      st.stop = recordInParts(st.capture.stream, MINUTES_PER_PART, (parts, mimeType) => {
+      //
+      // En una reunión, además de la mezcla, se graban tu micrófono y la
+      // pestaña **por separado**: cada uno es una sola voz por definición —tú y
+      // los demás— y eso es lo que permite devolver la reunión como diálogo sin
+      // adivinar quién habla. La mezcla sigue siendo la grabación que se guarda
+      // y se puede recuperar; las otras dos son un extra, y si fallan se
+      // transcribe la mezcla como siempre.
+      const split = mode === "meeting" ? st.capture.split : null;
+      let waiting = 0;
+      let mixed: { parts: Blob[]; mimeType: string } | null = null;
+      let micParts: Blob[] = [];
+      let tabParts: Blob[] = [];
+      const stoppers: (() => void)[] = [];
+      const settle = (): void => {
+        waiting--;
+        if (waiting > 0 || !mixed) return;
+        const { parts, mimeType } = mixed;
         st.capture?.stop();
         st.capture = null;
         window.clearInterval(st.timer);
@@ -1269,8 +1582,48 @@ function wireTabCapture(mode: TabMode, btn: HTMLButtonElement): void {
         recorded = { parts, name, mimeType };
         showRecovery();
         pendingSource = mode;
-        void handleFile(parts[0] as Blob, name, parts);
-      });
+        const [mic0] = micParts;
+        const [tab0] = tabParts;
+        const plan: TrackPlan | undefined =
+          mic0 && tab0
+            ? {
+                kind: "meeting",
+                tracks: [
+                  { label: t("speaker_me"), file: mic0, parts: micParts },
+                  { label: t("speaker_others"), file: tab0, parts: tabParts },
+                ],
+              }
+            : undefined;
+        if (split && !plan) track("speakers_split_empty");
+        void handleFile(parts[0] as Blob, name, parts, plan);
+      };
+
+      waiting++;
+      stoppers.push(
+        recordInParts(st.capture.stream, MINUTES_PER_PART, (parts, mimeType) => {
+          mixed = { parts, mimeType };
+          settle();
+        }),
+      );
+      if (split) {
+        const extra = (stream: MediaStream, keep: (p: Blob[]) => void): void => {
+          waiting++;
+          try {
+            stoppers.push(
+              recordInParts(stream, MINUTES_PER_PART, (p) => {
+                keep(p);
+                settle();
+              }),
+            );
+          } catch {
+            waiting--;
+            track("speakers_split_failed");
+          }
+        };
+        extra(split.mic, (p) => (micParts = p));
+        extra(split.tab, (p) => (tabParts = p));
+      }
+      st.stop = () => stoppers.forEach((stop) => stop());
       st.recording = true;
       // Si se corta la compartición desde la barra del navegador, se cierra la
       // grabación igual que si se hubiera pulsado «Detener» aquí: dejar de
@@ -1507,7 +1860,7 @@ recoveryBtn?.addEventListener("click", () => {
 
 startBtn?.addEventListener("click", () => {
   if (!pending) return;
-  void startTranscription(pending.file, pending.name, pending.parts);
+  void startTranscription(pending.file, pending.name, pending.parts, pending.plan);
 });
 
 retryBtn?.addEventListener("click", () => {
@@ -1528,7 +1881,7 @@ retryBtn?.addEventListener("click", () => {
   track("retry_better");
   track(`retry_better_${q}`);
   hide(resultSection);
-  void startTranscription(lastRun.file, lastRun.name);
+  void startTranscription(lastRun.file, lastRun.name, lastRun.parts, lastRun.plan);
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 

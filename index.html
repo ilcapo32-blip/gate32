@@ -115,7 +115,12 @@
       {
         "@type": "Question",
         "name": "¿En qué se diferencia de Otter, Notta o HappyScribe?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Esas herramientas procesan el audio en sus servidores y limitan el plan gratuito. Gate32 es local: privacidad verificable, sin límites y sin cuenta. Funciones de servidor como la identificación de hablantes aún no están disponibles." }
+        "acceptedAnswer": { "@type": "Answer", "text": "Esas herramientas procesan el audio en sus servidores y limitan el plan gratuito. Gate32 es local: privacidad verificable, sin límites y sin cuenta. Separa a quién habla cuando cada voz va en su propia pista, pero todavía no distingue varias voces dentro de un único archivo mezclado." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Distingue quién habla en una entrevista o una reunión?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sí, cuando cada voz está grabada en su propia pista. Si sueltas a la vez los archivos de una entrevista grabada a doble pista (uno por persona, como graban en remoto muchos podcasts), Gate32 transcribe cada uno por separado y te devuelve el diálogo con el nombre de cada uno, que se cambia con un clic. Si grabas una reunión con Gate32, tu micrófono y el audio de la pestaña se graban por separado y sale como diálogo entre «Tú» y «Los demás». Los nombres van también en TXT, Markdown, SRT y VTT. Lo que todavía no hace es distinguir varias voces dentro de un único archivo mezclado: ahí el texto sale sin nombres." }
       }
     ]
   }
@@ -188,11 +193,12 @@
                visually-hidden lo saca de la vista pero lo deja enfocable y en el
                árbol de accesibilidad, así que con teclado y lector de pantalla se
                caía en un campo de archivo que no se anuncia. Fuera del recorrido. -->
-          <input type="file" id="file-input" class="visually-hidden"
+          <input type="file" id="file-input" class="visually-hidden" multiple
                  tabindex="-1" aria-hidden="true" />
           <svg viewBox="0 0 24 24" aria-hidden="true" class="drop-icon"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0 4 4m-4-4L8 8M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
           <strong>Arrastra un archivo de audio o vídeo</strong>
           <span>o haz clic para elegirlo · MP3, WAV, M4A, OGG, MP4, WEBM…</span>
+          <span class="drop-tracks">¿Cada voz en su propio archivo? Suéltalos juntos y sale como diálogo.</span>
         </div>
 
         <div class="firstrun">
@@ -400,12 +406,12 @@
         <div class="pro-card">
           <div>
             <strong>¿Te serviría un Gate32 Pro?</strong>
-            <p>Identificación de hablantes, transcripción por lotes y actas automáticas.</p>
+            <p>Voces separadas en un único archivo mezclado, transcripción por lotes y actas automáticas.</p>
           </div>
           <button id="pro-btn" class="btn accent" type="button">Me interesa</button>
           <div id="pro-features" class="pro-features" hidden>
             <span>¿Qué te haría pagar? (anónimo)</span>
-            <button class="btn ghost small pro-feature" data-feature="diarizacion" type="button">Separar hablantes</button>
+            <button class="btn ghost small pro-feature" data-feature="diarizacion" type="button">Voces de un solo archivo</button>
             <button class="btn ghost small pro-feature" data-feature="lotes" type="button">Lotes de archivos</button>
             <button class="btn ghost small pro-feature" data-feature="actas" type="button">Actas y resúmenes</button>
           </div>
@@ -472,7 +478,7 @@
             <tr><th scope="row">Subtítulos SRT/VTT sin marca de agua</th><td>Sí</td><td>Normalmente de pago</td><td>Según la app</td></tr>
             <tr><th scope="row">Graba una reunión sin meter un bot en la llamada</th><td>Sí (Chrome/Edge de escritorio)</td><td>No: se une como participante y sube el audio</td><td>No, salvo grabando la pantalla</td></tr>
             <tr><th scope="row">Transcribe un vídeo o directo de otra pestaña</th><td>Sí</td><td>Hay que descargarlo y subirlo</td><td>Hay que descargarlo</td></tr>
-            <tr><th scope="row">Identificación de hablantes</th><td>Todavía no</td><td>Sí, en planes de pago</td><td>Según la app</td></tr>
+            <tr><th scope="row">Separa quién habla</th><td>Sí, si cada voz va en su pista (varios archivos, o una reunión grabada aquí). En un archivo mezclado, todavía no</td><td>Sí, en planes de pago</td><td>Según la app</td></tr>
           </tbody>
         </table>
       </div>
@@ -527,7 +533,11 @@
       </details>
       <details>
         <summary>¿En qué se diferencia de Otter, Notta o HappyScribe?</summary>
-        <p>Esas herramientas procesan tu audio en sus servidores y limitan el plan gratuito (minutos, número de archivos, funciones). Gate32 es local: privacidad verificable, sin límites y sin cuenta. A cambio, funciones de servidor como la identificación de hablantes aún no están disponibles (estamos midiendo el interés).</p>
+        <p>Esas herramientas procesan tu audio en sus servidores y limitan el plan gratuito (minutos, número de archivos, funciones). Gate32 es local: privacidad verificable, sin límites y sin cuenta. A cambio, distinguir varias voces dentro de un único archivo mezclado aún no está disponible (estamos midiendo el interés); si cada voz va en su propio archivo, sí las separa.</p>
+      </details>
+      <details>
+        <summary>¿Distingue quién habla en una entrevista o una reunión?</summary>
+        <p>Sí, cuando cada voz está grabada en su propia pista. Si sueltas a la vez los archivos de una entrevista grabada a doble pista (uno por persona, como graban en remoto muchos podcasts), Gate32 transcribe cada uno por separado y te devuelve el diálogo con el nombre de cada uno, que se cambia con un clic. Si grabas una reunión con Gate32, tu micrófono y el audio de la pestaña se graban por separado y sale como diálogo entre «Tú» y «Los demás». Los nombres van también en TXT, Markdown, SRT y VTT. Lo que todavía no hace es distinguir varias voces dentro de un único archivo mezclado: ahí el texto sale sin nombres.</p>
       </details>
     </section>
   </main>

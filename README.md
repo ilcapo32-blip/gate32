@@ -53,6 +53,18 @@ uploaded. If the shared tab arrives with no audio track — the user didn't tick
 silently recording half the meeting. Recording other people requires their
 consent; the app says so before it starts.
 
+### Who is speaking: separation by track
+
+No diarization model and no guessing. If each voice is recorded in its own
+file — a double-ender interview, the way many remote podcasts record — drop
+them together (2 to 4): each one is transcribed separately and interleaved by
+time, so every line belongs to whoever recorded that track **by definition**.
+In a meeting, besides the mix, your microphone ("You") and the tab
+("Others") are recorded separately, and the echo of the speakers is removed
+from the microphone. Names can be changed with one click and carry over to
+TXT, Markdown, SRT, VTT (`<v Name>`) and JSON. A single file with every voice
+mixed still comes out without names.
+
 ## Architecture
 
 ```
@@ -65,6 +77,8 @@ src/lib/
   transcriber.ts      typed worker client (swappable AI layer)
   audio.ts            decoding to mono 16 kHz (OfflineAudioContext)
   meeting.ts          tab-audio + mic capture for video calls
+  speakers.ts         speaker separation by track, no model
+  mp4.ts              MP4/M4A index to decode large files in ranges
   formats.ts          pure logic: windows, merging, TXT/MD/SRT/VTT/JSON
   i18n.ts             strings for JS-generated UI (ES/EN)
   analytics.ts        anonymous validation events
@@ -144,7 +158,9 @@ Every push to `main` publishes to https://gate32.autoritasai.com.
 - Speed depends on the user's machine: with WebGPU (recent Chrome/Edge) it's
   several times faster than real time; without it, WASM works but is slow with
   the Accurate model.
-- **No speaker diarization** and no summaries yet.
+- Speakers are separated **only by track** (each voice in its own file, or
+  meetings recorded with Gate32). No diarization of a single mixed file and
+  no summaries yet.
 - Meeting capture needs desktop Chrome or Edge; Firefox and Safari don't allow
   capturing a tab's audio, and mobile browsers don't either. The button is
   hidden where it wouldn't work.

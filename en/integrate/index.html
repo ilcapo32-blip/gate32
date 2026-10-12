@@ -46,7 +46,7 @@
       {
         "@type": "Question",
         "name": "What are the limitations we should tell our users about?",
-        "acceptedAnswer": { "@type": "Answer", "text": "The first run downloads the model (50-250 MB depending on size, cached afterwards), and the interface shows real progress in MB. Without WebGPU it is much slower, and the page warns before starting. It does not separate speakers yet. Very long files can fail on browser memory: an episode over an hour on a modest machine is the practical limit. Tab capture needs desktop Chrome or Edge." }
+        "acceptedAnswer": { "@type": "Answer", "text": "The first run downloads the model (50-250 MB depending on size, cached afterwards), and the interface shows real progress in MB. Without WebGPU it is much slower, and the page warns before starting. It separates speakers only when each voice comes in its own file and they are dropped together; in a mixed file, not yet. Very long files can fail on browser memory: an episode over an hour on a modest machine is the practical limit. Tab capture needs desktop Chrome or Edge." }
       },
       {
         "@type": "Question",
@@ -167,7 +167,7 @@
       </p>
       <p class="hero-sub">
         ⚠️ <strong>What to tell them, and not hide.</strong> The first run waits for the model to
-        download. Without WebGPU it is much slower. It does not separate speakers yet. Very long
+        download. Without WebGPU it is much slower. It separates speakers only when each voice comes in its own file and they are dropped together; in a mixed file, not yet. Very long
         files can fail on browser memory — an episode over an hour on a modest machine is the
         practical limit. Tab capture needs desktop Chrome or Edge.
       </p>

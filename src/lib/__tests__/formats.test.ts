@@ -11,6 +11,7 @@ import {
   toSRT,
   toTXT,
   toVTT,
+  toJSON,
   wrapLines,
   ATTRIBUTION_LINE,
   SUPER_S,
@@ -318,5 +319,102 @@ describe("pase de corrección · buscar y reemplazar", () => {
 
   it("buscar vacío no hace nada", () => {
     expect(replaceAll(segs, "", "x")).toEqual(segs);
+  });
+});
+
+// ── Hablantes en las exportaciones ──
+//
+// La separación por pistas no vale nada si la etiqueta se pierde al exportar:
+// `toCues` reconstruía cada rótulo desde cero y la tiraba sin avisar, así que el
+// SRT de una entrevista a dos pistas habría salido como la pared de texto que
+// veníamos a quitar.
+
+describe("formatos · con hablantes", () => {
+  const entrevista: Segment[] = [
+    { start: 0, end: 2, text: "Bienvenido al programa.", speaker: "Ana" },
+    { start: 2.1, end: 4, text: "¿Cómo empezaste?", speaker: "Ana" },
+    { start: 4.5, end: 9, text: "Pues por casualidad.", speaker: "Luis" },
+  ];
+
+  it("TXT: una línea por turno, con el nombre una sola vez", () => {
+    expect(toTXT(entrevista, false)).toBe(
+      "Ana: Bienvenido al programa. ¿Cómo empezaste?\n\nLuis: Pues por casualidad.\n",
+    );
+  });
+
+  it("MD: marca de tiempo y nombre en cada turno", () => {
+    const md = toMD(entrevista, "Entrevista", false);
+    expect(md).toContain("**[00:00] Ana:** Bienvenido al programa. ¿Cómo empezaste?");
+    expect(md).toContain("**[00:04] Luis:** Pues por casualidad.");
+  });
+
+  it("SRT: el nombre aparece cuando cambia quien habla, no en cada rótulo", () => {
+    const srt = toSRT(entrevista);
+    expect(srt).toContain("Ana: Bienvenido al programa.");
+    expect(srt).not.toContain("Ana: ¿Cómo empezaste?");
+    expect(srt).toContain("Luis: Pues por casualidad.");
+  });
+
+  it("SRT: el nombre cuenta en el límite de caracteres por línea", () => {
+    const srt = toSRT([{ start: 0, end: 4, text: "Esto es una frase bastante larga", speaker: "Ana" }], {
+      maxChars: 20,
+    });
+    for (const line of srt.split("\n")) {
+      if (/-->|^\d+$/.test(line) || !line) continue;
+      expect(line.length).toBeLessThanOrEqual(20);
+    }
+  });
+
+  it("VTT: usa la etiqueta de voz estándar en cada rótulo", () => {
+    const vtt = toVTT(entrevista);
+    expect(vtt).toContain("<v Ana>Bienvenido al programa.");
+    expect(vtt).toContain("<v Luis>Pues por casualidad.");
+  });
+
+  it("VTT: la etiqueta sobrevive a que el rótulo se parta en varios", () => {
+    const vtt = toVTT([{ start: 0, end: 8, text: "Una frase muy larga que no cabe en un solo rótulo de subtítulo", speaker: "Ana" }], {
+      maxChars: 20,
+      maxLines: 1,
+    });
+    const cues = vtt.split("\n\n").slice(1).filter(Boolean);
+    expect(cues.length).toBeGreaterThan(1);
+    for (const cue of cues) expect(cue).toContain("<v Ana>");
+  });
+
+  it("VTT: un nombre con «<» o «>» no rompe la etiqueta", () => {
+    const vtt = toVTT([{ start: 0, end: 1, text: "Hola", speaker: "Ana <invitada>" }]);
+    expect(vtt).toContain("<v Ana &lt;invitada&gt;>Hola");
+  });
+
+  it("JSON: guarda quién habla en cada segmento", () => {
+    const json = JSON.parse(toJSON(entrevista));
+    expect(json.segments[2].speaker).toBe("Luis");
+  });
+});
+
+describe("formatos · sin hablantes, todo igual que antes", () => {
+  // Lo más importante de este cambio es lo que no cambia: el 100 % de las
+  // transcripciones que se han hecho hasta hoy no llevan etiqueta.
+  const normal: Segment[] = [
+    { start: 0, end: 2, text: "Primera frase." },
+    { start: 2.1, end: 4, text: "Segunda frase." },
+  ];
+
+  it("TXT sigue separando segmentos, sin juntarlos ni poner nombres", () => {
+    expect(toTXT(normal, false)).toBe("Primera frase.\n\nSegunda frase.\n");
+  });
+
+  it("MD sigue sin dos puntos tras la marca de tiempo", () => {
+    expect(toMD(normal, "T", false)).toContain("**[00:00]** Primera frase.");
+  });
+
+  it("VTT y SRT no llevan etiquetas de voz", () => {
+    expect(toVTT(normal)).not.toContain("<v");
+    // Las líneas de texto del SRT tienen que ser exactamente las de antes: las
+    // marcas de tiempo llevan dos puntos, así que se miran solo las de texto.
+    const texto = toSRT(normal)
+      .split("\n")
+      .filter((l) => l && !/-->|^\d+$/.test(l));
+    expect(texto).toEqual(["Primera frase.", "Segunda frase."]);
   });
 });

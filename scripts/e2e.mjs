@@ -480,6 +480,60 @@ try {
   check("JSON ajeno da error claro", await page.locator("#error").isVisible());
   await page.click("#error-dismiss");
 
+  // 3e · quién habla, por pistas. Varios archivos a la vez se preguntan: dos
+  // archivos sin relación transcritos como diálogo mezclarían dos
+  // conversaciones línea a línea.
+  const anaPath = join(tmp, "ana.wav");
+  const luisPath = join(tmp, "luis.wav");
+  makeToneWav(anaPath);
+  makeToneWav(luisPath);
+  let pregunta = "";
+  page.once("dialog", (d) => {
+    pregunta = d.message();
+    void d.dismiss();
+  });
+  await page.setInputFiles("#file-input", [anaPath, luisPath]);
+  await page.waitForSelector("#ready:not([hidden])", { timeout: 10000 });
+  check("varios archivos: pregunta si son la misma conversación", /misma conversación/.test(pregunta));
+  check(
+    "al decir que no, se queda con el primero, como siempre",
+    (await page.locator("#ready-name").textContent()) === "ana.wav",
+  );
+  await page.click("#ready-cancel");
+
+  page.once("dialog", (d) => void d.accept());
+  await page.setInputFiles("#file-input", [anaPath, luisPath]);
+  await page.waitForSelector("#ready:not([hidden])", { timeout: 10000 });
+  check(
+    "al decir que sí, prepara las dos pistas juntas",
+    ((await page.locator("#ready-name").textContent()) ?? "").includes("ana + luis"),
+  );
+  await page.click("#ready-cancel");
+
+  // El nombre va solo donde cambia quien habla, y se cambia en todas sus líneas.
+  await page.evaluate(() => {
+    window.__g32.showResult([
+      { start: 0, end: 2, text: "¿Qué tal el viaje?", speaker: "Persona 1" },
+      { start: 2, end: 4, text: "Largo.", speaker: "Persona 2" },
+      { start: 4, end: 6, text: "Pero bien.", speaker: "Persona 2" },
+      { start: 6, end: 8, text: "Me alegro.", speaker: "Persona 1" },
+    ]);
+  });
+  await page.waitForSelector("#result:not([hidden])");
+  check("el nombre aparece solo al cambiar de persona", (await page.locator(".seg-speaker").count()) === 3);
+  page.once("dialog", (d) => void d.accept("Marta"));
+  await page.locator(".seg-speaker").first().click();
+  check(
+    "renombrar cambia todas sus líneas",
+    (await page.locator(".seg-speaker", { hasText: "Marta" }).count()) === 2,
+  );
+  const txtHablantes = await dl("txt");
+  check(
+    "el TXT sale como diálogo, por turnos",
+    txtHablantes.includes("Marta: ¿Qué tal el viaje?") && txtHablantes.includes("Persona 2: Largo. Pero bien."),
+  );
+  check("el VTT lleva la etiqueta de voz", (await dl("vtt")).includes("<v Marta>"));
+
   // 3d · encuesta durante la descarga del modelo. Lo que no puede romperse es
   // que la barra de progreso siga visible, por encima y sin moverse.
   await page.evaluate(() => localStorage.removeItem("gate32.usecase"));

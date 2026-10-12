@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { canCaptureTab, captureTab, NoTabAudioError } from "../meeting";
+import { canCaptureTab, captureTab, NoTabAudioError, recordInParts } from "../meeting";
 
 /** Pista falsa que recuerda si la han parado. */
 function track(kind: "audio" | "video") {
@@ -56,6 +56,17 @@ function setup(opts: { tabAudio?: boolean; mic?: boolean } = {}): Env {
       ),
     },
   });
+
+  // Las pistas sueltas se envuelven en un flujo propio para grabarlas aparte.
+  vi.stubGlobal(
+    "MediaStream",
+    class {
+      constructor(public tracks: FakeTrack[]) {}
+      getTracks() {
+        return this.tracks;
+      }
+    },
+  );
 
   vi.stubGlobal(
     "AudioContext",
@@ -163,5 +174,105 @@ describe("meeting · captura", () => {
     expect(env.display.tracks.every((t) => t.stopped)).toBe(true);
     expect(env.mic?.tracks.every((t) => t.stopped)).toBe(true);
     expect(env.closed).toBe(true);
+  });
+});
+
+describe("meeting · pistas separadas para saber quién habla", () => {
+  // Tu micrófono eres tú y la pestaña son los demás, por definición: grabarlos
+  // por separado es lo que permite etiquetar sin adivinar.
+  it("con micrófono entrega tu voz y la de la pestaña por separado", async () => {
+    const env = setup();
+    const capture = await captureTab(true);
+    expect(capture.split?.mic).toBe(env.mic);
+    const tab = capture.split?.tab as unknown as { tracks: FakeTrack[] };
+    expect(tab.tracks).toEqual(env.display.getAudioTracks());
+  });
+
+  it("la mezcla sigue siendo la grabación principal", async () => {
+    const env = setup();
+    const capture = await captureTab(true);
+    expect(capture.stream).toBe(env.mixer);
+  });
+
+  it("sin micrófono no hay nada que separar", async () => {
+    setup({ mic: false });
+    expect((await captureTab(true)).split).toBeNull();
+  });
+
+  it("en un vídeo ajeno tampoco", async () => {
+    setup();
+    expect((await captureTab(false)).split).toBeNull();
+  });
+});
+
+/** MediaRecorder falso: para y entrega en el acto, sin esperar al navegador. */
+class FakeRecorder {
+  static all: FakeRecorder[] = [];
+  state: "inactive" | "recording" = "inactive";
+  mimeType = "audio/webm";
+  private listeners: Record<string, ((e: { data: Blob }) => void)[]> = {};
+  constructor(stream: { active: boolean }) {
+    if (!stream.active) throw new Error("flujo inactivo");
+    FakeRecorder.all.push(this);
+  }
+  addEventListener(ev: string, cb: (e: { data: Blob }) => void) {
+    (this.listeners[ev] ??= []).push(cb);
+  }
+  start() {
+    this.state = "recording";
+  }
+  stop() {
+    this.state = "inactive";
+    const e = { data: new Blob(["x"]) };
+    this.listeners["dataavailable"]?.forEach((cb) => cb(e));
+    this.listeners["stop"]?.forEach((cb) => cb(e));
+  }
+}
+
+describe("meeting · grabación por trozos", () => {
+  let rotate: () => void = () => {};
+
+  function arm() {
+    FakeRecorder.all = [];
+    vi.stubGlobal("MediaRecorder", FakeRecorder);
+    vi.stubGlobal("window", {
+      setInterval: (cb: () => void) => {
+        rotate = cb;
+        return 1;
+      },
+      clearInterval: () => {},
+    });
+  }
+
+  it("entrega todos los trozos de una vez al detener", () => {
+    arm();
+    const flujo = { active: true } as unknown as MediaStream;
+    const entregas: number[] = [];
+    const stop = recordInParts(flujo, 8, (parts) => entregas.push(parts.length));
+    rotate();
+    stop();
+    expect(entregas).toEqual([2]);
+  });
+
+  // Con la pestaña grabada aparte, dejar de compartir mata su única pista: el
+  // grabador se para solo y arrancar otro lanzaba un error. Y luego «Detener»
+  // volvía a entregar, descuadrando a quien espera tres grabaciones.
+  it("si el flujo muere, entrega lo grabado una sola vez", () => {
+    arm();
+    const flujo = { active: true };
+    const entregas: number[] = [];
+    const stop = recordInParts(flujo as unknown as MediaStream, 8, (parts) =>
+      entregas.push(parts.length),
+    );
+    flujo.active = false;
+    FakeRecorder.all[0]?.stop();
+    stop();
+    expect(entregas).toEqual([1]);
+  });
+
+  it("si no se puede ni empezar, quien llama se entera", () => {
+    arm();
+    const muerto = { active: false } as unknown as MediaStream;
+    expect(() => recordInParts(muerto, 8, () => {})).toThrow();
   });
 });

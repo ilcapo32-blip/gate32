@@ -112,7 +112,12 @@
       {
         "@type": "Question",
         "name": "How is this different from Otter, Notta or HappyScribe?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Those tools process your audio on their servers and cap their free plans. Gate32 is local: verifiable privacy, no limits, no account. Server-side features like speaker identification aren't available yet." }
+        "acceptedAnswer": { "@type": "Answer", "text": "Those tools process your audio on their servers and cap their free plans. Gate32 is local: verifiable privacy, no limits, no account. It separates who is speaking when each voice is on its own track, but it can't yet tell several voices apart inside a single mixed file." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can it tell who is speaking in an interview or a meeting?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes, when each voice is recorded on its own track. Drop the files of a double-ender interview together (one per person, the way many remote podcasts record) and Gate32 transcribes each one separately and gives you back the dialogue with each person's name, which you can change with one click. If you record a meeting with Gate32, your microphone and the tab audio are recorded separately and it comes out as a dialogue between “You” and “Others”. The names carry over to TXT, Markdown, SRT and VTT. What it can't do yet is tell several voices apart inside a single mixed file: there the text comes out without names." }
       }
     ]
   }
@@ -185,11 +190,12 @@
                visually-hidden lo saca de la vista pero lo deja enfocable y en el
                árbol de accesibilidad, así que con teclado y lector de pantalla se
                caía en un campo de archivo que no se anuncia. Fuera del recorrido. -->
-          <input type="file" id="file-input" class="visually-hidden"
+          <input type="file" id="file-input" class="visually-hidden" multiple
                  tabindex="-1" aria-hidden="true" />
           <svg viewBox="0 0 24 24" aria-hidden="true" class="drop-icon"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0 4 4m-4-4L8 8M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
           <strong>Drag an audio or video file here</strong>
           <span>or click to pick one · MP3, WAV, M4A, OGG, MP4, WEBM…</span>
+          <span class="drop-tracks">Each voice in its own file? Drop them together for a dialogue.</span>
         </div>
 
         <div class="firstrun">
@@ -392,12 +398,12 @@
         <div class="pro-card">
           <div>
             <strong>Would a Gate32 Pro help you?</strong>
-            <p>Speaker identification, batch transcription and automatic meeting notes.</p>
+            <p>Separate voices in a single mixed file, batch transcription and automatic meeting notes.</p>
           </div>
           <button id="pro-btn" class="btn accent" type="button">I'm interested</button>
           <div id="pro-features" class="pro-features" hidden>
             <span>What would make you pay? (anonymous)</span>
-            <button class="btn ghost small pro-feature" data-feature="diarizacion" type="button">Speaker labels</button>
+            <button class="btn ghost small pro-feature" data-feature="diarizacion" type="button">Voices in one file</button>
             <button class="btn ghost small pro-feature" data-feature="lotes" type="button">Batch files</button>
             <button class="btn ghost small pro-feature" data-feature="actas" type="button">Notes &amp; summaries</button>
           </div>
@@ -464,7 +470,7 @@
             <tr><th scope="row">SRT/VTT subtitles without watermark</th><td>Yes</td><td>Usually paid</td><td>Depends on the app</td></tr>
             <tr><th scope="row">Records a meeting without a bot joining the call</th><td>Yes (desktop Chrome/Edge)</td><td>No: it joins as a participant and uploads the audio</td><td>No, short of recording your screen</td></tr>
             <tr><th scope="row">Transcribes a video or stream from another tab</th><td>Yes</td><td>You must download it and upload it</td><td>You must download it</td></tr>
-            <tr><th scope="row">Speaker identification</th><td>Not yet</td><td>Yes, on paid plans</td><td>Depends on the app</td></tr>
+            <tr><th scope="row">Tells who is speaking</th><td>Yes, if each voice is on its own track (several files, or a meeting recorded here). In a mixed file, not yet</td><td>Yes, on paid plans</td><td>Depends on the app</td></tr>
           </tbody>
         </table>
       </div>
@@ -519,7 +525,11 @@
       </details>
       <details>
         <summary>How is this different from Otter, Notta or HappyScribe?</summary>
-        <p>Those tools process your audio on their servers and cap their free plans (minutes, file counts, features). Gate32 is local: verifiable privacy, no limits, no account. In exchange, server-side features like speaker identification aren't available yet (we're measuring interest).</p>
+        <p>Those tools process your audio on their servers and cap their free plans (minutes, file counts, features). Gate32 is local: verifiable privacy, no limits, no account. In exchange, telling several voices apart inside a single mixed file isn't available yet (we're measuring interest); if each voice is in its own file, it does separate them.</p>
+      </details>
+      <details>
+        <summary>Can it tell who is speaking in an interview or a meeting?</summary>
+        <p>Yes, when each voice is recorded on its own track. Drop the files of a double-ender interview together (one per person, the way many remote podcasts record) and Gate32 transcribes each one separately and gives you back the dialogue with each person's name, which you can change with one click. If you record a meeting with Gate32, your microphone and the tab audio are recorded separately and it comes out as a dialogue between “You” and “Others”. The names carry over to TXT, Markdown, SRT and VTT. What it can't do yet is tell several voices apart inside a single mixed file: there the text comes out without names.</p>
       </details>
     </section>
   </main>

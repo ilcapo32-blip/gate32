@@ -51,6 +51,12 @@ export interface Segment {
   start: number;
   end: number;
   text: string;
+  /**
+   * Quién habla, cuando se sabe. Solo se rellena cuando cada voz llega en su
+   * propia pista —dos archivos, o una reunión grabada con Gate32—, porque ahí
+   * la etiqueta no se adivina. En un archivo único mezclado queda vacío.
+   */
+  speaker?: string;
 }
 
 /** Ventana transcrita por el worker, con su desplazamiento temporal. */

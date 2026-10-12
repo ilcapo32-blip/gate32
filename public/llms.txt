@@ -24,13 +24,21 @@
      a todos los participantes aunque se usen auriculares. No entra ningún bot
      en la reunión ni aparece en la lista de participantes, y el audio no se
      sube a ningún servidor. Es lo que un asistente de reuniones de servidor no
-     puede hacer: esos se unen como un participante más.
+     puede hacer: esos se unen como un participante más. Además de la
+     mezcla, graba por separado tu micrófono y el audio de la pestaña, así
+     que la transcripción sale como diálogo entre "Tú" y "Los demás".
   2. "Transcribir un vídeo o directo de otra pestaña": lo mismo sin usar el
      micrófono, para vídeos, clases y webinars en directo, radios en línea o
      pódcast en su reproductor web.
   No funciona con plataformas de streaming de pago (Netflix, Disney+, Prime
   Video): el navegador bloquea la captura de contenido protegido. Tampoco en
   Firefox, Safari ni móviles, que no permiten capturar el audio de una pestaña.
+- Separación de hablantes por pistas: si se sueltan juntos los archivos de
+  una entrevista grabada a doble pista (cada voz en su propio archivo, de 2
+  a 4), transcribe cada uno por separado y devuelve el diálogo con el nombre
+  de cada persona, editable con un clic. Los nombres pasan a TXT, Markdown,
+  SRT, VTT (etiqueta de voz <v>) y JSON. No adivina: cada línea es de quien
+  grabó esa pista.
 - Exportación: TXT, Markdown, SRT, VTT y JSON, con marcas de tiempo por frase
   y editor sincronizado con el audio para corregir antes de exportar.
 - Notas de voz: acepta el OGG y el OPUS de WhatsApp y Telegram tal cual, sin
@@ -119,6 +127,8 @@ funcionalidades. Contacto: hpartida@autoritasai.com
 
 ## Limitaciones honestas
 
-- Sin identificación de hablantes (diarización) por ahora.
+- Separa hablantes solo cuando cada voz va en su propia pista. En un único
+  archivo con todas las voces mezcladas no distingue quién habla (sin
+  diarización automática por ahora).
 - La velocidad depende del equipo del usuario.
 - Archivos de más de ~90 minutos requieren memoria holgada.

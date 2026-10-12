@@ -203,6 +203,7 @@ button { font-family: inherit; }
 
 .dropzone strong { color: var(--ink); font-size: 1.02rem; }
 .dropzone span { font-size: 0.85rem; }
+.dropzone .drop-tracks { font-size: 0.78rem; opacity: 0.85; }
 
 .dropzone:hover,
 .dropzone:focus-visible,
@@ -610,6 +611,28 @@ body.embed .toolbar { position: static; }
 }
 
 .seg-time:hover { text-decoration: underline; }
+
+/* Quién habla, encima de su turno y solo cuando cambia: se lee como un guion,
+   no como una lista con el mismo nombre repetido en cada corte de Whisper. */
+.segment.has-speaker .seg-time { grid-row: 1; grid-column: 1; }
+.segment.has-speaker .seg-text { grid-row: 2; grid-column: 2; }
+.seg-speaker {
+  grid-row: 1;
+  grid-column: 2;
+  justify-self: start;
+  margin-top: 0.5rem;
+  padding: 0.05rem 0.3rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink);
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.seg-speaker:hover { text-decoration: underline; }
+.seg-speaker:focus-visible { box-shadow: 0 0 0 2px var(--accent); outline: none; }
 
 .seg-text {
   outline: none;

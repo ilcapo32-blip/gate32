@@ -226,6 +226,44 @@ siguen transcribiendo al parar. Ahí el usuario ya ha tomado dos decisiones
 explícitas (pulsar, y luego detener), y meter una tercera después de una
 reunión de una hora sería pedirle permiso para hacer lo único que iba a hacer.
 
+## Quién habla: separación por pistas (2026-10-13)
+
+Era la carencia número uno para el público principal —«Whisper, por sí sola,
+te deja una pared de texto sin diferenciar», garse en r/podcasting— y la salida
+la dio el mismo hilo: si cada voz está en su propio archivo, no hay nada que
+adivinar.
+
+Decisiones, y por qué:
+
+- **Sin modelo de diarización.** Uno sobre un archivo mezclado adivina, falla
+  en los solapamientos y pide otra descarga de cientos de megas. Por pistas,
+  cada línea es de quien grabó esa pista por definición.
+- **Se pregunta, no se deduce.** Soltar varios archivos a la vez puede ser una
+  entrevista a doble pista o tres archivos sin relación. Transcribirlos
+  como diálogo mezclaría tres conversaciones línea a línea. Un
+  `confirm` cuesta un clic; equivocarse cuesta la transcripción entera.
+- **En una reunión, «Tú» y «Los demás».** El micrófono eres tú; la pestaña son
+  todos los demás, que llegan mezclados por la propia videollamada. Poner
+  nombres que no se saben sería prometer lo que no hacemos.
+- **La mezcla sigue siendo la grabación.** Las pistas separadas se graban
+  además, no en su lugar: si fallan, se transcribe la mezcla como siempre,
+  completa aunque sin nombres. Lo grabado no se pierde nunca (regla 8).
+- **El eco se quita con criterio conservador.** Sin auriculares, el micrófono
+  recoge también a los demás. Se descarta una línea del micrófono solo si
+  coincide en el tiempo con la pestaña y la mayoría de sus palabras ya están
+  ahí; un «sí, claro» de tres palabras o menos nunca se juzga. Duplicar se ve
+  y se corrige; borrar algo que dijiste no se ve nunca.
+- **El nombre, solo al cambiar de persona, y editable.** Con el nombre delante
+  de cada corte de Whisper la conversación parece una lista. «Persona 2» casi
+  nunca es como se llama nadie: un clic lo cambia en todas sus líneas.
+- **Formatos estándar.** VTT usa la etiqueta de voz `<v Nombre>` de la
+  especificación, que los reproductores entienden; TXT y Markdown van por
+  turnos; SRT pone el nombre al cambiar de persona.
+
+Límite que se dice siempre: un archivo único con todas las voces mezcladas no
+se separa. Esa es ahora la función Pro candidata, y el botón de interés lo
+mide con ese nombre exacto.
+
 ## Propuesta de valor (una frase)
 
 > Transcribe y subtitula cualquier audio o vídeo con IA, gratis y sin límites,
@@ -240,6 +278,7 @@ reunión de una hora sería pedirle permiso para hacer lo único que iba a hacer
 | Sin registro / sin topes | ✅ | ❌ | ✅ | ✅ |
 | Editor sincronizado + SRT/VTT/TXT/MD | ✅ | ✅ (de pago) | Parcial | ❌ |
 | Graba reuniones **sin bot en la llamada** | ✅ (Chrome/Edge) | ❌ (bot participante) | Parcial (audio del sistema) | ❌ |
+| Separa quién habla | ✅ por pistas; ❌ en un archivo mezclado | ✅ (de pago) | Parcial | ❌ |
 | UX en español | ✅ | Parcial | ❌ | ❌ |
 
 ## Papel de la IA y costes
@@ -285,7 +324,8 @@ reunión de una hora sería pedirle permiso para hacer lo único que iba a hacer
 ## Monetización (hipótesis, no bloqueante del MVP)
 
 Free para siempre: transcribir + editar + exportar en local.
-**Pro (futuro, cuando haya señal):** diarización de hablantes, procesado por
+**Pro (futuro, cuando haya señal):** diarización de un archivo único mezclado
+(la separación por pistas ya es gratis), procesado por
 lotes, actas/resúmenes con IA, historial sincronizado entre dispositivos,
 soporte prioritario. Señal de intención medida desde el día 1 con un CTA
 "Quiero Gate32 Pro" (ver VALIDATION.md).

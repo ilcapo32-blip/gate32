@@ -9,6 +9,12 @@ export interface DecodedAudio {
   duration: number; // segundos
   /** Se decodificó por trozos (MP3 grande) en vez de de una sola vez. */
   chunked?: boolean;
+  /**
+   * Lo leyó el demultiplexor MP4 propio. Va aparte porque es el arreglo de 31
+   * de los 41 errores de descodificación medidos, y hay que poder ver si salva
+   * esos archivos o no.
+   */
+  mp4?: boolean;
   /** Trozos de una grabación larga que no se pudieron leer. */
   partsFailed?: number;
 }
@@ -141,7 +147,7 @@ async function decodeMp4(bytes: Uint8Array): Promise<DecodedAudio | null> {
     }
 
     if (written === 0) return null;
-    return { audio: out.subarray(0, written), duration: written / TARGET_RATE, chunked: true };
+    return { audio: out.subarray(0, written), duration: written / TARGET_RATE, chunked: true, mp4: true };
   } catch {
     return null;
   }

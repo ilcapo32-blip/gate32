@@ -2,6 +2,7 @@
 // todo lo de este módulo es testeable de forma aislada.
 
 import type { RawChunk, Segment, WindowResult } from "./types";
+import { hasSpeakers, mergeTurns } from "./speakers";
 
 /** Ventana de audio que procesa el worker (segundos). */
 export const WINDOW_S = 30;
@@ -115,7 +116,13 @@ export function toTXT(
   attribution: boolean,
   attributionLine: string = ATTRIBUTION_LINE,
 ): string {
-  const body = segments.map((s) => s.text).join("\n\n");
+  // Con hablantes se lee por turnos: «Ana: …» una vez por intervención, no
+  // delante de cada corte de Whisper, que convertiría la entrevista en una lista.
+  const body = hasSpeakers(segments)
+    ? mergeTurns(segments)
+        .map((s) => (s.speaker ? `${s.speaker}: ${s.text}` : s.text))
+        .join("\n\n")
+    : segments.map((s) => s.text).join("\n\n");
   return attribution ? `${body}\n\n—\n${attributionLine}\n` : `${body}\n`;
 }
 
@@ -126,8 +133,10 @@ export function toMD(
   attributionLine: string = ATTRIBUTION_LINE,
 ): string {
   const lines = [`# ${title}`, ""];
-  for (const s of segments) {
-    lines.push(`**[${clock(s.start)}]** ${s.text}`, "");
+  const rows = hasSpeakers(segments) ? mergeTurns(segments) : segments;
+  for (const s of rows) {
+    const who = s.speaker ? ` ${s.speaker}:` : "";
+    lines.push(`**[${clock(s.start)}]${who}** ${s.text}`, "");
   }
   if (attribution) lines.push("---", `_${attributionLine}_`, "");
   return lines.join("\n");
@@ -194,6 +203,16 @@ export function balanceTwoLines(text: string, maxChars: number): string[] {
 }
 
 /**
+ * Arrastra la etiqueta de hablante a cada rótulo nuevo.
+ *
+ * `toCues` reconstruye los rótulos desde cero, y sin esto la etiqueta se perdía
+ * por el camino sin avisar: el SRT y el VTT de una entrevista a dos pistas
+ * habrían salido como una pared de texto, que es justo lo que veníamos a
+ * arreglar.
+ */
+const who = (s: Segment) => (s.speaker ? { speaker: s.speaker } : {});
+
+/**
  * Convierte segmentos de transcripción en rótulos de subtítulo. Cuando un
  * segmento no cabe, se parte en varios rótulos y su duración se reparte en
  * proporción al texto de cada uno, de modo que el último termina exactamente
@@ -218,7 +237,7 @@ export function toCues(segments: Segment[], opts: CueOptions = {}): Segment[] {
       // Cabe en un solo rótulo: se reparte equilibrado en vez de dejar una
       // línea llena y otra con una palabra.
       const balanced = maxLines >= 2 ? balanceTwoLines(text, maxChars) : lines;
-      out.push({ start: s.start, end: s.end, text: balanced.join("\n") });
+      out.push({ start: s.start, end: s.end, text: balanced.join("\n"), ...who(s) });
       continue;
     }
     const weights = groups.map((g) => g.join(" ").length);
@@ -229,7 +248,7 @@ export function toCues(segments: Segment[], opts: CueOptions = {}): Segment[] {
       const last = i === groups.length - 1;
       const end = last ? s.end : cursor + (duration * (weights[i] ?? 0)) / total;
       const balanced = maxLines >= 2 ? balanceTwoLines(g.join(" "), maxChars) : g;
-      out.push({ start: cursor, end, text: balanced.join("\n") });
+      out.push({ start: cursor, end, text: balanced.join("\n"), ...who(s) });
       cursor = end;
     });
   }
@@ -246,9 +265,26 @@ export function toCues(segments: Segment[], opts: CueOptions = {}): Segment[] {
   return out;
 }
 
+/**
+ * Pone el nombre delante del primer rótulo de cada intervención.
+ *
+ * Es la convención del subtitulado para personas sordas: se identifica a quien
+ * habla cuando cambia, no en cada rótulo. Va **antes** de partir en rótulos,
+ * para que el nombre cuente en el límite de caracteres por línea y no lo
+ * desborde.
+ */
+function nameAtTurns(segments: Segment[]): Segment[] {
+  let previous: string | undefined;
+  return segments.map((s) => {
+    const changed = s.speaker && s.speaker !== previous;
+    previous = s.speaker;
+    return changed ? { ...s, text: `${s.speaker}: ${s.text.trim()}` } : s;
+  });
+}
+
 export function toSRT(segments: Segment[], opts: CueOptions = {}): string {
   return (
-    toCues(segments, opts)
+    toCues(nameAtTurns(segments), opts)
       .map(
         (s, i) =>
           `${i + 1}\n${timecode(s.start, ",")} --> ${timecode(s.end, ",")}\n${s.text}`,
@@ -257,12 +293,23 @@ export function toSRT(segments: Segment[], opts: CueOptions = {}): string {
   );
 }
 
+/**
+ * El nombre va en la etiqueta de voz `<v>` del estándar WebVTT, no pegado al
+ * texto: así los reproductores pueden mostrarlo, colorearlo u ocultarlo, y no
+ * cuenta en el ancho de línea. Se escapa porque lo escribe la persona, y un `>`
+ * en un nombre cerraría la etiqueta antes de tiempo.
+ */
+function vttName(name: string): string {
+  return name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 export function toVTT(segments: Segment[], opts: CueOptions = {}): string {
   return (
     "WEBVTT\n\n" +
     toCues(segments, opts)
       .map(
-        (s) => `${timecode(s.start, ".")} --> ${timecode(s.end, ".")}\n${s.text}`,
+        (s) =>
+          `${timecode(s.start, ".")} --> ${timecode(s.end, ".")}\n${s.speaker ? `<v ${vttName(s.speaker)}>` : ""}${s.text}`,
       )
       .join("\n\n") +
     "\n"

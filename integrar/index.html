@@ -46,7 +46,7 @@
       {
         "@type": "Question",
         "name": "¿Qué limitaciones hay que contarle al usuario?",
-        "acceptedAnswer": { "@type": "Answer", "text": "La primera vez se descarga el modelo (50-250 MB según el tamaño, cacheado después) y la interfaz enseña progreso real en MB. Sin WebGPU va mucho más lento, y la página lo avisa antes de empezar. No separa hablantes todavía. Los archivos muy largos pueden fallar por memoria del navegador: un episodio de más de una hora en un equipo modesto es el límite práctico. La captura de pestaña necesita Chrome o Edge de escritorio." }
+        "acceptedAnswer": { "@type": "Answer", "text": "La primera vez se descarga el modelo (50-250 MB según el tamaño, cacheado después) y la interfaz enseña progreso real en MB. Sin WebGPU va mucho más lento, y la página lo avisa antes de empezar. Separa hablantes solo si cada voz viene en su propio archivo y se sueltan juntos; en un archivo mezclado, todavía no. Los archivos muy largos pueden fallar por memoria del navegador: un episodio de más de una hora en un equipo modesto es el límite práctico. La captura de pestaña necesita Chrome o Edge de escritorio." }
       },
       {
         "@type": "Question",
@@ -170,7 +170,7 @@
       </p>
       <p class="hero-sub">
         ⚠️ <strong>Lo que hay que decirle, y no ocultar.</strong> La primera vez hay que esperar a
-        que baje el modelo. Sin WebGPU va mucho más lento. No separa hablantes todavía. Los archivos
+        que baje el modelo. Sin WebGPU va mucho más lento. Separa hablantes solo si cada voz viene en su propio archivo y se sueltan juntos; en un archivo mezclado, todavía no. Los archivos
         muy largos pueden fallar por memoria del navegador: un episodio de más de una hora en un
         equipo modesto es el límite práctico. La captura de pestaña necesita Chrome o Edge de
         escritorio.

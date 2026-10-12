@@ -16,6 +16,16 @@
 export interface MeetingCapture {
   /** Flujo mezclado, listo para MediaRecorder. */
   stream: MediaStream;
+  /**
+   * Las dos fuentes **sin mezclar**, para separar hablantes.
+   *
+   * La mezcla es lo que se guarda y se puede recuperar: es la grabación de la
+   * reunión tal y como sonó. Estas dos se graban **además**, no en su lugar,
+   * porque cada una es una sola persona por definición —tu micrófono eres tú,
+   * la pestaña son los demás— y eso es lo que permite etiquetar la
+   * transcripción sin adivinar. `null` si no hubo micrófono.
+   */
+  split: { mic: MediaStream; tab: MediaStream } | null;
   /** Corta todo lo capturado. */
   stop(): void;
   /** El micrófono entró en la mezcla. */
@@ -104,6 +114,7 @@ export async function captureTab(withMic: boolean): Promise<MeetingCapture> {
 
   return {
     stream: mixer.stream,
+    split: mic && tabTrack ? { mic, tab: new MediaStream([tabTrack]) } : null,
     withMic: mic !== null,
     onEnded(cb) {
       tabTrack?.addEventListener("ended", cb, { once: true });
@@ -137,8 +148,18 @@ export function recordInParts(
   let chunks: Blob[] = [];
   let rec: MediaRecorder | null = null;
   let stopping = false;
+  let finished = false;
   let rotator: number | undefined;
   let mimeType = "audio/webm";
+
+  // Una sola entrega, pase lo que pase: quien espera varias grabaciones a la
+  // vez cuenta las llegadas, y una doble descuadraría la cuenta.
+  const finish = (): void => {
+    if (finished) return;
+    finished = true;
+    window.clearInterval(rotator);
+    onFinish(parts, mimeType);
+  };
 
   const startOne = (): void => {
     rec = new MediaRecorder(stream);
@@ -150,16 +171,25 @@ export function recordInParts(
     rec.addEventListener("stop", () => {
       const blob = new Blob(chunks, { type: mimeType });
       if (blob.size > 0) parts.push(blob);
-      if (stopping) {
-        window.clearInterval(rotator);
-        onFinish(parts, mimeType);
-      } else {
+      // Un flujo cuyas pistas ya terminaron no se puede volver a grabar. Pasa
+      // con la pestaña sola cuando se deja de compartir desde la barra del
+      // navegador: el grabador se para por su cuenta y arrancar otro lanzaría
+      // un error. Se entrega lo grabado hasta ahí.
+      if (stopping || !stream.active) {
+        finish();
+        return;
+      }
+      try {
         startOne();
+      } catch {
+        finish();
       }
     });
     rec.start();
   };
 
+  // El primero sí puede lanzar: quien llama tiene que enterarse de que no se
+  // está grabando nada.
   startOne();
   rotator = window.setInterval(
     () => {
@@ -172,7 +202,7 @@ export function recordInParts(
     stopping = true;
     window.clearInterval(rotator);
     if (rec && rec.state !== "inactive") rec.stop();
-    else onFinish(parts, mimeType);
+    else finish();
   };
 }
 

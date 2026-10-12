@@ -90,7 +90,9 @@ Face, o **desde tu propio dominio** si prefieres no depender de terceros
   la propia interfaz, con progreso real en MB y tiempo restante.
 - **Sin WebGPU va mucho más lento** (Firefox en algunos sistemas, equipos
   antiguos). La página lo avisa antes de empezar.
-- **No separa hablantes** todavía.
+- **Separa hablantes solo por pistas**: si el usuario suelta juntos los
+  archivos de una entrevista con cada voz en su archivo, sale como diálogo.
+  En un archivo único mezclado, todavía no.
 - **Archivos muy largos pueden fallar por memoria** del navegador: un episodio
   de más de una hora en un equipo modesto es el límite práctico.
 

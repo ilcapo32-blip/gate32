@@ -51,6 +51,18 @@ no se sube a ningún sitio. Si la pestaña llega sin pista de audio —no se mar
 explicación** en lugar de grabar media reunión en silencio. Grabar a otras
 personas exige su consentimiento, y la aplicación lo recuerda antes de empezar.
 
+### Quién habla: separación por pistas
+
+Sin modelo de diarización y sin adivinar. Si cada voz está grabada en su
+propio archivo —una entrevista a doble pista, como graban en remoto muchos
+podcasts— se sueltan juntos (de 2 a 4), se transcribe cada uno por separado
+y se entrelazan por tiempo: cada línea es de quien grabó esa pista **por
+definición**. En una reunión, además de la mezcla, se graban por separado tu
+micrófono («Tú») y la pestaña («Los demás»), y se quita del micrófono el eco
+de lo que sonó por los altavoces. Los nombres se cambian con un clic y pasan
+a TXT, Markdown, SRT, VTT (`<v Nombre>`) y JSON. Un archivo único con todas
+las voces mezcladas sigue saliendo sin nombres.
+
 ## Arquitectura
 
 ```
@@ -62,6 +74,8 @@ src/lib/
   transcriber.ts      cliente tipado del worker (capa de IA sustituible)
   audio.ts            decodificación a mono 16 kHz (OfflineAudioContext)
   meeting.ts          captura del audio de una pestaña + micro (videollamadas)
+  speakers.ts         separación de hablantes por pistas, sin modelo
+  mp4.ts              índice de MP4/M4A para decodificar archivos grandes por tramos
   formats.ts          lógica pura: ventanas, fusión, TXT/MD/SRT/VTT/JSON
   analytics.ts        eventos anónimos de validación (Vercel Web Analytics)
   history.ts          historial local (localStorage, sin cuenta)
@@ -143,8 +157,10 @@ Cada push a `main` publica en https://gate32.autoritasai.com.
 - La velocidad depende del equipo del usuario: con WebGPU (Chrome/Edge
   recientes) es varias veces más rápida que el tiempo real; sin WebGPU cae a
   WASM, útil pero lento con el modelo Preciso.
-- Sin identificación de hablantes (diarización) ni resúmenes: son la capa Pro
-  propuesta, pendiente de señal de demanda (`pro_interest`).
+- Separa hablantes solo por pistas (cada voz en su archivo, o reuniones
+  grabadas con Gate32). En un archivo único mezclado no hay diarización ni
+  resúmenes: son la capa Pro propuesta, pendiente de señal de demanda
+  (`pro_interest`).
 - La captura de reuniones requiere Chrome o Edge de escritorio: Firefox y
   Safari no permiten capturar el audio de una pestaña, y en el móvil tampoco
   existe. Donde no funciona, el botón no se muestra.

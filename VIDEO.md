@@ -13,7 +13,8 @@
 
 - **Nada simulado.** Audio real, tiempos reales, resultado real en pantalla.
 - Si aceleras la grabación, rotúlalo (`x4`). Acelerar sin decirlo = engañar.
-- No prometer lo que no hace: sin identificación de hablantes, y en móvil es lento.
+- No prometer lo que no hace: separa hablantes solo si cada voz va en su pista
+  (no en un archivo mezclado), y en móvil es lento.
 - Nunca mostrar en pantalla audio de terceros que sea confidencial.
 
 ## Cómo grabar (Windows, sin editor de pago)
