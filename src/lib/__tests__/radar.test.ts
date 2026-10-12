@@ -360,6 +360,25 @@ describe("radar · puerta temática", () => {
     expect(rank(cruzado)).toHaveLength(1);
   });
 
+  it("reconoce el lanzamiento ajeno tal y como se escribe de verdad", () => {
+    // Los dos únicos hilos del 12/10 que parecían nuestros eran lanzamientos
+    // de otra gente, y los patrones de entonces solo cogían "I built": la
+    // primera persona del singular en pasado. Nadie se presenta así.
+    const lanzamientos = [
+      "Hi, I am Aasif, the developer of Ploca. Most dictation apps don't handle code-switching",
+      "Why most phone recording apps ruin field audio (and what we built Flowphonic to do differently)",
+    ];
+    for (const selftext of lanzamientos) {
+      const r = scoreThread({
+        id: "t3_promo",
+        title: "Offline dictation that keeps up when you switch languages",
+        selftext,
+        created_utc: hoursAgo(3),
+      });
+      expect(r.tags, selftext.slice(0, 40)).toContain("promo ajena");
+    }
+  });
+
   it("un hilo que llega por dos búsquedas aparece una sola vez", () => {
     const hilo = {
       id: "t3_dup",

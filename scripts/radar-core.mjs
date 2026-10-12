@@ -136,7 +136,18 @@ function onTopic(title, text) {
 /** Restas: cosas que hacen que responder sea mala idea. */
 const PENALTIES = [
   { re: /\b(hiring|for hire|job|freelance|se busca|contrato)\b/i, weight: -40, tag: "oferta de empleo" },
-  { re: /\b(i built|i made|my app|check out my|he creado|mi herramienta)\b/i, weight: -25, tag: "promo ajena" },
+  // Quien anuncia su producto no busca que le recomienden otro. Y los patrones
+  // que había solo cogían la primera persona del singular en pasado: el
+  // 12/10/2026 los dos únicos hilos del resumen que parecían nuestros —un
+  // lanzamiento de dictado offline y uno de grabación de campo— se presentaban
+  // como «I am Aasif, the developer of Ploca» y «what we built Flowphonic», y
+  // ninguno de los dos disparaba nada. Responder ahí con Gate32 es exactamente
+  // la autopromoción por la que nos avisaron en r/podcasting.
+  {
+    re: /\b(i built|i made|i created|we built|we made|we created|my app|check out my|just launched|the (developer|founder|creator|maker) of|i'?m the (dev|developer|founder|creator)|he creado|hemos creado|mi herramienta|soy el (desarrollador|creador|fundador))\b/i,
+    weight: -25,
+    tag: "promo ajena",
+  },
   // Quien se desahoga no busca una recomendación: responderle con una
   // herramienta es justo lo que hace que la gente odie el marketing en Reddit.
   { re: /\b(rant|venting|so frustrated|hate that|me da rabia|estoy harto)\b/i, weight: -30, tag: "desahogo" },

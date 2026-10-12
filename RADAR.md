@@ -208,6 +208,27 @@ título normalizado y se conserva la copia mejor puntuada.
 > ese ejemplo no tenía. Las pruebas nuevas usan los siete hilos reales del
 > 12/10, con el término exacto por el que entró cada uno.
 
+### Y los dos que sí parecían nuestros, tampoco lo eran
+
+Quedaban dos hilos de los nueve: un lanzamiento de dictado offline para Mac y
+otro de grabación de audio de campo. Los dos son **lanzamientos de producto de
+otra gente**, y para eso ya existía una penalización —«promo ajena», −25— que
+no disparó en ninguno:
+
+```
+"Hi, I am Aasif, the developer of Ploca"            → no penalizaba
+"what we built Flowphonic to do differently"        → no penalizaba
+"I built a small tool for this"                     → sí
+```
+
+Los patrones cogían la primera persona del singular en pasado, que es como casi
+nadie se presenta. Ahora cubren «the developer of», «we built», «just launched»
+y sus equivalentes en castellano.
+
+Con eso, el resumen del 12/10 no eran dos hilos buenos de nueve: eran **cero**.
+Responder en el lanzamiento de otro con nuestro producto es exactamente la
+autopromoción por la que nos avisaron en r/podcasting.
+
 ### Lo que esto no arregla
 
 El radar lleva **117 issues abiertas y ninguna cerrada**. Abre una por pasada,
