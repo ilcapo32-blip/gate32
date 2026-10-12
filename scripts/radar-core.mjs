@@ -75,9 +75,63 @@ const NOT_AUDIO = /\b(handwrit|manuscript|palaeograph|paleograph|OCR|Transkribus
  * Se comprueba antes de puntuar y no resta puntos: descarta. Un resumen con
  * treinta hilos de relleno enseña a no abrirlo, y entonces da igual lo bueno
  * que sea el que hacía número treinta y uno.
+ *
+ * **Y la puerta, tal y como se escribió, tenía tres agujeros.** El 12/10/2026
+ * el resumen del día traía nueve hilos: dos servían. Entre los otros siete, el
+ * mismo relato de ciencia ficción cruzado dos veces, una anécdota personal, un
+ * caso penal universitario y —tres veces— la base de datos de víctimas de
+ * Xinjiang. Ninguno hablaba de transcribir nada. Entraron porque tres términos
+ * eran subcadenas de palabras corrientes:
+ *
+ *   `descript` → **description**, **descriptive**
+ *   `whisper`  → **whispers**, **whispered**
+ *   `transcri` → el **transcript** de un juicio
+ *
+ * De ahí dos cambios. Los nombres propios —Descript, Whisper, Notta, Trint,
+ * Sonix— llevan `\b` a ambos lados, porque son marcas y no raíces. Y haber
+ * dicho una palabra una vez en mitad de un texto largo ya no basta: el tema
+ * tiene que estar **en el título**, o aparecer con **dos términos distintos**.
+ * Distintos y no dos veces el mismo, porque un relato dice "whispers" cinco
+ * veces y sigue sin ir de esto.
+ *
+ * La prueba que había cubría el caso que motivó la puerta —la miopía— y ningún
+ * otro. Una puerta probada solo contra lo que la originó conserva todos los
+ * demás agujeros.
  */
-const ON_TOPIC =
-  /(transcri|subtitl|subtítul|closed caption|\bcaptions?\b|\bsrt\b|\bvtt\b|whisper|speech[ -]?to[ -]?text|voice[ -]?to[ -]?text|\bdictation\b|\bdictado\b|\bASR\b|otter\.?ai|happyscribe|notta|descript|trint|sonix|rev\.com)/i;
+const TOPIC_TERMS = [
+  /transcri/i,
+  /subtitl|subtítul/i,
+  /closed caption|\bcaptions?\b/i,
+  /\bsrt\b/i,
+  /\bvtt\b/i,
+  // Marcas y modelos: con límites de palabra a ambos lados. "Whisper" es un
+  // modelo de OpenAI; "whispers" es lo que hace un personaje de novela.
+  /\bwhisper\b|\bwhisperx\b|whisper\.cpp/i,
+  /speech[ -]?to[ -]?text|voice[ -]?to[ -]?text/i,
+  /\bdictation\b|\bdictado\b/i,
+  /\bASR\b/i,
+  /otter\.?ai/i,
+  /happyscribe/i,
+  /\bnotta\b/i,
+  /\bdescript\b/i,
+  /\btrint\b/i,
+  /\bsonix\b/i,
+  /rev\.com/i,
+];
+
+/** Cuántos términos **distintos** del tema aparecen en un texto. */
+function topicHits(text) {
+  return TOPIC_TERMS.filter((re) => re.test(text)).length;
+}
+
+/**
+ * Si el hilo va de lo nuestro. El título pesa porque quien busca una
+ * herramienta lo dice en el título; una mención suelta enterrada en mil
+ * palabras es casi siempre casualidad.
+ */
+function onTopic(title, text) {
+  return topicHits(title) > 0 || topicHits(text) >= 2;
+}
 
 /** Restas: cosas que hacen que responder sea mala idea. */
 const PENALTIES = [
@@ -108,12 +162,13 @@ export function promoRisk(rules = []) {
  * que el resumen diga *por qué* aparece cada hilo y no solo que aparece.
  */
 export function scoreThread(thread) {
-  const text = `${thread.title ?? ""}\n${thread.selftext ?? ""}`;
+  const title = thread.title ?? "";
+  const text = `${title}\n${thread.selftext ?? ""}`;
   // Descarte duro: si va de texto manuscrito u OCR, no es nuestro problema por
   // mucho que aparezca la palabra "transcripción".
   if (NOT_AUDIO.test(text)) return { score: -100, tags: ["no es audio"], hours: 0 };
   // Descarte duro: si no habla de pasar voz a texto, ninguna señal cuenta.
-  if (!ON_TOPIC.test(text)) return { score: -100, tags: ["fuera de tema"], hours: 0 };
+  if (!onTopic(title, text)) return { score: -100, tags: ["fuera de tema"], hours: 0 };
   let score = 0;
   const tags = [];
   for (const s of [...SIGNALS, ...PENALTIES]) {
@@ -158,6 +213,25 @@ export function pickTemplate(tags) {
 }
 
 /**
+ * Un post cruzado a varios subreddits es un post, no varios.
+ *
+ * El 12/10/2026 la misma base de datos de Xinjiang ocupó tres de los nueve
+ * huecos del resumen, y el mismo relato de ciencia ficción otros dos: cinco de
+ * nueve eran dos cosas. Reddit les da un id distinto a cada copia, así que el
+ * descarte por id no las ve. Se comparan por título normalizado, que es lo que
+ * de verdad las identifica, y se conserva la copia mejor puntuada —ya vienen
+ * ordenadas— porque es la del subreddit donde más sentido tiene responder.
+ */
+function normalizeTitle(title) {
+  return (title ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/**
  * Filtra, puntúa y ordena. `seen` son ids ya reportados: un hilo se enseña una
  * vez y no vuelve a molestar.
  */
@@ -169,10 +243,17 @@ export function rank(threads, seen = [], minScore = 45) {
   for (const t of threads) {
     if (t.id && !seenSet.has(t.id) && !unique.has(t.id)) unique.set(t.id, t);
   }
+  const titles = new Set();
   return [...unique.values()]
     .map((t) => ({ ...t, ...scoreThread(t) }))
     .filter((t) => t.score >= minScore)
-    .sort((a, b) => b.score - a.score);
+    .sort((a, b) => b.score - a.score)
+    .filter((t) => {
+      const key = normalizeTitle(t.title);
+      if (!key || titles.has(key)) return false;
+      titles.add(key);
+      return true;
+    });
 }
 
 /**

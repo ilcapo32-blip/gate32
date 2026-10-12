@@ -168,6 +168,53 @@ El motivo de arreglarlo el mismo día: un resumen con treinta hilos de relleno
 enseña a no abrirlo, y entonces da lo mismo lo bueno que sea el que hacía
 número treinta y uno.
 
+## Las fugas del 12/10/2026: dos de nueve
+
+La puerta temática que arregló el ruido del 14/08 llevaba desde entonces con
+tres agujeros. El resumen de ese día traía **nueve hilos y servían dos** —un
+lanzamiento de dictado offline en r/macapps y un hilo de audio de campo en
+r/Filmmakers—. Los otros siete:
+
+| Hilo | Por qué coló |
+|---|---|
+| Base de datos de víctimas de Xinjiang (×3 subreddits) | «**descript**ion» |
+| Un relato de ciencia ficción (×2 subreddits) | «**whisper**s» |
+| Un caso penal en r/Cornell | el «**transcri**pt» de un juicio |
+| Una anécdota personal en una página de perfil | «**descript**ive» |
+
+Tres términos de la puerta eran subcadenas de palabras corrientes. `descript`
+—puesto por el producto Descript— captura *description*, la palabra más común
+que existe en un texto que explica algo. `whisper` —puesto por el modelo de
+OpenAI— captura *whispers*, que aparece en cualquier narración. Y `transcri`
+captura el transcript de un juicio, que es texto pero no es nuestro.
+
+Dos cambios:
+
+1. **Las marcas llevan `\b` a ambos lados.** Descript, Whisper, Notta, Trint y
+   Sonix son nombres propios, no raíces. `transcri` se queda como raíz porque
+   ahí sí la queremos (transcribe, transcription, transcripción).
+2. **Una mención suelta ya no basta.** El tema tiene que estar en el **título**,
+   o aparecer con **dos términos distintos**. Distintos, no dos veces el mismo:
+   un relato dice «whispers» cinco veces y sigue sin ir de esto.
+
+Y un tercero, del mismo resumen: **un post cruzado a varios subreddits ocupaba
+un hueco por copia**, porque Reddit numera cada una por separado y el descarte
+iba por id. Cinco de los nueve huecos eran dos cosas. Ahora se comparan por
+título normalizado y se conserva la copia mejor puntuada.
+
+> **Lo que hay que llevarse de aquí.** La prueba que cubría esta puerta probaba
+> el caso que la motivó —un hilo de cirugía de miopía— y ninguno más. Una
+> comprobación escrita contra un único ejemplo conserva todos los agujeros que
+> ese ejemplo no tenía. Las pruebas nuevas usan los siete hilos reales del
+> 12/10, con el término exacto por el que entró cada uno.
+
+### Lo que esto no arregla
+
+El radar lleva **117 issues abiertas y ninguna cerrada**. Abre una por pasada,
+dos veces al día, y nadie las lee. Que la señal mejore no sirve de nada si el
+resumen sigue cayendo en un sitio al que no entra nadie: eso es una decisión
+de proceso, no de código, y sigue pendiente.
+
 ## Cómo se lee el resumen
 
 Cada hilo llega con:

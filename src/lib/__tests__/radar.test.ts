@@ -305,6 +305,61 @@ describe("radar · puerta temática", () => {
     }
   });
 
+  // El 12/10/2026 el resumen trajo nueve hilos y servían dos. Estos son los
+  // otros siete, con el término exacto por el que colaron. La prueba de arriba
+  // cubría el caso que motivó la puerta —la miopía— y ningún otro, que es la
+  // forma más fiable de conservar todos los demás agujeros.
+  it("no deja pasar palabras corrientes que contienen una marca", () => {
+    const colados = [
+      ["Xinjiang Victims Database", "A Resource for Truth. See the description of each entry.", "description"],
+      ["[SF] The Terrible revenge of the Space Dragons", "She whispers to the dragon and it turns away.", "whispers"],
+      ["What Perplexity saying on the case", "Facts admissible so far, per the court transcript of the hearing.", "transcript judicial"],
+      ["The first time I swore at someone in public", "A descriptive account of what happened that day.", "descriptive"],
+    ];
+    for (const [title, selftext, motivo] of colados) {
+      const r = scoreThread({ id: "t3_x", title, selftext, created_utc: hoursAgo(2) });
+      expect(r.tags, `coló por "${motivo}"`).toContain("fuera de tema");
+    }
+  });
+
+  it("una sola mención perdida en un texto largo no basta", () => {
+    // Quien busca una herramienta lo dice en el título. Una palabra suelta en
+    // mitad de mil es casi siempre casualidad.
+    const suelto = {
+      id: "t3_suelto",
+      title: "My weekend project went sideways",
+      selftext: `${"filler ".repeat(200)} I also had to transcribe something. ${"filler ".repeat(200)}`,
+      created_utc: hoursAgo(2),
+    };
+    expect(scoreThread(suelto).tags).toContain("fuera de tema");
+  });
+
+  it("dos términos distintos en el cuerpo sí bastan, aunque el título calle", () => {
+    const dos = {
+      id: "t3_dos",
+      title: "Need help with my weekly workflow",
+      selftext: "I transcribe the audio and then export SRT subtitles for YouTube.",
+      created_utc: hoursAgo(2),
+    };
+    expect(scoreThread(dos).tags).not.toContain("fuera de tema");
+  });
+
+  it("el mismo post cruzado a tres subreddits ocupa un hueco, no tres", () => {
+    // Tres de los nueve huecos del 12/10 eran la misma base de datos, con tres
+    // identificadores distintos porque Reddit numera cada copia por separado.
+    const base = {
+      title: "Free tool to transcribe interviews without uploading?",
+      selftext: "privacy matters, looking for a recommendation",
+      created_utc: hoursAgo(1),
+    };
+    const cruzado = [
+      { ...base, id: "t3_a", subreddit: "podcasting" },
+      { ...base, id: "t3_b", subreddit: "transcription" },
+      { ...base, id: "t3_c", subreddit: "journalism" },
+    ];
+    expect(rank(cruzado)).toHaveLength(1);
+  });
+
   it("un hilo que llega por dos búsquedas aparece una sola vez", () => {
     const hilo = {
       id: "t3_dup",
