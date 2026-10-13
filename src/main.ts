@@ -1563,9 +1563,15 @@ function wireTabCapture(mode: TabMode, btn: HTMLButtonElement): void {
       let micParts: Blob[] = [];
       let tabParts: Blob[] = [];
       const stoppers: (() => void)[] = [];
+      let settled = false;
       const settle = (): void => {
         waiting--;
-        if (waiting > 0 || !mixed) return;
+        if (waiting > 0) return;
+        proceed();
+      };
+      const proceed = (): void => {
+        if (settled || !mixed) return;
+        settled = true;
         const { parts, mimeType } = mixed;
         st.capture?.stop();
         st.capture = null;
@@ -1623,7 +1629,24 @@ function wireTabCapture(mode: TabMode, btn: HTMLButtonElement): void {
         extra(split.mic, (p) => (micParts = p));
         extra(split.tab, (p) => (tabParts = p));
       }
-      st.stop = () => stoppers.forEach((stop) => stop());
+      st.stop = () => {
+        // Cada uno por su lado: si parar uno lanzase, los otros seguirían
+        // grabando sin nadie que los detenga.
+        for (const stop of stoppers) {
+          try {
+            stop();
+          } catch {
+            /* el que falle no arrastra a los demás */
+          }
+        }
+        // Una pista separada que no entrega nunca no puede retener la reunión:
+        // pasado este margen se sigue con la mezcla, que lo tiene todo.
+        window.setTimeout(() => {
+          if (settled || !mixed) return;
+          track("speakers_split_timeout");
+          proceed();
+        }, 15000);
+      };
       st.recording = true;
       // Si se corta la compartición desde la barra del navegador, se cierra la
       // grabación igual que si se hubiera pulsado «Detener» aquí: dejar de

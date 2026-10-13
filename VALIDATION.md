@@ -926,7 +926,7 @@ Qué medir y qué decide cada cosa:
 | Evento | Qué responde |
 |---|---|
 | `speakers_done_meeting` frente a `transcribe_start_meeting` | cuántas reuniones salen ya como diálogo; debería ser casi todas las que tienen micrófono |
-| `speakers_split_failed` + `speakers_split_empty` | si la grabación separada falla en equipos reales; más del 10 % de `meeting_start` es un problema |
+| `speakers_split_failed` + `speakers_split_empty` + `speakers_split_timeout` | si la grabación separada falla en equipos reales; más del 10 % de `meeting_start` es un problema |
 | `tracks_offered` | cuánta gente suelta varios archivos a la vez; hasta hoy era invisible, porque se tomaba el primero sin decir nada |
 | `tracks_declined` frente a `tracks_offered` | si dicen que no, soltaban archivos sueltos a la vez: es demanda de **lotes**, medida gratis |
 | `tracks_accepted_2` / `_3` / `_4` | cuántas voces tienen las entrevistas reales |
@@ -1009,7 +1009,7 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `speakers_done` / `speakers_done_meeting` / `speakers_done_interview` | la transcripción sale con hablantes | — |
 | `speaker_rename` | cambia el nombre de un hablante | — |
 | `speakers_track_decode_failed` / `speakers_track_failed` | una pista no se pudo leer o transcribir | — |
-| `speakers_split_failed` / `speakers_split_empty` | la grabación separada de una reunión no arrancó o salió vacía | — |
+| `speakers_split_failed` / `speakers_split_empty` / `speakers_split_timeout` | la grabación separada de una reunión no arrancó, salió vacía o no entregó en 15 s (se sigue con la mezcla) | — |
 | `meeting_click` | primer clic en «Grabar una reunión» (aún no comparte) | — |
 | `meeting_start` | la captura arranca de verdad | — |
 | `meeting_no_mic` | se capturó la pestaña pero no el micrófono | — |
