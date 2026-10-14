@@ -948,6 +948,52 @@ casos construidos, no del campo. Y tres grabadores a la vez no se han medido
 en un equipo modesto. La prueba con audio real en la web publicada va antes de
 anunciarlo en ningún sitio.
 
+### La primera prueba real del MP4 falló, y destapó un fallo de dos meses (2026-10-14)
+
+El fundador probó la versión de la rama con un MP4 de **496 MB y 1 h 02 min**
+(nombre de grabación de OBS). Resultado: once líneas de «[Música] [Música]»,
+una cada 1 min 55 s exactos, y la transcripción acababa en el minuto 19.
+
+**La causa no era el demultiplexor nuevo, sino el troceador de MP3 del 11/08.**
+Para archivos de más de 60 MB se probaba primero, y bastaba **una** cabecera de
+trama MP3 válida en los primeros 8 KB para darlo por MP3; después aceptaba
+cualquier cabecera suelta. Los datos comprimidos de un vídeo están llenos de
+bytes que lo parecen. Reproducido con ffmpeg: en un MP4 H.264 de 460 MB
+«encontraba» **2 h 21 min de MP3 que no existen**, en 15 trozos. Ninguno se
+podía decodificar, cada trozo fallido se rellenaba con silencio, y como el
+resultado no estaba vacío se daba por bueno. Whisper, ante el silencio,
+escribe «[Música]».
+
+Qué significa hacia atrás, sin adornos: **desde el 11/08, cualquier archivo de
+más de 60 MB que no fuera MP3** —MP4, M4A, MOV, WAV, FLAC, WebM— pudo salir
+así. Y contaba como `decode_chunked` y como `transcribe_done`: una
+transcripción terminada que era basura. Las mediciones de esas semanas sobre
+transcripciones completadas y sobre `doubt_por_boilerplate` incluyen esos
+casos, y no se pueden separar a posteriori.
+
+Arreglado, con cada pieza comprobada contra archivos reales generados con
+ffmpeg:
+
+- **El MP3 exige una cadena de cuatro tramas** del mismo ritmo para empezar, y
+  que las tramas cubran al menos la mitad del archivo. Los seis MP4/MOV/M4A de
+  prueba, incluido el de 460 MB, ya no se confunden; los MP3 reales (CBR, VBR,
+  MPEG-2 con ID3) siguen saliendo con su duración exacta.
+- **Cada formato por su lector:** un MP4 ya no pasa por el de MP3.
+- **Nunca silencio como éxito:** si falla más de un tramo de cada cuatro, ni el
+  MP3 ni el MP4 devuelven nada y se prueba el camino de una pieza, que o lee
+  bien o da un error que se entiende.
+- **El demultiplexor lee lo que faltaba:** MP4 fragmentado (lo que graba OBS),
+  MP4 «híbrido», MOV de QuickTime (el `esds` va dentro de `wave`) y Opus. Las
+  tablas de muestras coinciden **al 100 % con ffprobe** en nueve variantes.
+- **Prueba en navegador** de una hora con un pitido por minuto (Opus normal y
+  fragmentado): 3.719,9 s de 3.720 y los 62 pitidos en su segundo exacto, sin
+  deriva al final. AAC no se pudo descodificar aquí porque este Chromium no lo
+  trae; en Chrome sí.
+
+Qué decide la próxima medición: `decode_chunked` tiene que **bajar** (ya solo
+cuentan MP3 de verdad), y aparecen `decode_mp4` y `decode_mp4_skip_*` con el
+motivo cuando no se puede (`decoder`, `track`, `codec`, `tramos`).
+
 ### Por qué no sabemos para qué se usa (2026-08-07, corregido)
 
 La encuesta de caso de uso existía desde el principio, pero solo se mostraba
@@ -1004,6 +1050,7 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `transcribe_start` | usuario confirma y lanza la transcripción | `model`, `device`, `source` (file/mic/meeting/media), `minutes` |
 | `transcribe_start_meeting` | la transcripción viene de una reunión grabada | — |
 | `decode_mp4` | un MP4/M4A/MOV grande se leyó con el demultiplexor propio | — |
+| `decode_mp4_skip_decoder` / `_track` / `_codec` / `_tramos` | un MP4 grande no pudo ir por tramos, y por qué | — |
 | `tracks_offered` | suelta de 2 a 4 archivos a la vez y se le pregunta si son una conversación | — |
 | `tracks_accepted` / `tracks_accepted_N` / `tracks_declined` | su respuesta, y cuántas pistas | — |
 | `speakers_done` / `speakers_done_meeting` / `speakers_done_interview` | la transcripción sale con hablantes | — |

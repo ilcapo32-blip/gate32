@@ -15,6 +15,12 @@ export interface DecodedAudio {
    * esos archivos o no.
    */
   mp4?: boolean;
+  /**
+   * Por qué un MP4 grande **no** pudo ir por el demultiplexor, si fue así. Sin
+   * esto, cuando un MP4 sale mal no hay forma de saber si el problema es el
+   * navegador, el códec o el archivo.
+   */
+  mp4Skip?: Mp4Skip;
   /** Trozos de una grabación larga que no se pudieron leer. */
   partsFailed?: number;
 }
@@ -31,6 +37,8 @@ export const BIG_FILE_BYTES = 60e6;
  */
 export class DecodeError extends Error {
   readonly big: boolean;
+  /** Si era un MP4 grande, por qué no lo pudo leer el demultiplexor. */
+  mp4Skip?: Mp4Skip;
   constructor(bytes: number) {
     const big = bytes > BIG_FILE_BYTES;
     super(big ? t("decode_error_big") : t("decode_error"));
@@ -38,6 +46,21 @@ export class DecodeError extends Error {
     this.name = "DecodeError";
   }
 }
+
+/**
+ * Motivos por los que un MP4 grande no se lee por tramos: sin `AudioDecoder`
+ * (navegador antiguo), sin pista de audio que sepamos leer, códec que el
+ * navegador no acepta, o demasiados tramos que no se dejaron descodificar.
+ */
+export type Mp4Skip = "decoder" | "track" | "codec" | "tramos";
+
+/**
+ * Más de un tramo de cada cuatro sin poder leerse ya no es un archivo con un
+ * hueco, es un archivo que no se está leyendo. Devolverlo relleno de silencio
+ * es lo peor que se puede hacer: Whisper transcribe ese silencio como
+ * «[Música]» y la pantalla dice que todo ha ido bien.
+ */
+const tooManyFailed = (failed: number, total: number) => failed * 4 > total;
 
 /** Mezcla los canales de un buffer ya remuestreado y lo escribe en `out`. */
 function mixInto(decoded: AudioBuffer, out: Float32Array, offset: number): number {
@@ -76,6 +99,7 @@ async function decodeChunked(
   // justo en el momento en el que no sobra.
   const out = new Float32Array(Math.ceil(totalSeconds * TARGET_RATE) + TARGET_RATE);
   let written = 0;
+  let failed = 0;
 
   for (const range of ranges) {
     const slice = bytes.slice(range.start, range.end);
@@ -85,13 +109,14 @@ async function decodeChunked(
     } catch {
       // Un trozo ilegible no debe tirar el archivo entero: se salta su hueco
       // para que los tiempos del resto no se desplacen.
+      failed++;
       written += Math.round(range.seconds * TARGET_RATE);
       continue;
     }
     written += mixInto(decoded, out, written);
   }
 
-  if (written === 0) return null;
+  if (written === 0 || tooManyFailed(failed, ranges.length)) return null;
   return { audio: out.subarray(0, written), duration: written / TARGET_RATE, chunked: true };
 }
 
@@ -109,12 +134,12 @@ async function decodeChunked(
  * que quien llame siga por el camino de siempre: un archivo pequeño que el
  * navegador sabe leer de una pieza no tiene por qué pasar por aquí.
  */
-async function decodeMp4(bytes: Uint8Array): Promise<DecodedAudio | null> {
+async function decodeMp4(bytes: Uint8Array): Promise<DecodedAudio | Mp4Skip> {
   const Decoder = (globalThis as { AudioDecoder?: typeof AudioDecoder }).AudioDecoder;
-  if (!Decoder || !looksLikeMp4(bytes)) return null;
+  if (!Decoder) return "decoder";
 
   const track = readMp4Audio(bytes);
-  if (!track || track.samples.length === 0) return null;
+  if (!track || track.samples.length === 0) return "track";
 
   try {
     const config: AudioDecoderConfig = {
@@ -124,19 +149,23 @@ async function decodeMp4(bytes: Uint8Array): Promise<DecodedAudio | null> {
       ...(track.description ? { description: track.description } : {}),
     };
     const { supported } = await Decoder.isConfigSupported(config);
-    if (!supported) return null;
+    if (!supported) return "codec";
 
     // Tramos de cinco minutos: a 48 kHz son unos 57 MB de pico, frente a los
     // 1,38 GB de pedir una hora entera.
     const ranges = mp4ChunkRanges(track, 300);
     const out = new Float32Array(Math.ceil(track.duration * TARGET_RATE) + TARGET_RATE);
     let written = 0;
+    let failed = 0;
 
     for (const range of ranges) {
       const mono = await decodeRange(Decoder, config, track, bytes, range.from, range.to);
       // Un tramo ilegible no puede llevarse el archivo entero por delante: se
       // deja su hueco en silencio para que los tiempos del resto no se muevan.
       if (!mono) {
+        failed++;
+        // Si ya no hay manera de que salga bien, no se sigue gastando tiempo.
+        if (tooManyFailed(failed, ranges.length)) return "tramos";
         written += Math.round(range.seconds * TARGET_RATE);
         continue;
       }
@@ -146,10 +175,10 @@ async function decodeMp4(bytes: Uint8Array): Promise<DecodedAudio | null> {
       written += room;
     }
 
-    if (written === 0) return null;
+    if (written === 0) return "tramos";
     return { audio: out.subarray(0, written), duration: written / TARGET_RATE, chunked: true, mp4: true };
   } catch {
-    return null;
+    return "codec";
   }
 }
 
@@ -168,18 +197,26 @@ async function decodeRange(
 
   const decoder = new Decoder({
     output: (data) => {
-      rate = data.sampleRate;
-      const frames = data.numberOfFrames;
-      const channels = data.numberOfChannels;
-      const mono = new Float32Array(frames);
-      const plane = new Float32Array(frames);
-      for (let c = 0; c < channels; c++) {
-        data.copyTo(plane, { planeIndex: c, format: "f32-planar" });
-        for (let i = 0; i < frames; i++) mono[i] = (mono[i] ?? 0) + (plane[i] ?? 0);
+      // Un error aquí no lo recoge el `try` de abajo —salta fuera, en el
+      // decodificador—, así que se anota a mano: si no, la trama se perdía en
+      // silencio y el tramo parecía bueno.
+      try {
+        rate = data.sampleRate;
+        const frames = data.numberOfFrames;
+        const channels = data.numberOfChannels;
+        const mono = new Float32Array(frames);
+        const plane = new Float32Array(frames);
+        for (let c = 0; c < channels; c++) {
+          data.copyTo(plane, { planeIndex: c, format: "f32-planar" });
+          for (let i = 0; i < frames; i++) mono[i] = (mono[i] ?? 0) + (plane[i] ?? 0);
+        }
+        if (channels > 1) for (let i = 0; i < frames; i++) mono[i] = (mono[i] ?? 0) / channels;
+        pieces.push(mono);
+      } catch {
+        failed = true;
+      } finally {
+        data.close();
       }
-      if (channels > 1) for (let i = 0; i < frames; i++) mono[i] = (mono[i] ?? 0) / channels;
-      pieces.push(mono);
-      data.close();
     },
     error: () => {
       failed = true;
@@ -309,27 +346,36 @@ export async function decodeToMono16k(file: Blob): Promise<DecodedAudio> {
 
   // Los archivos grandes van primero por el camino troceado, que es el único
   // que no depende de que quepa el episodio entero en memoria.
+  //
+  // Cada formato por su lector, y el MP4 **antes** que el MP3: el lector de MP3
+  // veía tramas falsas en los datos de vídeo de cualquier MP4 y devolvía una
+  // hora de silencio que Whisper transcribía como «[Música]».
+  let mp4Skip: Mp4Skip | undefined;
   if (buf.byteLength > BIG_FILE_BYTES) {
     const bytes = new Uint8Array(buf.slice(0));
-    try {
-      const chunked = await decodeChunked(ctx, bytes);
-      if (chunked && chunked.duration >= 0.5) {
-        void ctx.close();
-        return chunked;
+    if (looksLikeMp4(bytes)) {
+      // La familia MP4 —mp4, m4a, mov— era 31 de los 41 errores de
+      // descodificación medidos.
+      try {
+        const demuxed = await decodeMp4(bytes);
+        if (typeof demuxed === "string") mp4Skip = demuxed;
+        else if (demuxed.duration >= 0.5) {
+          void ctx.close();
+          return demuxed;
+        }
+      } catch {
+        mp4Skip = "codec";
       }
-    } catch {
-      /* si el troceado falla, queda el camino de siempre */
-    }
-    // `decodeChunked` solo sabe leer MP3. La familia MP4 —mp4, m4a, mov— era
-    // 31 de los 41 errores de descodificación medidos, y es la que llega aquí.
-    try {
-      const demuxed = await decodeMp4(bytes);
-      if (demuxed && demuxed.duration >= 0.5) {
-        void ctx.close();
-        return demuxed;
+    } else {
+      try {
+        const chunked = await decodeChunked(ctx, bytes);
+        if (chunked && chunked.duration >= 0.5) {
+          void ctx.close();
+          return chunked;
+        }
+      } catch {
+        /* si el troceado falla, queda el camino de siempre */
       }
-    } catch {
-      /* ídem: el camino de siempre sigue ahí */
     }
   }
 
@@ -351,7 +397,11 @@ export async function decodeToMono16k(file: Blob): Promise<DecodedAudio> {
         void fallback.close();
       }
     } catch {
-      throw new DecodeError(file instanceof File ? file.size : retryBuf.byteLength);
+      // `file.size` y no el búfer: `decodeAudioData` lo deja vacío, y una
+      // grabación grande se avisaba como si fuera un formato raro.
+      const err = new DecodeError(file.size);
+      if (mp4Skip) err.mp4Skip = mp4Skip;
+      throw err;
     }
   }
   void ctx.close();
@@ -360,8 +410,9 @@ export async function decodeToMono16k(file: Blob): Promise<DecodedAudio> {
     throw new Error(t("too_short"));
   }
 
+  const skip = mp4Skip ? { mp4Skip } : {};
   if (decoded.sampleRate === TARGET_RATE && decoded.numberOfChannels === 1) {
-    return { audio: decoded.getChannelData(0).slice(), duration: decoded.duration };
+    return { audio: decoded.getChannelData(0).slice(), duration: decoded.duration, ...skip };
   }
 
   const length = Math.ceil(decoded.duration * TARGET_RATE);
@@ -371,7 +422,7 @@ export async function decodeToMono16k(file: Blob): Promise<DecodedAudio> {
   source.connect(offline.destination);
   source.start();
   const rendered = await offline.startRendering();
-  return { audio: rendered.getChannelData(0).slice(), duration: rendered.duration };
+  return { audio: rendered.getChannelData(0).slice(), duration: rendered.duration, ...skip };
 }
 
 /** Formatos que aceptamos en el selector de archivos. */

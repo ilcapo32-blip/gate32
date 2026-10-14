@@ -88,34 +88,79 @@ export function skipID3(bytes: Uint8Array): number {
   return 10 + size;
 }
 
+/** Tramas seguidas que hacen falta para creer que ahí empieza un MP3 de verdad. */
+const CHAIN = 4;
+
+/**
+ * La trama de `pos` si detrás vienen otras `need - 1` encadenadas, del mismo
+ * ritmo y tipo. Una cabecera suelta no prueba nada: once bits a uno y unos
+ * cuantos valores válidos aparecen por azar en cualquier archivo grande.
+ */
+function chainAt(bytes: Uint8Array, pos: number, need: number): Mp3Frame | null {
+  const first = readFrame(bytes, pos);
+  if (!first) return null;
+  let at = pos + first.length;
+  for (let i = 1; i < need; i++) {
+    // Si el archivo se acaba, lo que había hasta ahí cuadraba.
+    if (at >= bytes.length - 4) return first;
+    const next = readFrame(bytes, at);
+    if (!next || next.sampleRate !== first.sampleRate || next.samples !== first.samples) return null;
+    at += next.length;
+  }
+  return first;
+}
+
 /**
  * Recorre el archivo y devuelve los cortes por límite de trama, agrupando
  * tramas hasta completar `secondsPerChunk` de audio.
  *
  * Devuelve `null` si el archivo no parece un MP3 con tramas legibles, para que
  * quien llame vuelva al camino de siempre en vez de romper.
+ *
+ * Antes bastaba **una** cabecera válida en los primeros 8 KB para darlo por
+ * MP3, y después se aceptaba cualquier cabecera suelta. En un MP4 de vídeo de
+ * 460 MB eso «encontraba» 2 h 21 min de MP3 que no existían: los trozos no se
+ * podían decodificar, se rellenaban con silencio, y Whisper transcribía ese
+ * silencio como «[Música]». Le pasó a un MP4 de una hora el 14/10, y le pudo
+ * pasar a cualquier archivo grande que no fuera MP3 desde el 11/08. Ahora hace
+ * falta una cadena de tramas para empezar, del mismo ritmo todo el archivo, y
+ * que las tramas cubran la mayor parte de los bytes.
  */
 export function chunkRanges(
   bytes: Uint8Array,
   secondsPerChunk = 600,
 ): { start: number; end: number; seconds: number }[] | null {
   let pos = skipID3(bytes);
+  // Resincronizar indefinidamente sería lentísimo en un archivo que no es MP3:
+  // el primer encadenado tiene que aparecer pronto.
+  const limit = Math.min(bytes.length, pos + 64 * 1024);
+  let first: Mp3Frame | null = null;
+  while (pos < limit) {
+    first = chainAt(bytes, pos, CHAIN);
+    if (first) break;
+    pos++;
+  }
+  if (!first) return null;
+  const { sampleRate, samples } = first;
+  const begin = pos;
+
   const ranges: { start: number; end: number; seconds: number }[] = [];
   let chunkStart = pos;
   let chunkSeconds = 0;
-  let frames = 0;
-  // Resincronizar indefinidamente sería lentísimo en un archivo que no es MP3:
-  // si tras muchos intentos no aparece ninguna trama, se abandona.
-  let misses = 0;
+  let covered = 0;
+  // Tras un hueco de basura no basta una cabecera para volver: también ahí
+  // hace falta ver dos seguidas.
+  let synced = true;
 
   while (pos < bytes.length - 4) {
-    const frame = readFrame(bytes, pos);
-    if (!frame) {
-      if (frames === 0 && ++misses > 8192) return null;
+    const frame = synced ? readFrame(bytes, pos) : chainAt(bytes, pos, 2);
+    if (!frame || frame.sampleRate !== sampleRate || frame.samples !== samples) {
+      synced = false;
       pos++;
       continue;
     }
-    frames++;
+    synced = true;
+    covered += frame.length;
     chunkSeconds += frame.samples / frame.sampleRate;
     pos += frame.length;
 
@@ -126,7 +171,9 @@ export function chunkRanges(
     }
   }
 
-  if (frames === 0) return null;
+  // Un MP3 de verdad es casi todo tramas. Si no, lo encontrado son bytes
+  // sueltos que parecían cabeceras, y es mejor el camino de siempre.
+  if (covered < 0.5 * (bytes.length - begin)) return null;
   if (chunkSeconds > 0) ranges.push({ start: chunkStart, end: bytes.length, seconds: chunkSeconds });
   return ranges;
 }

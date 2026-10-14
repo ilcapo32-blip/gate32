@@ -89,6 +89,40 @@ describe("mp3 · troceado", () => {
     expect(chunkRanges(new Uint8Array(20000))).toBeNull();
   });
 
+  // El 14/10 un MP4 de vídeo de una hora salió transcrito como «[Música]»: este
+  // troceado vio tramas MP3 en los datos de vídeo, los trozos no se podían
+  // decodificar y se rellenaron con silencio. En un MP4 de 460 MB generado con
+  // ffmpeg «encontraba» 2 h 21 min de MP3 que no existían.
+  it("no ve un MP3 en datos que solo lo parecen a ratos", () => {
+    // Bytes pseudoaleatorios, como los de un vídeo comprimido, con cabeceras
+    // válidas sembradas sueltas aquí y allá.
+    const bytes = new Uint8Array(2_000_000);
+    let seed = 7;
+    for (let i = 0; i < bytes.length; i++) {
+      seed = (seed * 1103515245 + 12345) >>> 0;
+      bytes[i] = seed >>> 24;
+    }
+    for (let at = 100; at < bytes.length; at += 9973) bytes.set(frameHeader(), at);
+    expect(chunkRanges(bytes)).toBeNull();
+  });
+
+  it("una cabecera suelta al principio no basta para darlo por MP3", () => {
+    const bytes = new Uint8Array(50_000);
+    bytes.set(frameHeader(), 0);
+    expect(chunkRanges(bytes)).toBeNull();
+  });
+
+  it("un MP3 con un tramo de basura en medio se sigue leyendo entero", () => {
+    const a = fakeMp3(100);
+    const b = fakeMp3(100);
+    const junk = new Uint8Array(1000).fill(0x55);
+    const bytes = new Uint8Array([...a, ...junk, ...b]);
+    const ranges = chunkRanges(bytes, 600)!;
+    expect(ranges).not.toBeNull();
+    const total = ranges.reduce((s, r) => s + r.seconds, 0);
+    expect(total).toBeCloseTo((200 * 1152) / 44100, 5);
+  });
+
   it("la suma de duraciones coincide con la del archivo", () => {
     const ranges = chunkRanges(fakeMp3(200), 1)!;
     const total = ranges.reduce((a, r) => a + r.seconds, 0);

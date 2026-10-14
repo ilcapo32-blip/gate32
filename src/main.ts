@@ -590,10 +590,11 @@ async function startTranscription(
       const d = parts && parts.length > 1 ? await decodeParts(parts) : await decodeToMono16k(file);
       ({ audio, duration, chunked } = d);
       viaMp4 = d.mp4 === true;
+      if (d.mp4Skip) track(`decode_mp4_skip_${d.mp4Skip}`);
     }
     // Se mide aparte: es el camino nuevo y hay que saber si de verdad salva
     // archivos que antes se perdían.
-    if (chunked) track("decode_chunked");
+    if (chunked && !viaMp4) track("decode_chunked");
     if (viaMp4) track("decode_mp4");
   } catch (err) {
     // El nombre del evento lleva la causa: GoatCounter (plan gratuito) solo
@@ -604,6 +605,7 @@ async function startTranscription(
     // El tamaño va en el nombre del evento porque separa las dos causas: un
     // formato que el navegador no entiende y un archivo que no le cabe.
     const big = err instanceof DecodeError && err.big;
+    if (err instanceof DecodeError && err.mp4Skip) track(`decode_mp4_skip_${err.mp4Skip}`);
     track("transcribe_error", { stage: "decode", kind: "decode", ext, big });
     track("transcribe_error_decode");
     track(`transcribe_error_decode_${ext}`);
