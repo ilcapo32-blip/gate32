@@ -1019,8 +1019,11 @@ el camino (`_mp4`, `_trozos`, `_entero`). Comprobado en navegador con un MP4 de
 62 min cortado al 55 %, como una descarga interrumpida: se lee hasta 33:51 de
 1:02:00, justo lo que existe, y lo dice. El mismo archivo entero no da aviso.
 
-Para saber cuál de las dos fue: en el reproductor del resultado, saltar más
-allá del minuto 51. Si no suena, el archivo estaba incompleto.
+**Resuelto el mismo día: era el archivo.** Reproducido en el reproductor de
+Windows, el vídeo se corta en el **50:41** aunque diga durar 1:36:31. Gate32
+leyó 50:43: todo lo que existe y nada más. La descodificación de MP4 grandes
+queda validada con un archivo real, y el aviso nuevo es justo lo que le habría
+ahorrado al usuario la duda.
 
 ### Por qué no sabemos para qué se usa (2026-08-07, corregido)
 
