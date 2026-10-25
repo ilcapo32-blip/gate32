@@ -994,6 +994,34 @@ Qué decide la próxima medición: `decode_chunked` tiene que **bajar** (ya solo
 cuentan MP3 de verdad), y aparecen `decode_mp4` y `decode_mp4_skip_*` con el
 motivo cuando no se puede (`decoder`, `track`, `codec`, `tramos`).
 
+**Segunda prueba real (2026-10-25): funciona, con una pregunta abierta.** Un
+MP4 de 73 MB y 1:36:31, el directo de un curso, salió con **texto real y
+bueno** desde el primer segundo («Hola a todos y muy bienvenidos a este curso
+de Inteligencia Artificial 2026…»), 51 min transcritos en 25:05 con el modelo
+Preciso y WebGPU. Es la primera vez que el camino nuevo se ve funcionar con AAC
+en Chrome de verdad.
+
+Lo que no cuadra: se leyeron **50:43 de 1:36:31**. Dos explicaciones, sin
+saber aún cuál es:
+
+1. *El archivo está incompleto.* Una descarga cortada conserva en la cabecera
+   la duración original. El tamaño apunta ahí: 73 MB son unos 100 kbps de
+   media, muy poco para hora y media de vídeo a 720p.
+2. *Un fallo nuestro.* La memoria del audio se reservaba con el final de la
+   última muestra, y en un MP4 fragmentado ese final sale de `tfdt`. Si los
+   tiempos saltan, la cifra queda corta y lo que no cabía se perdía.
+
+La segunda queda cerrada (la duración es ahora la suma de las muestras, con
+prueba que fallaba con la fórmula vieja). Y pase lo que pase, **ya no se calla**:
+si lo leído es bastante menos de lo que el archivo dice durar, se avisa en
+cuanto empieza a transcribir y en el resultado, y se registra `decode_short` con
+el camino (`_mp4`, `_trozos`, `_entero`). Comprobado en navegador con un MP4 de
+62 min cortado al 55 %, como una descarga interrumpida: se lee hasta 33:51 de
+1:02:00, justo lo que existe, y lo dice. El mismo archivo entero no da aviso.
+
+Para saber cuál de las dos fue: en el reproductor del resultado, saltar más
+allá del minuto 51. Si no suena, el archivo estaba incompleto.
+
 ### Por qué no sabemos para qué se usa (2026-08-07, corregido)
 
 La encuesta de caso de uso existía desde el principio, pero solo se mostraba
@@ -1051,6 +1079,7 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `transcribe_start_meeting` | la transcripción viene de una reunión grabada | — |
 | `decode_mp4` | un MP4/M4A/MOV grande se leyó con el demultiplexor propio | — |
 | `decode_mp4_skip_decoder` / `_track` / `_codec` / `_tramos` | un MP4 grande no pudo ir por tramos, y por qué | — |
+| `decode_short` / `decode_short_mp4` / `_trozos` / `_entero` | se leyó bastante menos audio del que el archivo dice durar, y se avisó | — |
 | `tracks_offered` | suelta de 2 a 4 archivos a la vez y se le pregunta si son una conversación | — |
 | `tracks_accepted` / `tracks_accepted_N` / `tracks_declined` | su respuesta, y cuántas pistas | — |
 | `speakers_done` / `speakers_done_meeting` / `speakers_done_interview` | la transcripción sale con hablantes | — |

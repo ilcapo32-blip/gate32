@@ -198,7 +198,7 @@ function audioTrak(entry: Uint8Array, stblExtra: Uint8Array[] = [], id = 1): Uin
 }
 
 /** Un MP4 fragmentado como el de OBS: `moov` sin muestras y dos `moof`. */
-function fragmentedMp4(): { bytes: Uint8Array; offsets: number[] } {
+function fragmentedMp4(resetClock = false): { bytes: Uint8Array; offsets: number[] } {
   const moov = box("moov", audioTrak(soundEntry("mp4a", 0, esds())), box("mvex", box("trex", [0, 0, 0, 0], u32(1), u32(1), u32(1024), u32(0), u32(0))));
   const head = new Uint8Array([...box("ftyp", str("iso6"), u32(0)), ...moov]);
   const out: number[] = [...head];
@@ -229,7 +229,8 @@ function fragmentedMp4(): { bytes: Uint8Array; offsets: number[] } {
       offsets.push(at);
       at += s;
     }
-    time += 1024 * group.length;
+    // Una emisión que se reinicia vuelve a contar desde cero.
+    time = resetClock ? 0 : time + 1024 * group.length;
   }
   return { bytes: new Uint8Array(out), offsets };
 }
@@ -246,6 +247,16 @@ describe("mp4 · fragmentado (OBS)", () => {
   it("cada fragmento empieza cuando dice su tfdt", () => {
     const track = readMp4Audio(fragmentedMp4().bytes);
     expect(track?.samples[2]?.start).toBeCloseTo((1024 * 2) / 48000, 6);
+    expect(track?.duration).toBeCloseTo((1024 * 3) / 48000, 6);
+  });
+
+  // El 25/10 un MP4 de 1:36:31 salió con 50:43 de audio. Una causa posible:
+  // la duración salía del final de la última muestra, y con tiempos que
+  // saltan eso es menos que el total; la memoria se reservaba con esa cifra y
+  // lo que no cabía se perdía sin avisar.
+  it("la duración es la suma de las muestras aunque los tiempos se reinicien", () => {
+    const track = readMp4Audio(fragmentedMp4(true).bytes);
+    expect(track?.samples).toHaveLength(3);
     expect(track?.duration).toBeCloseTo((1024 * 3) / 48000, 6);
   });
 

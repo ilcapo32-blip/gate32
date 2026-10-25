@@ -201,6 +201,12 @@ try {
     page.waitForSelector("#result:not([hidden])", { timeout: 300000 }).then(() => "done"),
     page.waitForSelector("#error:not([hidden])", { timeout: 300000 }).then(() => "error"),
   ]);
+  // El aviso de «solo se ha leído hasta…» existe porque un MP4 de 1:36:31 salió
+  // con 50:43 sin decir nada. Pero un archivo completo no puede dispararlo.
+  check(
+    "un archivo completo no da aviso de audio a medias",
+    await page.evaluate(() => document.querySelector("#status-warn")?.hasAttribute("hidden") ?? true),
+  );
   if (outcome === "done") {
     check("transcripción real completada", true);
     await page.click("#new-btn");

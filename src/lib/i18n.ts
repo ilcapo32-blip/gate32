@@ -39,6 +39,8 @@ const dict = {
     done_speakers: " · {n} hablantes, separados por pista",
     done_track_failed: " · ⚠️ la pista de «{name}» no se pudo transcribir: solo aparece lo demás. Prueba «Repetir» con otro modelo.",
     done_track_unreadable: " · ⚠️ el archivo de «{name}» no se pudo leer: solo aparece lo demás.",
+    short_read: "⚠️ De este archivo solo se ha podido leer audio hasta {got}, aunque dice durar {total}. Cuando termine, pulsa en el reproductor más allá de {got}: si ahí no suena nada, el archivo está incompleto, algo habitual en descargas cortadas.",
+    done_short: " · ⚠️ solo había audio legible hasta {got} de {total}",
     media_btn: "Transcribir un vídeo o directo de otra pestaña",
     media_start: "Elegir la pestaña y empezar",
     media_stop: "Detener ({t})",
@@ -156,6 +158,8 @@ const dict = {
     done_speakers: " · {n} speakers, separated by track",
     done_track_failed: " · ⚠️ “{name}”'s track could not be transcribed: only the rest appears. Try “Retry” with another model.",
     done_track_unreadable: " · ⚠️ “{name}”'s file could not be read: only the rest appears.",
+    short_read: "⚠️ Audio could only be read up to {got} of this file, although it says it lasts {total}. When it finishes, click the player past {got}: if nothing plays there, the file is incomplete, which is common with interrupted downloads.",
+    done_short: " · ⚠️ readable audio only up to {got} of {total}",
     media_btn: "Transcribe a video or stream from another tab",
     media_start: "Pick the tab and start",
     media_stop: "Stop ({t})",
@@ -251,7 +255,9 @@ type Key = keyof (typeof dict)["es"];
 export function t(key: Key, vars?: Record<string, string | number>): string {
   let s: string = dict[lang][key];
   if (vars) {
-    for (const [k, v] of Object.entries(vars)) s = s.replace(`{${k}}`, String(v));
+    // Todas las apariciones, no solo la primera: un aviso que repetía {got}
+    // dejaba el segundo sin sustituir, a la vista del usuario.
+    for (const [k, v] of Object.entries(vars)) s = s.split(`{${k}}`).join(String(v));
   }
   return s;
 }

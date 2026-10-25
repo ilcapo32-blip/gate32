@@ -465,12 +465,15 @@ export function readMp4Audio(bytes: Uint8Array): Mp4AudioTrack | null {
     }
 
     if (samples.length === 0) continue;
-    const last = samples[samples.length - 1];
-    return {
-      ...sound,
-      samples,
-      duration: last ? last.start + last.seconds : 0,
-    };
+    // La duración es la suma de lo que dura cada muestra, no el final de la
+    // última: en un MP4 fragmentado los tiempos vienen de `tfdt`, y si saltan
+    // —una emisión en directo que se reinicia, dos grabaciones pegadas— el
+    // final de la última muestra puede quedar muy por debajo del total. Con esa
+    // cifra se reserva la memoria del audio, y lo que no cabía se perdía sin
+    // avisar.
+    let duration = 0;
+    for (const s of samples) duration += s.seconds;
+    return { ...sound, samples, duration };
   }
 
   return null;

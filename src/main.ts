@@ -74,6 +74,7 @@ const statusText = $("#status-text");
 const statusDetail = $("#status-detail");
 const progressBar = $("#progress-bar");
 const partialBox = $("#partial");
+const statusWarn = document.querySelector<HTMLElement>("#status-warn");
 const cancelBtn = $<HTMLButtonElement>("#cancel-btn");
 const errorBox = $("#error");
 const errorMsg = $("#error-msg");
@@ -285,6 +286,35 @@ let objectUrl: string | null = null;
  * tiene todo.
  */
 let voiceUrls = new Map<string, string>();
+
+/**
+ * Cuánto audio se ha leído frente a lo que el archivo dice durar.
+ *
+ * El 25/10 un MP4 de 1:36:31 se transcribió con 50:43 de audio y nada lo
+ * avisaba: el resultado parecía completo. Puede ser un archivo incompleto —una
+ * descarga cortada conserva la duración original en la cabecera— o un fallo
+ * nuestro al leerlo, y en los dos casos lo que no se puede es callarlo.
+ */
+let shortRead: { got: number; total: number } | null = null;
+
+function watchShortRead(got: number, via: string): void {
+  const check = (): void => {
+    const total = player.duration;
+    if (!Number.isFinite(total) || total <= 0) return;
+    if (total - got < 30 || got >= total * 0.95) return;
+    shortRead = { got, total };
+    track("decode_short");
+    track(`decode_short_${via}`);
+    // Se dice **ya**, no al final: quien ve que falta media hora puede parar
+    // en vez de esperar veinte minutos a un resultado a medias.
+    if (statusWarn) {
+      statusWarn.textContent = t("short_read", { got: clock(got), total: clock(total) });
+      show(statusWarn);
+    }
+  };
+  if (player.readyState >= 1) check();
+  else player.addEventListener("loadedmetadata", check, { once: true });
+}
 
 // Una vez respondida la encuesta no se vuelve a preguntar en este dispositivo:
 // la descarga del modelo solo ocurre una vez, pero el usuario puede exportar
@@ -630,6 +660,11 @@ async function startTranscription(
   objectUrl = URL.createObjectURL(file);
   player.src = objectUrl;
   hide(player);
+  shortRead = null;
+  if (statusWarn) hide(statusWarn);
+  // Solo con un archivo suelto: una grabación por trozos o varias pistas no
+  // tienen una duración única con la que comparar.
+  if (!parts && !plan) watchShortRead(duration, viaMp4 ? "mp4" : chunked ? "trozos" : "entero");
   voiceUrls.forEach((u) => URL.revokeObjectURL(u));
   voiceUrls = new Map();
   if (plan?.kind === "interview" && trackAudios.length > 0) {
@@ -948,6 +983,7 @@ function finishTranscription(
       // herramienta se ha comido una frase por su cuenta.
       (failed > 0 ? t("done_failed", { n: failed }) : "") +
       (speakers > 1 ? t("done_speakers", { n: String(speakers) }) : "") +
+      (shortRead ? t("done_short", { got: clock(shortRead.got), total: clock(shortRead.total) }) : "") +
       note,
   );
 }
