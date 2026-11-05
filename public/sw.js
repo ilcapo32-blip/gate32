@@ -22,10 +22,48 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// Lo que llega desde «Compartir» de otra app (WhatsApp, Telegram, la
+// grabadora, la galería) entra aquí como un formulario. Se guarda en una caché
+// aparte —su nombre no empieza por "g32-", así que activar una versión nueva
+// del service worker no la borra— y se redirige a la página, que lo recoge.
+// Es la función que justifica tener app: de la nota de voz a Gate32 sin pasar
+// por «Descargar» y «Elegir archivo».
+const SHARED = "compartido-g32";
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
-  if (req.method !== "GET") return;
   const url = new URL(req.url);
+  if (req.method === "POST" && url.origin === self.location.origin && url.pathname.endsWith("/compartir")) {
+    event.respondWith(
+      (async () => {
+        const base = url.pathname.startsWith("/en/") ? "/en/" : "/";
+        try {
+          const form = await req.formData();
+          const files = form.getAll("audio").filter((f) => typeof f !== "string");
+          await caches.delete(SHARED);
+          const cache = await caches.open(SHARED);
+          await Promise.all(
+            files.map((f, i) =>
+              cache.put(
+                `/compartido/${i}`,
+                new Response(f, {
+                  headers: {
+                    "content-type": f.type || "application/octet-stream",
+                    "x-name": encodeURIComponent(f.name || `audio-${i + 1}`),
+                  },
+                }),
+              ),
+            ),
+          );
+          return Response.redirect(`${base}?compartido=${files.length}`, 303);
+        } catch {
+          return Response.redirect(`${base}?compartido=0`, 303);
+        }
+      })(),
+    );
+    return;
+  }
+  if (req.method !== "GET") return;
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/_vercel/")) return;
 

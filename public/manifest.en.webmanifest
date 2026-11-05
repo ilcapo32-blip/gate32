@@ -9,8 +9,56 @@
   "theme_color": "#1c1c1a",
   "lang": "en",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "share_target": {
+    "action": "/en/compartir",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [
+        {
+          "name": "audio",
+          "accept": [
+            "audio/*",
+            "video/*",
+            ".mp3",
+            ".m4a",
+            ".ogg",
+            ".oga",
+            ".opus",
+            ".wav",
+            ".aac",
+            ".amr",
+            ".flac",
+            ".mp4",
+            ".mov",
+            ".webm",
+            ".mkv"
+          ]
+        }
+      ]
+    }
+  },
+  "categories": [
+    "productivity",
+    "utilities"
   ]
 }

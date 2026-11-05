@@ -716,6 +716,51 @@ try {
   );
   await ffCtx.close();
 
+  // Compartir desde otra app (WhatsApp, la grabadora…). Android manda el
+  // archivo como un formulario a /compartir; el service worker lo guarda y
+  // redirige a la portada, que lo deja listo para transcribir. Aquí se manda
+  // el mismo formulario desde la página, una vez que el service worker manda.
+  const shareCtx = await browser.newContext({ viewport: { width: 1360, height: 900 } });
+  const share = await shareCtx.newPage();
+  await share.goto(`${BASE}/?e2e=1`, { waitUntil: "load" });
+  await share.evaluate(() => navigator.serviceWorker.ready);
+  await share.reload({ waitUntil: "load" });
+  check(
+    "compartir: el service worker controla la página",
+    await share.evaluate(() => Boolean(navigator.serviceWorker.controller)),
+  );
+  const toneB64 = readFileSync(tonePath).toString("base64");
+  const posted = await share.evaluate(async (b64) => {
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const form = new FormData();
+    form.append("audio", new File([bytes], "nota de voz.wav", { type: "audio/wav" }));
+    const res = await fetch("/compartir", { method: "POST", body: form, redirect: "manual" });
+    return res.type === "opaqueredirect" || res.status === 303;
+  }, toneB64);
+  check("compartir: /compartir responde con una redirección", posted);
+  await share.goto(`${BASE}/?compartido=1&e2e=1`, { waitUntil: "load" });
+  await share.waitForSelector("#ready:not([hidden])", { timeout: 10000 });
+  check(
+    "compartir: el archivo llega listo para transcribir",
+    ((await share.locator("#ready-name").textContent()) ?? "") === "nota de voz.wav",
+  );
+  check("compartir: la dirección queda limpia", !share.url().includes("compartido"));
+  await shareCtx.close();
+
+  // La app de Android entra por ?app=android y abre en el idioma del teléfono.
+  for (const [locale, expectEn] of [["en-US", true], ["es-ES", false]]) {
+    const appCtx = await browser.newContext({ locale });
+    const app = await appCtx.newPage();
+    await app.goto(`${BASE}/?app=android`, { waitUntil: "load" });
+    await app.waitForTimeout(500);
+    const onEn = new URL(app.url()).pathname.startsWith("/en/");
+    check(
+      `app: un teléfono en ${locale} abre la portada ${expectEn ? "inglesa" : "en castellano"}`,
+      onEn === expectEn,
+    );
+    await appCtx.close();
+  }
+
   const reuniones = await page.goto(`${BASE}/reuniones/`, { waitUntil: "load" });
   check("/reuniones/ responde 200", (reuniones?.status() ?? 0) === 200);
   check(

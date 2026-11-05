@@ -288,6 +288,36 @@ let objectUrl: string | null = null;
  */
 let voiceUrls = new Map<string, string>();
 
+/** Caché donde el service worker deja lo que llega desde «Compartir». */
+const SHARED_CACHE = "compartido-g32";
+
+/**
+ * Abierta desde la app de Android.
+ *
+ * La app de Google Play es esta misma web dentro de Chrome (una TWA), y entra
+ * por `?app=android`. Se recuerda durante la sesión porque la dirección cambia
+ * al navegar. Sirve para medir la app aparte de la web —sin esto, sus
+ * transcripciones se mezclarían con las demás y no sabríamos si se usa— y para
+ * abrirla en el idioma del teléfono, porque la app tiene una sola entrada.
+ */
+const fromApp =
+  new URLSearchParams(location.search).get("app") === "android" ||
+  document.referrer.startsWith("android-app://");
+const inApp = ((): boolean => {
+  try {
+    if (fromApp) sessionStorage.setItem("gate32.app", "android");
+    return sessionStorage.getItem("gate32.app") === "android";
+  } catch {
+    return fromApp;
+  }
+})();
+// La entrada de la app es la portada en castellano. Quien tiene el teléfono en
+// otro idioma va a la inglesa, que es además donde llega más gente. Lo que se
+// haya compartido viaja en la dirección y lo recoge la página inglesa.
+const toEnglish =
+  fromApp && lang === "es" && !navigator.languages.some((l) => /^es\b/i.test(l));
+if (toEnglish) location.replace(`/en/${location.search}`);
+
 /**
  * Cuánto audio se ha leído frente a lo que el archivo dice durar.
  *
@@ -709,6 +739,7 @@ async function startTranscription(
   if (source === "meeting") track("transcribe_start_meeting");
   if (source === "media") track("transcribe_start_media");
   track("transcribe_start", { model: quality, source, minutes, lang });
+  if (inApp) track("transcribe_start_app");
 
   // Antes de bajar 80 MB conviene saber que caben y que no los van a borrar:
   // sin esto el fallo llega a mitad de descarga y como QuotaExceededError.
@@ -950,6 +981,7 @@ function finishTranscription(
   }
 
   current.segments = segments;
+  if (inApp) track("transcribe_done_app");
   const speakers = new Set(segments.map((s) => s.speaker).filter(Boolean)).size;
   track("transcribe_done", {
     model: quality,
@@ -1359,7 +1391,7 @@ const MAX_TRACKS = 4;
  * archivos que no tienen nada que ver mezclaría tres conversaciones línea a
  * línea. Quien dice que no, se queda con lo de siempre: el primer archivo.
  */
-function handleFiles(list: FileList | null | undefined): void {
+function handleFiles(list: ArrayLike<File> | null | undefined): void {
   if (busy) return;
   const all = Array.from(list ?? []);
   const audios = all.filter((f) => !/\.json$/i.test(f.name)).slice(0, MAX_TRACKS);
@@ -2084,6 +2116,54 @@ function openFromHistory(entry: HistoryEntry): void {
 initAnalytics();
 trackVisit();
 renderRecents();
+// Si se va a la página inglesa, que lo cuente y lo recoja ella: aquí se
+// contaría dos veces y el archivo compartido se borraría antes de llegar.
+if (fromApp && !toEnglish) track("app_open");
+if (!toEnglish) void receiveShared();
+
+/**
+ * Lo que llega desde «Compartir» de otra app: WhatsApp, Telegram, la grabadora,
+ * la galería.
+ *
+ * El service worker recibe el archivo, lo guarda en su propia caché y redirige
+ * aquí con `?compartido=N`. Aquí se recoge y entra por el mismo camino que si
+ * se hubiera soltado: uno se prepara para transcribir, varios preguntan si son
+ * pistas de la misma conversación. Es la razón de ser de la app de Android: de
+ * la nota de voz a Gate32 sin «Descargar» ni «Elegir archivo».
+ */
+async function receiveShared(): Promise<void> {
+  const params = new URLSearchParams(location.search);
+  if (!params.has("compartido")) return;
+  params.delete("compartido");
+  // Fuera de la dirección: recargar la página no debe volver a recibirlo.
+  const query = params.toString();
+  history.replaceState(null, "", location.pathname + (query ? `?${query}` : "") + location.hash);
+  track("share_received");
+  try {
+    const cache = await caches.open(SHARED_CACHE);
+    const keys = [...(await cache.keys())].sort((a, b) =>
+      a.url.localeCompare(b.url, undefined, { numeric: true }),
+    );
+    const files: File[] = [];
+    for (const key of keys) {
+      const res = await cache.match(key);
+      if (!res) continue;
+      const name = decodeURIComponent(res.headers.get("x-name") ?? "audio");
+      files.push(new File([await res.blob()], name, { type: res.headers.get("content-type") ?? "" }));
+    }
+    await caches.delete(SHARED_CACHE);
+    if (files.length === 0) {
+      track("share_empty");
+      showError(t("share_empty"), t("share_empty_hint"));
+      return;
+    }
+    track(files.length > 1 ? "share_received_varios" : "share_received_1");
+    handleFiles(files);
+  } catch {
+    track("share_failed");
+    showError(t("share_empty"), t("share_empty_hint"));
+  }
+}
 
 // PWA: el service worker hace que la app cargue sin conexión
 if (import.meta.env.PROD && "serviceWorker" in navigator) {
