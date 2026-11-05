@@ -946,9 +946,18 @@ YouTube en otra pestaña con el fundador hablando encima, sin auriculares. Sali�
 no se pudo ni empezar: no entrega el sonido de la pestaña (arreglado: ahora se
 le explica que use Chrome o Edge).
 
-Lo que **no** está comprobado todavía, dicho claro: no se ha transcrito voz
-real con dos pistas, porque desde el entorno de desarrollo no se llega al CDN
-de los modelos. Las pruebas cubren la lógica (entrelazado, eco, turnos,
+**Las otras dos pruebas, el mismo día:** renombrar «Los demás» a «Video»
+cambió todas sus líneas y el TXT salió por turnos con el nombre nuevo
+(«Video: …», «Tú: …»). Con dos audios soltados a la vez, Gate32 preguntó; al
+aceptar salieron entrelazados por tiempo como «Persona 1» y «Persona 2» (los
+nombres de archivo no parecían de persona). Los dos audios decían casi lo
+mismo, y el marcado de dudas señaló las frases repetidas de una pista a la
+otra: en una entrevista real eso es justo lo que conviene revisar, porque
+suele ser el micro de uno recogiendo la voz del otro.
+
+Lo que **no** estaba comprobado entonces, y ya sí: transcribir voz real con
+dos pistas, que desde el entorno de desarrollo no se podía porque no se llega
+al CDN de los modelos. Las pruebas cubren la lógica (entrelazado, eco, turnos,
 nombres, formatos, entrega única de cada grabador) y el E2E cubre la pregunta,
 el renombrado y las exportaciones, pero no Whisper sobre dos archivos de
 verdad. Los umbrales del eco (60 % de palabras, 1,5 s de margen) salen de
