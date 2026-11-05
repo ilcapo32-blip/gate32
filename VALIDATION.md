@@ -938,6 +938,14 @@ hablantes» → «Voces de un solo archivo»). Los clics de antes y de después 
 son comparables; desde hoy mide justo lo que falta, que es separar voces dentro
 de un archivo mezclado.
 
+**Primera prueba real de reunión (2026-11-05), en Chrome:** un vídeo de
+YouTube en otra pestaña con el fundador hablando encima, sin auriculares. Salió
+«1 min · 2 hablantes, separados por pista», con sus intervenciones como «Tú»
+(«¡Venga ya!», «No te creo», «No creo que sea tan sencillo») y el vídeo como
+«Los demás», sin las frases del vídeo repetidas como suyas. Antes, en Firefox,
+no se pudo ni empezar: no entrega el sonido de la pestaña (arreglado: ahora se
+le explica que use Chrome o Edge).
+
 Lo que **no** está comprobado todavía, dicho claro: no se ha transcrito voz
 real con dos pistas, porque desde el entorno de desarrollo no se llega al CDN
 de los modelos. Las pruebas cubren la lógica (entrelazado, eco, turnos,
