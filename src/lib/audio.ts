@@ -352,7 +352,13 @@ export async function decodeToMono16k(file: Blob): Promise<DecodedAudio> {
   // hora de silencio que Whisper transcribía como «[Música]».
   let mp4Skip: Mp4Skip | undefined;
   if (buf.byteLength > BIG_FILE_BYTES) {
-    const bytes = new Uint8Array(buf.slice(0));
+    // Una vista, no una copia. Ninguno de los dos lectores le pasa `buf` a
+    // `decodeAudioData`, que es lo único que lo vacía: el de MP3 decodifica
+    // copias de cada trozo y `EncodedAudioChunk` copia cada trama. La copia
+    // entera que había aquí doblaba la memoria —un MP4 de 496 MB ocupaba casi
+    // 1 GB— y en un móvil esa es la diferencia entre leerlo y que se cierre la
+    // pestaña.
+    const bytes = new Uint8Array(buf);
     if (looksLikeMp4(bytes)) {
       // La familia MP4 —mp4, m4a, mov— era 31 de los 41 errores de
       // descodificación medidos.
@@ -379,9 +385,10 @@ export async function decodeToMono16k(file: Blob): Promise<DecodedAudio> {
     }
   }
 
-  // decodeAudioData vacía el ArrayBuffer que recibe: sin una copia no hay
-  // segundo intento posible.
-  const retryBuf = buf.slice(0);
+  // decodeAudioData vacía el ArrayBuffer que recibe, así que el segundo intento
+  // vuelve a leer el archivo. Antes se guardaba una copia por adelantado, por
+  // si acaso: otro archivo entero en memoria en cada transcripción, para un
+  // reintento que casi nunca hace falta.
   let decoded: AudioBuffer;
   try {
     decoded = await ctx.decodeAudioData(buf);
@@ -392,7 +399,7 @@ export async function decodeToMono16k(file: Blob): Promise<DecodedAudio> {
     try {
       const fallback = new AC();
       try {
-        decoded = await fallback.decodeAudioData(retryBuf);
+        decoded = await fallback.decodeAudioData(await file.arrayBuffer());
       } finally {
         void fallback.close();
       }
