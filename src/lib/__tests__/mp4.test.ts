@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readMp4Audio, mp4ChunkRanges, looksLikeMp4, readEsds } from "../mp4";
+import { readMp4Audio, mp4ChunkRanges, looksLikeMp4, readEsds, mp4SoundCodecs } from "../mp4";
 
 // De los 41 errores de descodificación medidos entre el 30/07 y el 13/10, 31
 // eran contenedores de la familia MP4. El troceador de MP3 devuelve `null` ante
@@ -341,5 +341,62 @@ describe("mp4 · MOV y otros códecs", () => {
       ])),
     ]);
     expect(readMp4Audio(bytes)).toBeNull();
+  });
+});
+
+// ── Lo que dice un MP4 cuando no se puede leer (05/11) ──
+//
+// Entre el 13/10 y el 05/11 siguieron fallando MP4, MOV y M4A pequeños, y lo
+// único que se sabía de ellos era la extensión. Para decir algo útil —«no tiene
+// sonido», «está incompleto»— y para saber qué arreglar hace falta mirar dentro.
+
+const table = (codecSize = 100) => [
+  box("stts", [0, 0, 0, 0], u32(1), u32(1), u32(1024)),
+  box("stsc", [0, 0, 0, 0], u32(1), u32(1), u32(1), u32(1)),
+  box("stsz", [0, 0, 0, 0], u32(0), u32(1), u32(codecSize)),
+  box("stco", [0, 0, 0, 0], u32(1), u32(5000)),
+];
+
+function videoTrak(): Uint8Array {
+  return box(
+    "trak",
+    box(
+      "mdia",
+      box("hdlr", [0, 0, 0, 0], u32(0), str("vide"), new Uint8Array(12)),
+      box("mdhd", [0, 0, 0, 0], u32(0), u32(0), u32(30000), u32(0)),
+      box("minf", box("stbl", box("stsd", [0, 0, 0, 0], u32(1), box("avc1", new Array(78).fill(0))), ...table())),
+    ),
+  );
+}
+
+describe("mp4 · qué hay dentro cuando no se puede leer", () => {
+  it("sin moov es una grabación cortada antes de escribir el índice", () => {
+    const cortado = new Uint8Array([...box("ftyp", str("isom"), u32(0)), ...box("mdat", new Array(64).fill(1))]);
+    expect(mp4SoundCodecs(cortado)).toBeNull();
+  });
+
+  it("un vídeo sin pista de sonido no tiene nada que transcribir", () => {
+    const mudo = new Uint8Array([...box("ftyp", str("isom"), u32(0)), ...box("moov", videoTrak())]);
+    expect(mp4SoundCodecs(mudo)).toEqual([]);
+  });
+
+  it("nombra el formato de cada pista de audio", () => {
+    const bytes = new Uint8Array([
+      ...box("ftyp", str("isom"), u32(0)),
+      ...box("moov", videoTrak(), audioTrak(soundEntry("ac-3", 0), table(), 2), audioTrak(soundEntry("mp4a", 0, esds()), table(), 3)),
+    ]);
+    expect(mp4SoundCodecs(bytes)).toEqual(["ac-3", "mp4a"]);
+  });
+
+  it("si la primera pista de audio no se sabe leer, usa la siguiente", () => {
+    // Es lo que `decodeAudioData` no hace, y el motivo de intentar con nuestro
+    // lector antes de rendirse: el audio espacial de los iPhone va en una pista
+    // aparte de la normal.
+    const bytes = new Uint8Array([
+      ...box("ftyp", str("isom"), u32(0)),
+      ...box("moov", audioTrak(soundEntry("apac", 0), table(), 2), audioTrak(soundEntry("mp4a", 0, esds()), table(), 3)),
+    ]);
+    const track = readMp4Audio(bytes);
+    expect(track?.codec).toBe("mp4a.40.2");
   });
 });

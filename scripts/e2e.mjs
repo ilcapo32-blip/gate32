@@ -486,6 +486,50 @@ try {
   check("JSON ajeno da error claro", await page.locator("#error").isVisible());
   await page.click("#error-dismiss");
 
+  // 3d' · un vídeo sin pista de sonido. Antes decía «no se ha podido leer el
+  // audio, prueba con MP3, WAV…», que manda a convertir un archivo que no
+  // tiene nada que convertir. Se construye a mano: un MP4 con solo vídeo.
+  const box = (type, ...parts) => {
+    const body = Buffer.concat(parts.map((p) => Buffer.from(p)));
+    const head = Buffer.alloc(8);
+    head.writeUInt32BE(8 + body.length, 0);
+    head.write(type, 4, "latin1");
+    return Buffer.concat([head, body]);
+  };
+  const u32 = (n) => {
+    const b = Buffer.alloc(4);
+    b.writeUInt32BE(n);
+    return b;
+  };
+  const mudoPath = join(tmp, "mudo.mp4");
+  writeFileSync(
+    mudoPath,
+    Buffer.concat([
+      box("ftyp", Buffer.from("isom"), u32(512)),
+      box(
+        "moov",
+        box(
+          "trak",
+          box(
+            "mdia",
+            box("hdlr", u32(0), u32(0), Buffer.from("vide"), Buffer.alloc(12)),
+            box("mdhd", u32(0), u32(0), u32(0), u32(30000), u32(0)),
+          ),
+        ),
+      ),
+      box("mdat", Buffer.alloc(64)),
+    ]),
+  );
+  await page.setInputFiles("#file-input", mudoPath);
+  await page.waitForSelector("#ready:not([hidden])", { timeout: 10000 });
+  await page.click("#start-btn");
+  await page.waitForSelector("#error:not([hidden])", { timeout: 30000 });
+  check(
+    "vídeo sin sonido: lo dice, en vez de mandar a probar otro formato",
+    /no tiene sonido/.test((await page.locator("#error-msg").textContent()) ?? ""),
+  );
+  await page.click("#error-dismiss");
+
   // 3e · quién habla, por pistas. Varios archivos a la vez se preguntan: dos
   // archivos sin relación transcritos como diálogo mezclarían dos
   // conversaciones línea a línea.

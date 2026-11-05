@@ -751,6 +751,53 @@ producto, por segunda medición consecutiva. Por tanto:
   ha pedido con un evento. Construirla ahora sería volver a mejorar producto
   contra un cuello de botella de demanda.
 
+### Undécima medición (2026-11-05) · lo que cambió en 23 días
+
+El panel vino acumulado desde el 30/07, así que lo nuevo se saca restando la
+décima medición. Son 23 días, 11 de ellos con el arreglo de archivos grandes
+publicado, y **incluyen las pruebas del fundador**. GoatCounter cuenta
+sesiones únicas por evento, no cada disparo.
+
+| | 30/07–13/10 | 30/07–05/11 | En 23 días |
+|---|---|---|---|
+| Vistas (`/en` + `/` + resto) | 906 | ~1.145 | +239 |
+| `transcribe_start` | 492 | 634 | +142 |
+| `transcribe_done` | 311 | 401 | +90 (63 %, igual que antes) |
+| `return_visit` | 184 | 291 | **+107: el doble de ritmo** |
+| `transcribe_error_decode` | 41 | 55 | +14 |
+| …de archivo grande | 25 | 27 | **+2** |
+| …MP4 / MOV / M4A (cualquier tamaño) | 16 / 6 / 9 | 21 / 9 / 11 | **+5 / +3 / +2** |
+| `transcribe_cancel_inference` | 33 | 43 | +10 |
+
+Lo que dice:
+
+1. **Los archivos grandes ya no se pierden.** `decode_mp4` = 7 (unas cinco
+   personas además del fundador) y los errores de archivo grande pasan de 25 en
+   76 días a 2 en 23, la mitad de ellos todavía con el código viejo.
+2. **Pero los pequeños de la familia MP4 siguen fallando:** +10 en 23 días.
+   El lector propio solo entraba por encima de 60 MB; por debajo, todo seguía
+   en manos de `decodeAudioData`. Los errores de lectura son ya **en torno al
+   10 % de lo que se empieza**, el mayor fallo que queda, y en una app de
+   móvil casi todo lo que se transcriba serán vídeos del teléfono.
+3. **Alguien de fuera usó la separación por pistas con cuatro archivos**
+   (`tracks_accepted_4`) a los pocos días de existir.
+4. Canales: ChatGPT 1.867 (+192), Reddit 972 (+149) más 81 desde su app,
+   Google 682 (+131), Bing 441 (+114). Móvil, el 14 %.
+
+**Decisión: rescate para cualquier MP4, MOV o M4A.** Si `decodeAudioData` no lo
+lee, se prueba con el lector propio, que se salta una pista que no sabe leer y
+usa la siguiente: el caso de los iPhone, que guardan el audio espacial en una
+pista aparte de la normal. Y cuando no hay manera, se dice por qué: «este vídeo
+no tiene sonido» o «este archivo está incompleto», en vez de mandar a convertir
+a MP3 algo que no tiene nada que convertir. Comprobado en Chromium con cinco
+archivos reales: un MP4 cuya primera pista es AC-3 se rescata con la segunda
+(60 s, pitidos en su segundo exacto), uno sin sonido y uno cortado sin índice
+dan su mensaje, y uno normal sigue por el camino de siempre.
+
+Qué decide la próxima: `decode_mp4_rescate` tiene que aparecer, y
+`transcribe_error_decode_codec_*` dirá qué formatos de audio quedan sin leer
+(ALAC, AMR, el espacial `apac`…), que es lo que falta para saber qué arreglar.
+
 ### Décima medición (2026-10-13) · ventana 30/07–13/10, el panel completo
 
 Primera lectura del panel entero —todas las filas, no solo las seis primeras—.
@@ -1099,6 +1146,9 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `transcribe_start_meeting` | la transcripción viene de una reunión grabada | — |
 | `decode_mp4` | un MP4/M4A/MOV grande se leyó con el demultiplexor propio | — |
 | `decode_mp4_skip_decoder` / `_track` / `_codec` / `_tramos` | un MP4 grande no pudo ir por tramos, y por qué | — |
+| `decode_mp4_rescate` | un MP4/MOV/M4A que `decodeAudioData` no leyó y el lector propio sí | — |
+| `transcribe_error_decode_sin_audio` / `_sin_indice` | vídeo sin pista de sonido, o grabación cortada sin índice | — |
+| `transcribe_error_decode_codec_<formatos>` | los formatos de audio de un MP4 que no se pudo leer (`mp4a`, `alac`, `apac`…) | — |
 | `decode_short` / `decode_short_mp4` / `_trozos` / `_entero` | se leyó bastante menos audio del que el archivo dice durar, y se avisó | — |
 | `tracks_offered` | suelta de 2 a 4 archivos a la vez y se le pregunta si son una conversación | — |
 | `tracks_accepted` / `tracks_accepted_N` / `tracks_declined` | su respuesta, y cuántas pistas | — |

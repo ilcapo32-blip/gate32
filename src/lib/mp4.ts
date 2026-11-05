@@ -480,6 +480,31 @@ export function readMp4Audio(bytes: Uint8Array): Mp4AudioTrack | null {
 }
 
 /**
+ * Los formatos de las pistas de audio de un MP4, sin leer nada más.
+ *
+ * Es para cuando no se ha podido leer: saber que el archivo no tiene índice,
+ * que no lleva sonido o que su audio es ALAC, AMR o el espacial de los iPhone
+ * es la diferencia entre decir algo útil y «no se ha podido leer», y entre
+ * saber qué arreglar después y adivinarlo. Devuelve `null` si no hay `moov`:
+ * una grabación cortada antes de escribir el índice.
+ */
+export function mp4SoundCodecs(bytes: Uint8Array): string[] | null {
+  const moov = find(boxes(bytes, 0, bytes.length), "moov");
+  if (!moov) return null;
+  const out: string[] = [];
+  for (const trak of boxes(bytes, moov.start, moov.end)) {
+    if (trak.type !== "trak") continue;
+    const mdia = path(bytes, trak, "mdia");
+    const hdlr = mdia ? path(bytes, mdia, "hdlr") : undefined;
+    if (!mdia || !hdlr || ascii(bytes, hdlr.start + 8, 4) !== "soun") continue;
+    const stsd = path(bytes, mdia, "minf", "stbl", "stsd");
+    const entry = stsd ? boxes(bytes, stsd.start + 8, stsd.end)[0] : undefined;
+    out.push(entry?.type ?? "?");
+  }
+  return out;
+}
+
+/**
  * Agrupa las muestras en tramos de `secondsPerChunk`, para decodificar de
  * tramo en tramo y que la memoria no dependa de la duración del archivo.
  */

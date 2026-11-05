@@ -2,7 +2,7 @@
 
 import { t } from "./i18n";
 import { chunkRanges } from "./mp3";
-import { looksLikeMp4, mp4ChunkRanges, readMp4Audio, type Mp4AudioTrack } from "./mp4";
+import { looksLikeMp4, mp4ChunkRanges, mp4SoundCodecs, readMp4Audio, type Mp4AudioTrack } from "./mp4";
 
 export interface DecodedAudio {
   audio: Float32Array;
@@ -21,6 +21,11 @@ export interface DecodedAudio {
    * navegador, el códec o el archivo.
    */
   mp4Skip?: Mp4Skip;
+  /**
+   * Un MP4 que `decodeAudioData` no supo leer y nuestro lector sí. Se cuenta
+   * aparte porque es lo que se vino a arreglar con los archivos pequeños.
+   */
+  mp4Rescue?: boolean;
   /** Trozos de una grabación larga que no se pudieron leer. */
   partsFailed?: number;
 }
@@ -37,12 +42,29 @@ export const BIG_FILE_BYTES = 60e6;
  */
 export class DecodeError extends Error {
   readonly big: boolean;
+  /**
+   * Cuando se sabe por qué no hay nada que leer: un vídeo sin pista de sonido,
+   * o una grabación cortada antes de escribir su índice. Cambia el mensaje,
+   * porque ninguno de los dos se arregla probando otro formato.
+   */
+  readonly kind: "sin_audio" | "sin_indice" | undefined;
   /** Si era un MP4 grande, por qué no lo pudo leer el demultiplexor. */
   mp4Skip?: Mp4Skip;
-  constructor(bytes: number) {
+  /** Formatos de las pistas de audio de un MP4 ilegible, para saber qué arreglar. */
+  codecs?: string[];
+  constructor(bytes: number, kind?: "sin_audio" | "sin_indice") {
     const big = bytes > BIG_FILE_BYTES;
-    super(big ? t("decode_error_big") : t("decode_error"));
+    super(
+      kind === "sin_audio"
+        ? t("decode_sin_audio")
+        : kind === "sin_indice"
+          ? t("decode_sin_indice")
+          : big
+            ? t("decode_error_big")
+            : t("decode_error"),
+    );
     this.big = big;
+    this.kind = kind;
     this.name = "DecodeError";
   }
 }
@@ -351,6 +373,7 @@ export async function decodeToMono16k(file: Blob): Promise<DecodedAudio> {
   // veía tramas falsas en los datos de vídeo de cualquier MP4 y devolvía una
   // hora de silencio que Whisper transcribía como «[Música]».
   let mp4Skip: Mp4Skip | undefined;
+  let triedMp4 = false;
   if (buf.byteLength > BIG_FILE_BYTES) {
     // Una vista, no una copia. Ninguno de los dos lectores le pasa `buf` a
     // `decodeAudioData`, que es lo único que lo vacía: el de MP3 decodifica
@@ -362,6 +385,7 @@ export async function decodeToMono16k(file: Blob): Promise<DecodedAudio> {
     if (looksLikeMp4(bytes)) {
       // La familia MP4 —mp4, m4a, mov— era 31 de los 41 errores de
       // descodificación medidos.
+      triedMp4 = true;
       try {
         const demuxed = await decodeMp4(bytes);
         if (typeof demuxed === "string") mp4Skip = demuxed;
@@ -404,10 +428,31 @@ export async function decodeToMono16k(file: Blob): Promise<DecodedAudio> {
         void fallback.close();
       }
     } catch {
+      // Último intento para la familia MP4, de cualquier tamaño. Hasta aquí
+      // nuestro lector solo entraba por encima de 60 MB, y entre el 13/10 y el
+      // 05/11 siguieron fallando MP4, MOV y M4A pequeños: alrededor de uno de
+      // cada diez archivos que se empezaban. El lector propio se salta una
+      // pista que no sabe leer —el audio espacial de los iPhone, por ejemplo—
+      // y se queda con la siguiente, que es justo lo que `decodeAudioData` no
+      // hace.
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const isMp4 = looksLikeMp4(bytes);
+      if (isMp4 && !triedMp4) {
+        try {
+          const rescued = await decodeMp4(bytes);
+          if (typeof rescued === "string") mp4Skip = rescued;
+          else if (rescued.duration >= 0.5) return { ...rescued, mp4Rescue: true };
+        } catch {
+          mp4Skip = "codec";
+        }
+      }
       // `file.size` y no el búfer: `decodeAudioData` lo deja vacío, y una
       // grabación grande se avisaba como si fuera un formato raro.
-      const err = new DecodeError(file.size);
+      const codecs = isMp4 ? mp4SoundCodecs(bytes) : undefined;
+      const kind = codecs === null ? "sin_indice" : codecs?.length === 0 ? "sin_audio" : undefined;
+      const err = new DecodeError(file.size, kind);
       if (mp4Skip) err.mp4Skip = mp4Skip;
+      if (codecs) err.codecs = codecs;
       throw err;
     }
   }

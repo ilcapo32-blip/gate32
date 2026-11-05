@@ -610,6 +610,7 @@ async function startTranscription(
   // memoria mientras se descodifica la mezcla: en una hora son 230 MB.
   if (trackAudios.length === 0) decoded.ok.length = 0;
   let viaMp4 = false;
+  let rescued = false;
   try {
     if (trackAudios.length > 0) {
       audio = trackAudios[0]?.audio ?? new Float32Array();
@@ -621,12 +622,14 @@ async function startTranscription(
       const d = parts && parts.length > 1 ? await decodeParts(parts) : await decodeToMono16k(file);
       ({ audio, duration, chunked } = d);
       viaMp4 = d.mp4 === true;
+      rescued = d.mp4Rescue === true;
       if (d.mp4Skip) track(`decode_mp4_skip_${d.mp4Skip}`);
+      if (rescued) track("decode_mp4_rescate");
     }
     // Se mide aparte: es el camino nuevo y hay que saber si de verdad salva
     // archivos que antes se perdían.
     if (chunked && !viaMp4) track("decode_chunked");
-    if (viaMp4) track("decode_mp4");
+    if (viaMp4 && !rescued) track("decode_mp4");
   } catch (err) {
     // El nombre del evento lleva la causa: GoatCounter (plan gratuito) solo
     // registra el nombre, no las propiedades. Sin esto los fallos son opacos.
@@ -637,13 +640,22 @@ async function startTranscription(
     // formato que el navegador no entiende y un archivo que no le cabe.
     const big = err instanceof DecodeError && err.big;
     if (err instanceof DecodeError && err.mp4Skip) track(`decode_mp4_skip_${err.mp4Skip}`);
+    const kind = err instanceof DecodeError ? err.kind : undefined;
+    if (kind) track(`transcribe_error_decode_${kind}`);
+    // El formato exacto del audio que no se pudo leer: «mp4a», «alac», «apac»,
+    // «samr»… Con la extensión sola se sabía que fallaban los MOV, no por qué.
+    const codecs = err instanceof DecodeError ? err.codecs : undefined;
+    if (codecs?.length) {
+      const slug = codecs.map((c) => c.toLowerCase().replace(/[^a-z0-9]/g, "_")).join("_");
+      track(`transcribe_error_decode_codec_${slug}`);
+    }
     track("transcribe_error", { stage: "decode", kind: "decode", ext, big });
     track("transcribe_error_decode");
     track(`transcribe_error_decode_${ext}`);
     track(big ? "transcribe_error_decode_grande" : "transcribe_error_decode_formato");
     showError(
       err instanceof Error ? err.message : t("unsupported"),
-      big ? t("decode_hint_big") : t("decode_hint"),
+      kind ? t(`decode_${kind}_hint`) : big ? t("decode_hint_big") : t("decode_hint"),
     );
     return;
   }
