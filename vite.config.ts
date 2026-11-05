@@ -35,6 +35,8 @@ export default defineConfig({
         integrar: page("integrar/index.html"),
         integrate: page("en/integrate/index.html"),
         embed: page("embed/index.html"),
+        privacidad: page("privacidad/index.html"),
+        privacy: page("en/privacy/index.html"),
       },
     },
   },

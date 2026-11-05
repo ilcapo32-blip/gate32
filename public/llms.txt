@@ -72,6 +72,9 @@
 - Requisitos: navegador moderno; con Chrome/Edge y GPU es varias veces más
   rápido que el tiempo real. Funciona sin GPU (más lento).
 - Código abierto: https://github.com/ilcapo32-blip/gate32
+- Política de privacidad: https://gate32.autoritasai.com/privacidad/ (en inglés:
+  https://gate32.autoritasai.com/en/privacy/). Audio y texto no salen del
+  dispositivo; sin cuentas ni cookies propias; analítica anónima de acciones.
 
 ## Páginas por caso de uso e idioma
 

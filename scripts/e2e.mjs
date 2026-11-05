@@ -761,6 +761,20 @@ try {
     await appCtx.close();
   }
 
+  // Google Play pide una política de privacidad con su propia dirección. Lo que
+  // no puede faltar en ella es lo que diferencia a Gate32: que el audio no sale.
+  for (const [path, phrase] of [
+    ["/privacidad/", /no salen de tu dispositivo/],
+    ["/en/privacy/", /never leave your device/],
+  ]) {
+    const res = await page.goto(`${BASE}${path}`, { waitUntil: "load" });
+    check(`${path} responde 200`, (res?.status() ?? 0) === 200);
+    check(`${path} dice que el audio no sale del dispositivo`, phrase.test((await page.locator("main").textContent()) ?? ""));
+    check(`${path} da un contacto`, (await page.locator('main a[href^="mailto:"]').count()) > 0);
+  }
+  await page.goto(`${BASE}/`, { waitUntil: "load" });
+  check("la portada enlaza la política de privacidad", (await page.locator('footer a[href="/privacidad/"]').count()) > 0);
+
   const reuniones = await page.goto(`${BASE}/reuniones/`, { waitUntil: "load" });
   check("/reuniones/ responde 200", (reuniones?.status() ?? 0) === 200);
   check(
