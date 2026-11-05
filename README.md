@@ -162,8 +162,10 @@ Every push to `main` publishes to https://gate32.autoritasai.com.
   meetings recorded with Gate32). No diarization of a single mixed file and
   no summaries yet.
 - Meeting capture needs desktop Chrome or Edge; Firefox and Safari don't allow
-  capturing a tab's audio, and mobile browsers don't either. The button is
-  hidden where it wouldn't work.
+  capturing a tab's audio, and mobile browsers don't either. On mobile the
+  buttons are hidden; in desktop Firefox and Safari they stay, and a click
+  explains that it needs Chrome or Edge instead of opening a picker that can
+  only fail.
 - Very long files (>~90 min) need comfortable memory; the app warns you.
 - Safari/iOS works via WASM but without acceleration.
 

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { canCaptureTab, captureTab, NoTabAudioError, recordInParts } from "../meeting";
+import { canCaptureTab, captureTab, NoTabAudioError, recordInParts, tabAudioSupported } from "../meeting";
 
 /** Pista falsa que recuerda si la han parado. */
 function track(kind: "audio" | "video") {
@@ -274,5 +274,29 @@ describe("meeting · grabación por trozos", () => {
     arm();
     const muerto = { active: false } as unknown as MediaStream;
     expect(() => recordInParts(muerto, 8, () => {})).toThrow();
+  });
+});
+
+describe("meeting · navegadores que no entregan el sonido de la pestaña", () => {
+  // Firefox y Safari tienen getDisplayMedia, pero su selector no tiene la
+  // casilla de audio: el 05/11 el fundador atravesó el diálogo en Firefox para
+  // acabar en «la pestaña se compartió sin audio».
+  it("Chrome y Edge anuncian suppressLocalAudioPlayback: sí", () => {
+    vi.stubGlobal("navigator", {
+      mediaDevices: { getSupportedConstraints: () => ({ suppressLocalAudioPlayback: true }) },
+    });
+    expect(tabAudioSupported()).toBe(true);
+  });
+
+  it("Firefox y Safari no la anuncian: no", () => {
+    vi.stubGlobal("navigator", {
+      mediaDevices: { getSupportedConstraints: () => ({ echoCancellation: true }) },
+    });
+    expect(tabAudioSupported()).toBe(false);
+  });
+
+  it("un navegador sin la API tampoco, y sin romper", () => {
+    vi.stubGlobal("navigator", { mediaDevices: {} });
+    expect(tabAudioSupported()).toBe(false);
   });
 });

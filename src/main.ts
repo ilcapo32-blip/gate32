@@ -32,6 +32,7 @@ import {
   captureTab,
   NoTabAudioError,
   recordInParts,
+  tabAudioSupported,
   MINUTES_PER_PART,
 } from "./lib/meeting";
 import { LANGUAGES, needsBiggerModel } from "./lib/languages";
@@ -1568,6 +1569,17 @@ function wireTabCapture(mode: TabMode, btn: HTMLButtonElement): void {
     }
     // Dos capturas a la vez darían dos cronómetros y dos archivos solapados.
     if (micRecording || recordingTab()) return;
+    // En Firefox y Safari no se abre un diálogo que solo puede acabar en
+    // error: se dice dónde sí funciona. El botón se queda, porque quien lo
+    // busca tiene que enterarse de que existe y de qué navegador necesita.
+    if (!tabAudioSupported()) {
+      if (tabHint) {
+        tabHint.textContent = t("tab_unsupported");
+        show(tabHint);
+      }
+      track(`${mode}_unsupported`);
+      return;
+    }
     if (!st.armed) {
       st.armed = true;
       if (tabHint) {

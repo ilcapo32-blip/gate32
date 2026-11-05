@@ -1094,6 +1094,7 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `meeting_no_mic` | se capturó la pestaña pero no el micrófono | — |
 | `meeting_no_audio` | la pestaña se compartió sin audio: se aborta | — |
 | `meeting_error` | fallo de captura distinto a los anteriores | — |
+| `meeting_unsupported` / `media_unsupported` | pulsó el botón en Firefox o Safari, que no entregan el sonido de la pestaña: se le dice que use Chrome o Edge | — |
 | `model_ready` | pesos cargados | `model`, `seconds`, `cached` |
 | `transcribe_done` | transcripción completa | `model`, `device`, `minutes`, `seconds` |
 | `transcribe_error` | fallo | `stage`, `kind` |

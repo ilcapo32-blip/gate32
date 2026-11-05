@@ -163,7 +163,9 @@ Cada push a `main` publica en https://gate32.autoritasai.com.
   (`pro_interest`).
 - La captura de reuniones requiere Chrome o Edge de escritorio: Firefox y
   Safari no permiten capturar el audio de una pestaña, y en el móvil tampoco
-  existe. Donde no funciona, el botón no se muestra.
+  existe. En el móvil los botones no se muestran; en Firefox y Safari de
+  escritorio sí, y al pulsarlos explican que hace falta Chrome o Edge en vez
+  de abrir un selector que solo puede fallar.
 - Archivos muy largos (>~90 min) exigen memoria holgada; se avisa al usuario.
 - La transcripción en Safari/iOS funciona con WASM pero sin aceleración.
 

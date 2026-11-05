@@ -60,6 +60,27 @@ export function canCaptureTab(): boolean {
   );
 }
 
+/**
+ * ¿Entrega sonido la captura de pestaña en este navegador?
+ *
+ * Firefox y Safari tienen `getDisplayMedia`, así que `canCaptureTab` les
+ * enseñaba los botones, pero su selector no tiene la casilla de audio: quien
+ * pulsaba atravesaba el diálogo para acabar en «la pestaña se compartió sin
+ * audio». Le pasó al fundador probando en Firefox el 05/11.
+ *
+ * No hay forma de preguntar «¿capturas audio de pestaña?». Lo más cercano es
+ * `suppressLocalAudioPlayback`, una opción que solo tiene sentido si se captura
+ * el sonido de una pestaña y que solo anuncian los navegadores que lo hacen:
+ * Chrome, Edge y el resto de la familia Chromium.
+ */
+export function tabAudioSupported(): boolean {
+  try {
+    return "suppressLocalAudioPlayback" in navigator.mediaDevices.getSupportedConstraints();
+  } catch {
+    return false;
+  }
+}
+
 /** El usuario no marcó la casilla de compartir audio: es el fallo habitual. */
 export class NoTabAudioError extends Error {
   constructor() {

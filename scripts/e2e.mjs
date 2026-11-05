@@ -641,6 +641,37 @@ try {
   );
   await page.click("#error-dismiss");
 
+  // Firefox y Safari tienen getDisplayMedia pero no la casilla de audio: el
+  // fundador lo probó en Firefox el 05/11, atravesó el diálogo y acabó en
+  // error. Se simula quitando la única pista que delata a Chromium.
+  const ffCtx = await browser.newContext({ viewport: { width: 1360, height: 900 } });
+  const ff = await ffCtx.newPage();
+  await ff.addInitScript(() => {
+    const real = navigator.mediaDevices.getSupportedConstraints.bind(navigator.mediaDevices);
+    navigator.mediaDevices.getSupportedConstraints = () => {
+      const c = { ...real() };
+      delete c.suppressLocalAudioPlayback;
+      return c;
+    };
+    navigator.mediaDevices.getDisplayMedia = () => {
+      window.__pickerOpened = true;
+      return Promise.reject(new DOMException("no", "NotAllowedError"));
+    };
+  });
+  await ff.goto(`${BASE}/?e2e=1`, { waitUntil: "load" });
+  check("Firefox: el botón de reunión sigue a la vista", await ff.locator("#meeting-btn").isVisible());
+  await ff.click("#meeting-btn");
+  await ff.click("#meeting-btn");
+  check(
+    "Firefox: dice que solo funciona en Chrome o Edge",
+    /Chrome o Edge/.test((await ff.locator("#meeting-hint").textContent()) ?? ""),
+  );
+  check(
+    "Firefox: no abre un diálogo que solo puede fallar",
+    !(await ff.evaluate(() => window.__pickerOpened === true)),
+  );
+  await ffCtx.close();
+
   const reuniones = await page.goto(`${BASE}/reuniones/`, { waitUntil: "load" });
   check("/reuniones/ responde 200", (reuniones?.status() ?? 0) === 200);
   check(
