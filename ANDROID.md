@@ -40,7 +40,10 @@ día a medida que avanza; lo hecho se marca con [x].
 
 ## Pasos, en orden
 
-### 1. Cuenta de desarrollador · tú
+### 1. Cuenta de desarrollador · tú · [x] creada el 2026-11-12
+
+Cuenta personal «Hpartida», declarada como operador (DSA): sus datos de
+contacto se muestran a los usuarios de la UE.
 
 1. Entra en <https://play.google.com/console/signup> con la cuenta de Google
    con la que quieras gestionar la app.
