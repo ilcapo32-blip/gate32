@@ -34,11 +34,11 @@ día a medida que avanza; lo hecho se marca con [x].
 - [x] Política de privacidad propia: `/privacidad/` y `/en/privacy/`.
 - [x] Icono válido para Android: el dibujo cabe en la zona segura del recorte
       circular.
-- [~] `/.well-known/assetlinks.json`, que verifica que la app y la web son del
-      mismo dueño y quita la barra de direcciones. Publicado el 2026-11-12 con
-      la huella de la clave de subida (PWABuilder). Falta la de la clave de
-      firma de Google, que aparece en Play Console al subir el primer `.aab`
-      (paso 4): sin ella, la app instalada desde Play abre con barra.
+- [x] `/.well-known/assetlinks.json`, que verifica que la app y la web son del
+      mismo dueño y quita la barra de direcciones. Con las dos huellas desde el
+      2026-11-12: la de la clave de firma de Google (`A3:9C:…:99:11`, la que
+      llevan las apps instaladas desde Play) y la de la clave de subida de
+      PWABuilder (`71:D4:…:43:29`).
 
 ## Pasos, en orden
 
@@ -78,6 +78,8 @@ subida, pero es un trámite.
 
 ### 3. Crear la app y la prueba interna · tú
 
+- [x] Versión 1 (1.0.0.0) publicada en prueba interna el 2026-11-12: SDK
+      objetivo 36, API 24 o superior, 528 kB.
 - [x] App creada en Play Console el 2026-11-12: «Gate32: audio y vídeo a
       texto», `com.autoritasai.gate32`, español (España), gratuita.
 
