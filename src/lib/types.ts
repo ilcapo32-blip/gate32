@@ -74,7 +74,8 @@ export interface RawChunk {
 // ── protocolo del worker ──
 
 export type WorkerRequest =
-  | { type: "load"; quality: ModelQuality }
+  /** `device: "wasm"` obliga a usar el procesador aunque haya WebGPU. */
+  | { type: "load"; quality: ModelQuality; device?: "wasm" }
   | {
       type: "transcribe";
       audio: Float32Array;

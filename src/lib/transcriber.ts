@@ -59,9 +59,9 @@ export class Transcriber {
     }
   }
 
-  load(quality: ModelQuality, callbacks: TranscribeCallbacks): void {
+  load(quality: ModelQuality, callbacks: TranscribeCallbacks, device?: "wasm"): void {
     this.callbacks = callbacks;
-    const req: WorkerRequest = { type: "load", quality };
+    const req: WorkerRequest = device ? { type: "load", quality, device } : { type: "load", quality };
     this.ensureWorker().postMessage(req);
   }
 

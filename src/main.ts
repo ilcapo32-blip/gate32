@@ -45,6 +45,7 @@ import {
   type TrackKind,
 } from "./lib/speakers";
 import { initAnalytics, track, trackVisit } from "./lib/analytics";
+import { looksEmpty, soundActivity, SOUND_FOR_SPEECH } from "./lib/sanity";
 import { ensureStorage, humanBytes } from "./lib/storage";
 import {
   loadHistory,
@@ -290,6 +291,27 @@ let voiceUrls = new Map<string, string>();
 
 /** Caché donde el service worker deja lo que llega desde «Compartir». */
 const SHARED_CACHE = "compartido-g32";
+
+/**
+ * Este dispositivo ya dio, con la tarjeta gráfica, un resultado sin sentido
+ * que con el procesador salió bien. Desde entonces usa el procesador: más
+ * lento, pero cada transcripción por WebGPU sería otra hoja en blanco.
+ */
+const WEBGPU_KEY = "gate32.webgpu";
+function webgpuDistrusted(): boolean {
+  try {
+    return localStorage.getItem(WEBGPU_KEY) === "mal";
+  } catch {
+    return false;
+  }
+}
+function distrustWebgpu(): void {
+  try {
+    localStorage.setItem(WEBGPU_KEY, "mal");
+  } catch {
+    /* sin almacenamiento se volverá a detectar y repetir la próxima vez */
+  }
+}
 
 /**
  * Abierta desde la app de Android.
@@ -595,6 +617,11 @@ async function startTranscription(
   name: string,
   pendingParts?: Blob[],
   plan?: TrackPlan,
+  /**
+   * `sanityRetry`: es la repetición automática con el procesador tras un
+   * resultado vacío por WebGPU. No cuenta como transcripción nueva.
+   */
+  opts: { sanityRetry?: boolean } = {},
 ): Promise<void> {
   if (busy) return;
   pending = null;
@@ -690,6 +717,9 @@ async function startTranscription(
     return;
   }
 
+  // Cuánto suena el audio, medido antes de que se transfiera al worker. Es lo
+  // que separa «no había voz» de «la tarjeta gráfica calculó mal».
+  const activity = trackAudios.length > 0 ? 1 : soundActivity(audio);
   const minutes = Math.max(1, Math.round(duration / 60));
   if (duration / 60 > LONG_FILE_WARN_MIN) {
     const go = confirm(t("long_confirm", { min: Math.round(duration / 60) }));
@@ -705,6 +735,10 @@ async function startTranscription(
   hide(player);
   shortRead = null;
   if (statusWarn) hide(statusWarn);
+  if (opts.sanityRetry && statusWarn) {
+    statusWarn.textContent = t("webgpu_retry");
+    show(statusWarn);
+  }
   // Solo con un archivo suelto: una grabación por trozos o varias pistas no
   // tienen una duración única con la que comparar.
   if (!parts && !plan) watchShortRead(duration, viaMp4 ? "mp4" : chunked ? "trozos" : "entero");
@@ -736,10 +770,14 @@ async function startTranscription(
   if (source !== "meeting") meetingNoMic = false;
   // GoatCounter solo guarda el nombre del evento, no sus propiedades: para
   // saber cuánto pesa la captura de pestaña hace falta un nombre propio.
-  if (source === "meeting") track("transcribe_start_meeting");
-  if (source === "media") track("transcribe_start_media");
-  track("transcribe_start", { model: quality, source, minutes, lang });
-  if (inApp) track("transcribe_start_app");
+  if (opts.sanityRetry) {
+    track("webgpu_reintento_cpu");
+  } else {
+    if (source === "meeting") track("transcribe_start_meeting");
+    if (source === "media") track("transcribe_start_media");
+    track("transcribe_start", { model: quality, source, minutes, lang });
+    if (inApp) track("transcribe_start_app");
+  }
 
   // Antes de bajar 80 MB conviene saber que caben y que no los van a borrar:
   // sin esto el fallo llega a mitad de descarga y como QuotaExceededError.
@@ -766,6 +804,8 @@ async function startTranscription(
 
   phase = "download";
   statusText.textContent = t("preparing");
+  const useCpu = opts.sanityRetry === true || webgpuDistrusted();
+  if (useCpu && !opts.sanityRetry) track("webgpu_evitado");
   transcriber.load(quality, {
     onDevice(device) {
       if (current) current.device = device;
@@ -823,6 +863,40 @@ async function startTranscription(
               : t("finishing");
         },
         onDone(segments, genSeconds, failed) {
+          // Audio con sonido de sobra y un resultado sin una palabra: con la
+          // tarjeta gráfica eso es un cálculo que salió mal, no un audio vacío.
+          // Se repite una vez con el procesador, sin que nadie tenga que
+          // pulsar nada. Le pasó al fundador en su móvil el 12/11.
+          const empty = looksEmpty(segments);
+          // Qué tipo de vacío era, para poder distinguirlo desde fuera: un
+          // audio que se leyó en silencio apunta a la lectura del archivo,
+          // no al modelo.
+          if (empty && !opts.sanityRetry) {
+            track(
+              activity < SOUND_FOR_SPEECH
+                ? "resultado_vacio_sin_sonido"
+                : `resultado_vacio_con_sonido_${current?.device ?? "x"}`,
+            );
+          }
+          if (empty && !opts.sanityRetry && current?.device === "webgpu" && activity >= SOUND_FOR_SPEECH) {
+            track("webgpu_basura");
+            transcriber.reset();
+            busy = false;
+            void startTranscription(file, name, pendingParts, plan, { sanityRetry: true });
+            return;
+          }
+          let note = "";
+          if (opts.sanityRetry) {
+            // Si con el procesador sale texto, la tarjeta gráfica era el
+            // problema y se recuerda. Si tampoco, no había voz que transcribir.
+            if (empty) {
+              track("webgpu_basura_no");
+            } else {
+              track("webgpu_basura_confirmada");
+              distrustWebgpu();
+              note = t("done_cpu");
+            }
+          }
           // Bloques que el modelo no pudo transcribir. Se dicen: un hueco
           // silencioso en mitad del texto, sin explicación, se lee como que la
           // herramienta se ha inventado el corte.
@@ -836,6 +910,7 @@ async function startTranscription(
             genSeconds,
             (performance.now() - tLoad0) / 1000,
             failed ?? 0,
+            note,
           );
         },
         onError(_stage, message) {
@@ -857,7 +932,7 @@ async function startTranscription(
       transcriber.reset();
       showError(t("load_error", { msg: message }), t("load_hint"));
     },
-  });
+  }, useCpu ? "wasm" : undefined);
 }
 
 /** Descodifica cada pista. Una que falle se salta: nunca tumba a las demás. */

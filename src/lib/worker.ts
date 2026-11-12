@@ -57,6 +57,7 @@ const SAMPLE_RATE = 16000;
 
 let transcriber: AutomaticSpeechRecognitionPipeline | null = null;
 let loadedQuality: ModelQuality | null = null;
+let loadedDevice: "webgpu" | "wasm" | null = null;
 let device: "webgpu" | "wasm" = "wasm";
 
 async function detectDevice(): Promise<"webgpu" | "wasm"> {
@@ -69,13 +70,18 @@ async function detectDevice(): Promise<"webgpu" | "wasm"> {
   return "wasm";
 }
 
-async function loadModel(quality: ModelQuality): Promise<void> {
-  if (transcriber && loadedQuality === quality) {
+async function loadModel(quality: ModelQuality, forced?: "wasm"): Promise<void> {
+  // Se puede pedir el procesador aunque haya WebGPU: en algunos móviles la
+  // tarjeta gráfica ejecuta el modelo sin dar error pero con resultados sin
+  // sentido, y la página lo detecta y repite (ver `sanity.ts`).
+  const wanted = forced ?? (await detectDevice());
+  if (transcriber && loadedQuality === quality && loadedDevice === wanted) {
+    post({ type: "device", device: wanted });
     post({ type: "ready", cached: true, seconds: 0 });
     return;
   }
   const t0 = performance.now();
-  device = await detectDevice();
+  device = wanted;
   post({ type: "device", device });
 
   const spec = MODELS[quality];
@@ -123,6 +129,7 @@ async function loadModel(quality: ModelQuality): Promise<void> {
       }
       transcriber = await asrPipeline("automatic-speech-recognition", id, options);
       loadedQuality = quality;
+      loadedDevice = device;
       post({
         type: "ready",
         cached: !sawDownload,
@@ -144,6 +151,7 @@ async function loadModel(quality: ModelQuality): Promise<void> {
         progress_callback,
       });
       loadedQuality = quality;
+      loadedDevice = "wasm";
       post({ type: "ready", cached: !sawDownload, seconds: (performance.now() - t0) / 1000 });
       return;
     } catch (err) {
@@ -260,6 +268,6 @@ async function transcribe(audio: Float32Array, language: string): Promise<void> 
 
 self.addEventListener("message", (event: MessageEvent<WorkerRequest>) => {
   const msg = event.data;
-  if (msg.type === "load") void loadModel(msg.quality);
+  if (msg.type === "load") void loadModel(msg.quality, msg.device);
   else if (msg.type === "transcribe") void transcribe(msg.audio, msg.language);
 });
