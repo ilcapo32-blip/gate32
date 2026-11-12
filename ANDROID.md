@@ -76,6 +76,9 @@ subida, pero es un trámite.
 
 ### 3. Crear la app y la prueba interna · tú
 
+- [x] App creada en Play Console el 2026-11-12: «Gate32: audio y vídeo a
+      texto», `com.autoritasai.gate32`, español (España), gratuita.
+
 1. En Play Console: **Crear aplicación**. Nombre: `Gate32: audio y vídeo a
    texto`. Idioma predeterminado: español (España). Aplicación, **gratuita**.
 2. **Prueba interna → Crear versión** y sube el `.aab`. Acepta la firma de
