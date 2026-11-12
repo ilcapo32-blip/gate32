@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.autoritasai.gate32",
+      "sha256_cert_fingerprints": [
+        "71:D4:4B:78:1D:1D:01:AD:7D:49:4C:A9:9B:B9:7B:84:7D:E7:AB:6B:4D:C2:AE:E2:02:7B:26:21:51:6D:43:29"
+      ]
+    }
+  }
+]

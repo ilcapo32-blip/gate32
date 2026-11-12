@@ -34,9 +34,11 @@ día a medida que avanza; lo hecho se marca con [x].
 - [x] Política de privacidad propia: `/privacidad/` y `/en/privacy/`.
 - [x] Icono válido para Android: el dibujo cabe en la zona segura del recorte
       circular.
-- [ ] `/.well-known/assetlinks.json`, que verifica que la app y la web son del
-      mismo dueño y quita la barra de direcciones. Necesita las huellas
-      SHA-256 de las claves de firma (paso 4).
+- [~] `/.well-known/assetlinks.json`, que verifica que la app y la web son del
+      mismo dueño y quita la barra de direcciones. Publicado el 2026-11-12 con
+      la huella de la clave de subida (PWABuilder). Falta la de la clave de
+      firma de Google, que aparece en Play Console al subir el primer `.aab`
+      (paso 4): sin ella, la app instalada desde Play abre con barra.
 
 ## Pasos, en orden
 

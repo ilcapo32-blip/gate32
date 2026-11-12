@@ -132,7 +132,9 @@ La firma con GPG falla en este entorno: `git -c commit.gpgsign=false commit`.
 ## 11. Antes de dar algo por terminado
 
 `npx tsc --noEmit`, `npm test`, `npm run build` y
-`CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome node scripts/e2e.mjs`.
+`CHROMIUM_PATH=$(ls -d /opt/pw-browsers/chromium-*/chrome-linux*/chrome | head -1) node scripts/e2e.mjs`.
+La ruta lleva el número de versión del navegador, que cambia cuando se
+renueva el entorno: con la ruta fija, el E2E fallaba sin llegar a arrancar.
 
 El E2E ya ha detectado defectos reales que los tests unitarios no veían.
 

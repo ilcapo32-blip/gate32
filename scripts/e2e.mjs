@@ -772,6 +772,13 @@ try {
     check(`${path} dice que el audio no sale del dispositivo`, phrase.test((await page.locator("main").textContent()) ?? ""));
     check(`${path} da un contacto`, (await page.locator('main a[href^="mailto:"]').count()) > 0);
   }
+  // Sin este archivo la app de Android abre con barra de direcciones.
+  const links = await page.goto(`${BASE}/.well-known/assetlinks.json`);
+  check("assetlinks.json se sirve", (links?.status() ?? 0) === 200);
+  check(
+    "assetlinks.json nombra el paquete de la app",
+    ((await links?.text()) ?? "").includes("com.autoritasai.gate32"),
+  );
   await page.goto(`${BASE}/`, { waitUntil: "load" });
   check("la portada enlaza la política de privacidad", (await page.locator('footer a[href="/privacidad/"]').count()) > 0);
 
