@@ -20,6 +20,7 @@ import {
   chunksToSegments,
   mergeWindows,
 } from "./formats";
+import { collapseLoops } from "./loops";
 
 env.allowLocalModels = false;
 
@@ -243,7 +244,12 @@ async function transcribe(audio: Float32Array, language: string): Promise<void> 
           ? [{ timestamp: [0, null], text: output.text }]
           : [];
 
-    const segments = chunksToSegments(chunks, offset, slice.length / SAMPLE_RATE);
+    // Los bucles se recogen aquí y no al final: así la vista previa tampoco
+    // enseña la pared de texto, y el cosido entre bloques compara texto limpio.
+    const segments = chunksToSegments(chunks, offset, slice.length / SAMPLE_RATE).map((s) => ({
+      ...s,
+      text: collapseLoops(s.text),
+    }));
     results.push({ offset, segments });
     post({ type: "window-done", index: i, total, segments });
   }

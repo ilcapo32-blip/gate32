@@ -26,6 +26,7 @@
 // significar nada y el usuario la ignora entera. Todos los umbrales están
 // puestos lejos de lo que hace una persona hablando normal.
 
+import { LOOP_MARK } from "./loops";
 import type { Segment } from "./types";
 
 export type DoubtReason =
@@ -160,7 +161,8 @@ export function findDoubts(segments: Segment[]): Map<number, DoubtReason> {
       firmes.set(i, "repeat");
       return;
     }
-    if (loops(w)) {
+    // Un bucle de frase ya recogido (`loops.ts`): ahí falta texto seguro.
+    if (loops(w) || seg.text.includes(LOOP_MARK)) {
       out.set(i, "repeat");
       firmes.set(i, "repeat");
       return;

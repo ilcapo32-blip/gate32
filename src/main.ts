@@ -46,6 +46,7 @@ import {
 } from "./lib/speakers";
 import { initAnalytics, track, trackVisit } from "./lib/analytics";
 import { looksEmpty, soundActivity, SOUND_FOR_SPEECH } from "./lib/sanity";
+import { LOOP_MARK } from "./lib/loops";
 import { ensureStorage, humanBytes } from "./lib/storage";
 import {
   loadHistory,
@@ -1276,6 +1277,12 @@ function finishTranscription(
   current.segments = segments;
   if (inApp) track("transcribe_done_app");
   if (cpuOnly) track("transcribe_done_movil");
+  // Cuánto se engancha cada modelo en bucles: es lo que dirá si el Rápido
+  // sirve como modelo por defecto en el teléfono.
+  if (segments.some((s) => s.text.includes(LOOP_MARK))) {
+    track("transcribe_bucle");
+    track(`transcribe_bucle_${quality}`);
+  }
   const speakers = new Set(segments.map((s) => s.speaker).filter(Boolean)).size;
   track("transcribe_done", {
     model: quality,

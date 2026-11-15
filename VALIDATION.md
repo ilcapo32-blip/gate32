@@ -1058,6 +1058,25 @@ Lo que cambia:
 Prueba de fuego: `transcribe_done_movil` frente a `transcribe_start_movil`, y
 que `transcribe_crash` se quede en cero.
 
+**Resultado, el mismo 15/11.** Con la versión nueva, la primera transcripción
+completa en la app: un audio de WhatsApp de **2:30**, modelo Rápido, procesador
+(WASM), **transcrito en 2:02**. Más rápido que el tiempo real en un móvil de gama
+media, sin tarjeta gráfica. El contador funcionó («02:30 de audio · lleva
+00:12»).
+
+La calidad, en cambio, es floja: el modelo Rápido (`whisper-tiny`) en castellano
+se equivoca mucho («Requeta» por «riqueza», «accécciones» por «acepciones»,
+«attributes» por «atributos») y se saltó frases enteras. Y una línea traía
+«la violencia de» repetido **más de cincuenta veces**: el bucle típico de los
+modelos pequeños, que se come lo que se dijo en ese tramo. Desde ahora esos
+bucles se recogen (`src/lib/loops.ts`): la frase queda una vez, seguida de
+«[…]», y la línea se marca para comprobarla. Probado sobre la transcripción
+real: solo cambia esa línea de 43. Se mide con `transcribe_bucle_<modelo>`.
+
+Lo que queda por decidir con datos: si el modelo por defecto en el teléfono
+debe seguir siendo el Rápido. Hace falta el tiempo y la calidad del
+Equilibrado en el mismo móvil con el mismo audio.
+
 ### La primera prueba real del MP4 falló, y destapó un fallo de dos meses (2026-10-14)
 
 El fundador probó la versión de la rama con un MP4 de **496 MB y 1 h 02 min**
@@ -1212,6 +1231,7 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `transcribe_start_movil` / `transcribe_done_movil` | lo mismo en cualquier teléfono (app o web), que transcribe siempre con el procesador | — |
 | `transcribe_crash` / `transcribe_crash_app` | al abrir, la nota de la última transcripción sigue ahí: la página murió a mitad | — |
 | `transcribe_crash_<fase>_<dispositivo>_<modelo>[_reintento]` | dónde murió: `load`, `inference` o `fondo` (estaba en segundo plano); `webgpu`, `wasm` o `x` | — |
+| `transcribe_bucle` / `transcribe_bucle_<modelo>` | el modelo se enganchó repitiendo una frase; se dejó una vez con «[…]» | — |
 | `webgpu_basura` | resultado vacío con WebGPU para un audio con sonido: se repite con el procesador | — |
 | `webgpu_reintento_cpu` / `webgpu_basura_confirmada` / `webgpu_basura_no` | la repetición, y si con el procesador salió texto (la tarjeta gráfica era el fallo) o tampoco | — |
 | `webgpu_evitado` | el dispositivo ya falló con WebGPU antes y va directo al procesador | — |

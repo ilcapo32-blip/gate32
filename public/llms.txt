@@ -50,6 +50,8 @@
   audio convertidos en dos palabras, y las frases de subtítulo que el modelo
   escribe sobre el silencio) e indica cuántas son. Pulsar su marca de tiempo
   salta a ese punto del audio. No afirma que estén mal: señala dónde mirar.
+  Cuando el modelo se engancha repitiendo una frase decenas de veces, la frase
+  queda una sola vez seguida de «[…]», que indica que ahí falta texto.
   No usa la confianza del modelo, que la librería no expone; usa señales
   observables en la salida.
 - Corrección global: un término se corrige una vez y se arregla en toda la
