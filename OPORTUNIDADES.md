@@ -14,10 +14,11 @@ coste de servidor casi cero y una promesa de privacidad que encaja con el RGPD.
 
 - **Coste de infraestructura 0 €** con miles de usuarios: el cómputo lo pone el
   dispositivo de cada uno, y los modelos los sirve el CDN de Hugging Face.
-- **La privacidad atrae tráfico sin publicidad**: unas 8.400 visitas desde un
-  solo post en Reddit, y sobre todo desde ChatGPT (1.867), que recomienda
-  Gate32 cuando alguien pregunta por transcribir sin subir archivos. El canal
-  GEO funciona para este tipo de producto.
+- **La privacidad atrae tráfico sin publicidad**: unas 1.150 vistas de página
+  en tres meses a partir de un solo post en Reddit, y la primera fuente es
+  ChatGPT, que recomienda Gate32 cuando alguien pregunta por transcribir sin
+  subir archivos (1.867 registros con ese origen, casi tantos como Google,
+  Bing y Reddit juntos). El canal GEO funciona para este tipo de producto.
 - La gente lo usa de verdad: 634 transcripciones empezadas y vuelve el doble de
   gente que hace un mes.
 
@@ -63,8 +64,9 @@ Matices que cambian el producto respecto a la propuesta:
   texto sigue debajo y se puede copiar. Hay que eliminarlo del PDF de verdad,
   o rasterizar la página, y comprobarlo.
 - **Competencia:** Adobe Acrobat Pro tacha datos en local, pero es de pago, de
-  escritorio y no conoce los formatos españoles. Microsoft Presidio es de
-  código abierto, pero va en servidor y hay que instalarlo.
+  escritorio y sus patrones no conocen los formatos españoles. Microsoft
+  Presidio es de código abierto, pero es una librería de Python que hay que
+  instalar y montar: no es para una gestoría.
 
 **El ángulo que lo hace oportuno: anonimizar antes de usar ChatGPT.** Mucha
 gente quiere pegar un contrato o un informe en un asistente de IA y no puede
@@ -95,7 +97,7 @@ La parte de datos es sólida (DuckDB-WASM consulta millones de filas en el
 navegador). La débil es la IA: un modelo pequeño traduce mal preguntas en
 lenguaje natural a SQL, y en finanzas un resultado equivocado que parece
 correcto es peor que no tener resultado. Y compite con Copilot en Excel, que
-ya tienen las empresas.
+muchas empresas ya pagan.
 
 ## Verticales que añado
 
