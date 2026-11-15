@@ -1024,7 +1024,11 @@ dispositivo.
 
 **15/11.** Con ese arreglo publicado, un audio de 28 s: descarga el modelo, se
 queda en «Transcribiendo» con la barra quieta, la pantalla se va a negro y la
-app vuelve vacía, como recién abierta. Varios intentos, el mismo final.
+app vuelve vacía, como recién abierta. Varios intentos, el mismo final, y con
+los tres modelos. El teléfono es un Redmi Note 13 Pro 5G (Snapdragon 7s Gen 2,
+gráfica Adreno 710, 8 o 12 GB de memoria según versión). Con esa memoria, que
+falte con el modelo Rápido es menos probable, y la pantalla en negro apunta
+más a la parte gráfica; el arreglo de abajo quita las dos sospechas a la vez.
 
 **La causa más probable es el propio arreglo.** La repetición soltaba el modelo
 de la tarjeta gráfica y cargaba otro para el procesador al instante, y el
