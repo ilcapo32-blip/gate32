@@ -286,7 +286,10 @@ mide con ese nombre exacto.
 - **Modelo:** Whisper (onnx-community, cuantizado) vía transformers.js.
   Tres calidades seleccionables: rápido (tiny), equilibrado (base, defecto),
   preciso (small). WebGPU si existe; WASM como fallback con aviso de
-  rendimiento.
+  rendimiento. En el teléfono (y en la app de Android), siempre WASM y
+  equilibrado por defecto también: medido el 15/11, el rápido salió ilegible y
+  la tarjeta gráfica del móvil daba resultados vacíos o cerraba la app
+  (VALIDATION.md).
 - **Coste de inferencia:** 0 € (cómputo del usuario, pesos servidos por el CDN
   de Hugging Face y cacheados en el navegador).
 - **Sustituibilidad:** la capa de transcripción está aislada en un worker con

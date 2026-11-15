@@ -907,8 +907,10 @@ try {
     await phonePage.locator("#mark-btn").isHidden(),
   );
   check(
-    "móvil: modelo Rápido por defecto",
-    (await phonePage.locator("#model-quality").inputValue()) === "fast",
+    // Medido el 15/11 en un móvil real: el Rápido salió ilegible y con un
+    // bucle; el Equilibrado, legible y además antes.
+    "móvil: modelo Equilibrado por defecto",
+    (await phonePage.locator("#model-quality").inputValue()) === "balanced",
   );
   await phone.close();
 

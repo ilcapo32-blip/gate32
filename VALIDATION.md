@@ -1073,9 +1073,22 @@ bucles se recogen (`src/lib/loops.ts`): la frase queda una vez, seguida de
 «[…]», y la línea se marca para comprobarla. Probado sobre la transcripción
 real: solo cambia esa línea de 43. Se mide con `transcribe_bucle_<modelo>`.
 
-Lo que queda por decidir con datos: si el modelo por defecto en el teléfono
-debe seguir siendo el Rápido. Hace falta el tiempo y la calidad del
-Equilibrado en el mismo móvil con el mismo audio.
+**Rápido frente a Equilibrado, mismo móvil y mismo audio** (el tiempo es solo
+el de transcribir, sin la descarga):
+
+| Modelo | Tiempo | Resultado |
+|---|---|---|
+| Rápido (`whisper-tiny`) | 2:02 | muchas palabras mal, frases que faltan, un bucle de 50 repeticiones |
+| Equilibrado (`whisper-base`) | **1:23** | legible: «riqueza», «acepciones», «atributos» bien; errores sueltos («Carro costoso» por «caro, costoso») |
+
+El Equilibrado fue **más rápido**, al revés de lo esperado: el bucle del Rápido
+le obligó a generar texto hasta el límite de su trozo de 30 s. **Decisión: el
+modelo por defecto en el teléfono pasa a ser el Equilibrado.** Un primer
+resultado lleno de errores convence de que la herramienta no sirve, y la
+diferencia de descarga son 30 MB. Es una sola medición en un solo móvil:
+`transcribe_done_movil`, `transcribe_crash` y `transcribe_bucle_<modelo>` dirán
+si aguanta en teléfonos más modestos. Si los cierres suben, el aviso de cierre
+ya pasa a quien lo sufra al modelo Rápido.
 
 ### La primera prueba real del MP4 falló, y destapó un fallo de dos meses (2026-10-14)
 

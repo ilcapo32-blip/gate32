@@ -219,10 +219,19 @@ modelSelect.addEventListener("change", syncFirstRunSize);
 
 // El tráfico social llega sobre todo desde el móvil, donde el procesado es
 // más lento: expectativas claras por delante para no quemar la visita.
+//
+// El modelo por defecto en el teléfono es el Equilibrado, no el Rápido. Se
+// midió el 15/11 en el móvil del fundador (Redmi Note 13 Pro 5G, procesador),
+// con la misma nota de voz de 2:30: el Rápido tardó 2:02, se equivocó en
+// muchas palabras y se enganchó repitiendo una frase cincuenta veces; el
+// Equilibrado tardó 1:23 y salió legible. Más rápido porque un bucle obliga a
+// generar texto hasta el límite del trozo. Un primer resultado lleno de
+// errores convence a cualquiera de que la herramienta no sirve, y la
+// diferencia de descarga son 30 MB.
 const onPhone =
   window.matchMedia("(pointer: coarse)").matches && window.innerWidth < 820;
 if (onPhone) {
-  modelSelect.value = "fast";
+  modelSelect.value = "balanced";
   const note = document.querySelector<HTMLElement>("#mobile-note");
   if (note) {
     note.textContent = t("mobile_note");
