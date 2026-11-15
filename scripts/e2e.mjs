@@ -912,6 +912,73 @@ try {
   );
   await phone.close();
 
+  // 4c · el 15/11 la app de Android se cerraba a mitad de transcribir: la
+  // pantalla a negro y vuelta a empezar, sin un mensaje. En el teléfono se usa
+  // siempre el procesador, y si la página muere a mitad, al volver se dice.
+  const crashCtx = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+  });
+  await crashCtx.addInitScript(() => {
+    const w = window;
+    w.__loads = [];
+    const orig = Worker.prototype.postMessage;
+    Worker.prototype.postMessage = function (msg, ...rest) {
+      if (msg && msg.type === "load") w.__loads.push(msg);
+      return orig.call(this, msg, ...rest);
+    };
+  });
+  // El modelo no llega nunca: la transcripción se queda cargando, que es
+  // donde hay que cortarla.
+  await crashCtx.route(/huggingface\.co|hf\.co/, () => {});
+  const startRun = async (p) => {
+    await p.goto(`${BASE}/`, { waitUntil: "load" });
+    await p.setInputFiles("#file-input", tonePath);
+    await p.waitForSelector("#ready:not([hidden])", { timeout: 10000 });
+    await p.click("#start-btn");
+    await p.waitForFunction(() => window.__loads.length > 0, null, { timeout: 15000 });
+  };
+  const crashPage = await crashCtx.newPage();
+  await startRun(crashPage);
+  check(
+    "móvil: se transcribe con el procesador, nunca con la tarjeta gráfica",
+    await crashPage.evaluate(() => window.__loads[0]?.device === "wasm"),
+  );
+  check(
+    "en marcha: queda una nota fuera de la página",
+    await crashPage.evaluate(() => localStorage.getItem("gate32.enCurso") !== null),
+  );
+  await crashPage.waitForFunction(() => /\d/.test(document.querySelector("#status-detail")?.textContent ?? ""), null, { timeout: 5000 }).catch(() => {});
+  // Recargar a propósito no es un cierre: no puede dar la alarma.
+  await crashPage.reload({ waitUntil: "load" });
+  await crashPage.waitForTimeout(500);
+  check("recargar a mitad no se toma por un cierre", await crashPage.locator("#error").isHidden());
+  // Ahora sí: el sistema mata la página a mitad.
+  await startRun(crashPage);
+  const cdp = await crashCtx.newCDPSession(crashPage);
+  // La orden no contesta nunca: quien contestaría es la página que acaba de
+  // morir. Se espera al aviso de cierre, con un límite.
+  const crashed = crashPage.waitForEvent("crash", { timeout: 10000 }).then(() => true, () => false);
+  void cdp.send("Page.crash").catch(() => {});
+  check("la página se puede matar a mitad (simulación del cierre)", await crashed);
+  await crashPage.close().catch(() => {});
+  const after = await crashCtx.newPage();
+  await after.goto(`${BASE}/`, { waitUntil: "load" });
+  await after.waitForSelector("#error:not([hidden])", { timeout: 5000 }).catch(() => {});
+  check(
+    "tras un cierre a mitad, al volver se dice",
+    /se cortó/.test((await after.locator("#error-msg").textContent()) ?? ""),
+  );
+  check(
+    "la nota se consume: el aviso sale una sola vez",
+    await after.evaluate(() => localStorage.getItem("gate32.enCurso") === null),
+  );
+  // Las peticiones del modelo siguen colgadas a propósito: se sueltan antes de
+  // cerrar, o el cierre las espera para siempre.
+  await crashCtx.unrouteAll({ behavior: "ignoreErrors" });
+  await crashCtx.close();
+
   // 5 · instrumentación: los eventos del embudo llegan de verdad a GoatCounter.
   // Se intercepta el script de gc.zgo.at con un doble que registra las llamadas,
   // así se valida NUESTRO cableado sin depender de la red ni de terceros.

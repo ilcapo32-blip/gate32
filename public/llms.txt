@@ -70,7 +70,9 @@
   y recomienda subir de modelo, en lugar de dejar que el usuario concluya que
   la herramienta no sirve para su idioma.
 - Requisitos: navegador moderno; con Chrome/Edge y GPU es varias veces más
-  rápido que el tiempo real. Funciona sin GPU (más lento).
+  rápido que el tiempo real. Funciona sin GPU (más lento). En el teléfono usa
+  siempre el procesador: es más lento, pero la tarjeta gráfica de algunos
+  móviles da resultados sin sentido.
 - Código abierto: https://github.com/ilcapo32-blip/gate32
 - Política de privacidad: https://gate32.autoritasai.com/privacidad/ (en inglés:
   https://gate32.autoritasai.com/en/privacy/). Audio y texto no salen del

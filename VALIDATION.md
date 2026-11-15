@@ -1012,6 +1012,48 @@ casos construidos, no del campo. Y tres grabadores a la vez no se han medido
 en un equipo modesto. La prueba con audio real en la web publicada va antes de
 anunciarlo en ningún sitio.
 
+### La app de Android, en el móvil del fundador: dos fallos seguidos (2026-11-12 y 15)
+
+**12/11.** Primera transcripción en la app instalada desde la prueba interna:
+55 s de voz y una sola línea, «[Música]». Sin ningún error. El móvil tiene
+WebGPU y Gate32 lo usó; la tarjeta gráfica ejecutó el modelo y devolvió un
+resultado sin sentido. Arreglo de ese día: si el audio tiene sonido de sobra
+(`soundActivity`) y el resultado está vacío (`looksEmpty`), repetir con el
+procesador y, si entonces sale texto, no volver a usar WebGPU en ese
+dispositivo.
+
+**15/11.** Con ese arreglo publicado, un audio de 28 s: descarga el modelo, se
+queda en «Transcribiendo» con la barra quieta, la pantalla se va a negro y la
+app vuelve vacía, como recién abierta. Varios intentos, el mismo final.
+
+**La causa más probable es el propio arreglo.** La repetición soltaba el modelo
+de la tarjeta gráfica y cargaba otro para el procesador al instante, y el
+teléfono se quedaba sin memoria. Android cierra la app sin aviso, y como moría
+antes de acabar, nunca llegaba a apuntar que WebGPU fallaba: cada intento
+repetía el ciclo entero. No está demostrado —no tenemos el registro del
+teléfono—, pero explica los dos síntomas y el orden en que aparecieron.
+
+Lo que cambia:
+
+- **En el teléfono (y en la app) se usa siempre el procesador.** Ni resultados
+  sin sentido ni dos modelos en memoria. Más lento, pero un audio de 28 s con
+  el modelo Rápido debería ir en segundos.
+- **Si la página muere a mitad, al volver se dice.** Se deja una nota al
+  empezar a transcribir y se borra al acabar; si sigue ahí al abrir, se avisa,
+  se corrige lo que se pueda (WebGPU fuera, o el modelo Rápido en el teléfono)
+  y queda medido: `transcribe_crash_<fase>_<dispositivo>_<modelo>`. Un candado
+  del navegador evita confundirla con otra pestaña que sigue trabajando, y
+  recargar a propósito no cuenta.
+- **La barra se mueve y un contador dice cuánto lleva** hasta que termina el
+  primer bloque de dos minutos. Una nota de voz es un solo bloque, y una barra
+  quieta en el 0 % parecía un cuelgue.
+- La pantalla se mantiene encendida mientras transcribe: en el móvil, apagarse
+  la pantalla es pasar a segundo plano, y en segundo plano el sistema congela
+  o cierra la app.
+
+Prueba de fuego: `transcribe_done_movil` frente a `transcribe_start_movil`, y
+que `transcribe_crash` se quede en cero.
+
 ### La primera prueba real del MP4 falló, y destapó un fallo de dos meses (2026-10-14)
 
 El fundador probó la versión de la rama con un MP4 de **496 MB y 1 h 02 min**
@@ -1162,6 +1204,14 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `meeting_no_audio` | la pestaña se compartió sin audio: se aborta | — |
 | `meeting_error` | fallo de captura distinto a los anteriores | — |
 | `meeting_unsupported` / `media_unsupported` | pulsó el botón en Firefox o Safari, que no entregan el sonido de la pestaña: se le dice que use Chrome o Edge | — |
+| `app_open` / `transcribe_start_app` / `transcribe_done_app` | la app de Android se abre, empieza y termina una transcripción | — |
+| `transcribe_start_movil` / `transcribe_done_movil` | lo mismo en cualquier teléfono (app o web), que transcribe siempre con el procesador | — |
+| `transcribe_crash` / `transcribe_crash_app` | al abrir, la nota de la última transcripción sigue ahí: la página murió a mitad | — |
+| `transcribe_crash_<fase>_<dispositivo>_<modelo>[_reintento]` | dónde murió: `load`, `inference` o `fondo` (estaba en segundo plano); `webgpu`, `wasm` o `x` | — |
+| `webgpu_basura` | resultado vacío con WebGPU para un audio con sonido: se repite con el procesador | — |
+| `webgpu_reintento_cpu` / `webgpu_basura_confirmada` / `webgpu_basura_no` | la repetición, y si con el procesador salió texto (la tarjeta gráfica era el fallo) o tampoco | — |
+| `webgpu_evitado` | el dispositivo ya falló con WebGPU antes y va directo al procesador | — |
+| `resultado_vacio_sin_sonido` / `resultado_vacio_con_sonido_<dispositivo>` | qué tipo de resultado vacío fue | — |
 | `model_ready` | pesos cargados | `model`, `seconds`, `cached` |
 | `transcribe_done` | transcripción completa | `model`, `device`, `minutes`, `seconds` |
 | `transcribe_error` | fallo | `stage`, `kind` |

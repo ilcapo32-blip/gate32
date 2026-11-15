@@ -341,6 +341,202 @@ const toEnglish =
 if (toEnglish) location.replace(`/en/${location.search}`);
 
 /**
+ * En el teléfono, siempre el procesador.
+ *
+ * El 12/11 la app de Android transcribió 55 s de voz como «[Música]» con la
+ * tarjeta gráfica, sin dar ningún error. El arreglo de entonces —repetirlo con
+ * el procesador— cargaba un segundo modelo nada más soltar el primero, y el
+ * 15/11 la app se cerraba a mitad en el móvil del fundador, una vez tras otra.
+ * En un teléfono la tarjeta gráfica no compensa: no se puede fiar de su
+ * resultado y su memoria es la del teléfono. El procesador tarda más, pero
+ * acaba.
+ */
+const cpuOnly = onPhone || inApp;
+
+/**
+ * Una transcripción en marcha, apuntada fuera de la página.
+ *
+ * Cuando el sistema mata la página a mitad —el teléfono se queda sin memoria,
+ * o cierra la app que estaba en segundo plano— no hay ningún error que
+ * capturar: la pantalla se va a negro y la app vuelve vacía. Así le pasó al
+ * fundador el 15/11, y lo único que se veía era un reinicio. La forma de
+ * enterarse es dejar una nota al empezar y borrarla al acabar: si al abrir la
+ * página la nota sigue ahí, la última transcripción no terminó, y la nota dice
+ * en qué fase, con qué modelo y en qué dispositivo.
+ */
+interface RunMark {
+  stage: "load" | "inference";
+  device: "webgpu" | "wasm" | "?";
+  quality: ModelQuality;
+  /** La repetición con el procesador tras un resultado vacío de WebGPU. */
+  retry: boolean;
+  /** La página estaba oculta: el usuario se había ido a otra app. */
+  hidden: boolean;
+  at: number;
+}
+const RUN_KEY = "gate32.enCurso";
+// Un candado del navegador separa la nota de una página que murió de la de
+// otra pestaña que sigue transcribiendo: el candado se suelta solo al morir.
+const RUN_LOCK = "gate32-transcribiendo";
+let runMark: RunMark | null = null;
+let releaseRunLock: (() => void) | null = null;
+let screenLock: { release(): Promise<void> } | null = null;
+let ticker: number | undefined;
+// La página se está yendo por decisión de quien la usa: la nota ya no se
+// escribe. Hace falta porque al salir el navegador avisa de que se oculta
+// *después* de avisar de que se va, y ese aviso la volvía a escribir.
+let leaving = false;
+
+function saveRun(): void {
+  try {
+    if (runMark && !leaving) localStorage.setItem(RUN_KEY, JSON.stringify({ ...runMark, at: Date.now() }));
+    else localStorage.removeItem(RUN_KEY);
+  } catch {
+    /* sin almacenamiento no hay nota, y un cierre pasa sin explicar como antes */
+  }
+}
+
+function beginRun(mark: Pick<RunMark, "device" | "quality" | "retry">): void {
+  stopTicker();
+  runMark = { ...mark, stage: "load", hidden: document.hidden, at: Date.now() };
+  saveRun();
+  if (!releaseRunLock) {
+    navigator.locks
+      ?.request(RUN_LOCK, { ifAvailable: true }, (lock) =>
+        lock && runMark
+          ? new Promise<void>((resolve) => {
+              releaseRunLock = resolve;
+            })
+          : undefined,
+      )
+      .catch(() => undefined);
+  }
+  void keepScreenOn();
+}
+
+function updateRun(patch: Partial<Pick<RunMark, "stage" | "device" | "hidden">>): void {
+  if (!runMark) return;
+  runMark = { ...runMark, ...patch };
+  saveRun();
+}
+
+function endRun(): void {
+  stopTicker();
+  if (!runMark) return;
+  runMark = null;
+  saveRun();
+  releaseRunLock?.();
+  releaseRunLock = null;
+  void screenLock?.release().catch(() => undefined);
+  screenLock = null;
+}
+
+/**
+ * La pantalla encendida mientras se transcribe. En el móvil, una pantalla que
+ * se apaga deja la app en segundo plano, y en segundo plano el sistema la
+ * congela o la cierra: una hora de audio no acaba nunca.
+ */
+async function keepScreenOn(): Promise<void> {
+  const wl = (navigator as unknown as {
+    wakeLock?: { request(type: "screen"): Promise<{ release(): Promise<void>; addEventListener(t: "release", f: () => void): void }> };
+  }).wakeLock;
+  if (!wl || screenLock || document.hidden || !runMark) return;
+  try {
+    const lock = await wl.request("screen");
+    lock.addEventListener("release", () => {
+      if (screenLock === lock) screenLock = null;
+    });
+    if (runMark) screenLock = lock;
+    else void lock.release();
+  } catch {
+    /* sin permiso o sin batería: se transcribe igual */
+  }
+}
+
+document.addEventListener("visibilitychange", () => {
+  updateRun({ hidden: document.hidden });
+  if (!document.hidden) void keepScreenOn();
+});
+// Cerrar la pestaña o recargar a mitad es una decisión, no un cierre forzoso:
+// se borra la nota sin tocar nada más, por si la página vuelve de la caché.
+window.addEventListener("pagehide", () => {
+  leaving = true;
+  saveRun();
+});
+window.addEventListener("pageshow", (e) => {
+  if (!e.persisted) return;
+  leaving = false;
+  saveRun();
+});
+
+/** El tiempo que lleva, segundo a segundo, para que una espera larga no parezca un cuelgue. */
+function startTicker(render: () => void): void {
+  stopTicker();
+  render();
+  ticker = window.setInterval(render, 1000);
+}
+function stopTicker(): void {
+  if (ticker !== undefined) window.clearInterval(ticker);
+  ticker = undefined;
+}
+
+/**
+ * Si la última transcripción no terminó, se dice y se corrige lo que se pueda.
+ *
+ * Sin esto, quien lo sufre ve una app que se reinicia y vuelve a intentarlo
+ * igual, y vuelve a caer: el 15/11 fueron varios intentos seguidos, y cada uno
+ * se comía la descarga del modelo.
+ */
+async function checkLastRun(): Promise<void> {
+  let mark: RunMark | null = null;
+  try {
+    mark = JSON.parse(localStorage.getItem(RUN_KEY) ?? "null") as RunMark | null;
+  } catch {
+    return;
+  }
+  if (!mark || typeof mark.stage !== "string") return;
+  try {
+    const state = await navigator.locks?.query();
+    if (state?.held?.some((l) => l.name === RUN_LOCK)) return;
+  } catch {
+    /* sin candados se da por cerrada */
+  }
+  // Esta misma página puede haber empezado mientras se consultaba el candado.
+  if (runMark) return;
+  try {
+    localStorage.removeItem(RUN_KEY);
+  } catch {
+    return;
+  }
+
+  const where = mark.hidden ? "fondo" : mark.stage;
+  const device = mark.device === "?" ? "x" : mark.device;
+  track("transcribe_crash");
+  track(`transcribe_crash_${where}_${device}_${mark.quality}${mark.retry ? "_reintento" : ""}`);
+  if (inApp) track("transcribe_crash_app");
+
+  let hint: string;
+  if (mark.hidden) {
+    // El usuario se fue a otra app y el sistema la cerró. Ni el modelo ni la
+    // tarjeta gráfica tienen la culpa: no se toca nada.
+    hint = t("crash_hint_background");
+  } else if (mark.retry || (mark.device === "webgpu" && mark.stage === "inference")) {
+    distrustWebgpu();
+    hint = t("crash_hint_gpu");
+  } else if (cpuOnly && mark.quality !== "fast" && hasOption(modelSelect, "fast")) {
+    modelSelect.value = "fast";
+    remember(MODEL_KEY, "fast");
+    syncFirstRunSize();
+    hint = t("crash_hint_model");
+  } else {
+    hint = t("crash_hint") + (mark.quality !== "fast" ? t("crash_try_fast") : "");
+  }
+  // Una nota de hace días sigue contando para las métricas, pero ya no se le
+  // explica a nadie: no recordaría de qué le hablan.
+  if (Date.now() - mark.at < 24 * 3600 * 1000) showError(t("crash_msg"), hint);
+}
+
+/**
  * Cuánto audio se ha leído frente a lo que el archivo dice durar.
  *
  * El 25/10 un MP4 de 1:36:31 se transcribió con 50:43 de audio y nada lo
@@ -480,6 +676,7 @@ function showWaitSurvey(bytesDone: number): void {
 }
 
 function resetToIdle(): void {
+  endRun();
   pending = null;
   if (readyBox) hide(readyBox);
   busy = false;
@@ -494,6 +691,7 @@ function resetToIdle(): void {
 }
 
 function showError(message: string, hint: string): void {
+  endRun();
   busy = false;
   hide(waitSurvey);
   hide(statusBox);
@@ -777,6 +975,9 @@ async function startTranscription(
     if (source === "media") track("transcribe_start_media");
     track("transcribe_start", { model: quality, source, minutes, lang });
     if (inApp) track("transcribe_start_app");
+    // Con `transcribe_crash` da la tasa de cierres en el teléfono, que es lo
+    // que dice si el camino del procesador aguanta.
+    if (cpuOnly) track("transcribe_start_movil");
   }
 
   // Antes de bajar 80 MB conviene saber que caben y que no los van a borrar:
@@ -804,10 +1005,12 @@ async function startTranscription(
 
   phase = "download";
   statusText.textContent = t("preparing");
-  const useCpu = opts.sanityRetry === true || webgpuDistrusted();
-  if (useCpu && !opts.sanityRetry) track("webgpu_evitado");
+  const useCpu = opts.sanityRetry === true || cpuOnly || webgpuDistrusted();
+  if (useCpu && !opts.sanityRetry && !cpuOnly) track("webgpu_evitado");
+  beginRun({ device: useCpu ? "wasm" : "?", quality, retry: opts.sanityRetry === true });
   transcriber.load(quality, {
     onDevice(device) {
+      updateRun({ device });
       if (current) current.device = device;
       statusDetail.textContent = device === "webgpu" ? t("device_gpu") : t("device_wasm");
     },
@@ -841,17 +1044,29 @@ async function startTranscription(
         seconds: Math.round(seconds),
         cached,
       });
+      updateRun({ stage: "inference" });
       statusText.textContent = t("transcribing");
-      statusDetail.textContent = t("of_audio", { t: clock(duration) });
-      setProgress(0);
       show(partialBox);
       const tGen0 = performance.now();
+      // Hasta que acaba el primer bloque de dos minutos no hay nada que
+      // medir, y una nota de voz es un solo bloque: la barra quieta en el 0 %
+      // y la app sin moverse parecían un cuelgue. La barra se mueve sola y el
+      // contador dice cuánto lleva.
+      setProgress(null);
+      startTicker(() => {
+        statusDetail.textContent = t("of_audio_elapsed", {
+          t: clock(duration),
+          e: clock((performance.now() - tGen0) / 1000),
+        });
+      });
       if (plan && trackAudios.length > 0) {
         transcribeTracks(plan.kind, trackAudios, language, quality, tGen0, tLoad0, trackNote);
         return;
       }
       transcriber.transcribe(audio, language, {
         onWindowProgress(done, total, partial) {
+          stopTicker();
+          updateRun({});
           setProgress((done / total) * 100);
           const tail = partial.slice(-2).map((s) => s.text).join(" ");
           if (tail) partialBox.textContent = `…${tail.slice(-220)}`;
@@ -1004,6 +1219,8 @@ function transcribeTracks(
     const tTrack0 = performance.now();
     transcriber.transcribe(item.audio, language, {
       onWindowProgress(done, total, partial) {
+        stopTicker();
+        updateRun({});
         setProgress(((i + done / total) / items.length) * 100);
         const tail = partial.slice(-2).map((x) => x.text).join(" ");
         if (tail) partialBox.textContent = `${item.label}: …${tail.slice(-200)}`;
@@ -1044,6 +1261,7 @@ function finishTranscription(
   failed = 0,
   note = "",
 ): void {
+  endRun();
   if (!current) return;
   busy = false;
   hide(statusBox);
@@ -1057,6 +1275,7 @@ function finishTranscription(
 
   current.segments = segments;
   if (inApp) track("transcribe_done_app");
+  if (cpuOnly) track("transcribe_done_movil");
   const speakers = new Set(segments.map((s) => s.speaker).filter(Boolean)).size;
   track("transcribe_done", {
     model: quality,
@@ -2194,6 +2413,7 @@ renderRecents();
 // Si se va a la página inglesa, que lo cuente y lo recoja ella: aquí se
 // contaría dos veces y el archivo compartido se borraría antes de llegar.
 if (fromApp && !toEnglish) track("app_open");
+if (!toEnglish) void checkLastRun();
 if (!toEnglish) void receiveShared();
 
 /**

@@ -70,6 +70,17 @@ const dict = {
     share_empty: "No ha llegado ningún archivo desde la otra aplicación.",
     webgpu_retry: "La tarjeta gráfica de este dispositivo ha devuelto un resultado sin sentido. Lo repito con el procesador: tarda más, pero es fiable.",
     done_cpu: " · repetido con el procesador porque la tarjeta gráfica de este dispositivo falló; a partir de ahora usará el procesador",
+    of_audio_elapsed: "{t} de audio · lleva {e}",
+    crash_msg: "La última transcripción se cortó antes de terminar.",
+    crash_hint:
+      "Lo más probable es que el dispositivo se quedara sin memoria. Cierra otras apps y vuelve a probar, o prueba con un archivo más corto.",
+    crash_try_fast: " El modelo Rápido también necesita menos.",
+    crash_hint_gpu:
+      "Lo más probable es que el dispositivo se quedara sin memoria. A partir de ahora Gate32 usará aquí el procesador, que necesita menos. Vuelve a elegir el archivo.",
+    crash_hint_model:
+      "Lo más probable es que el teléfono se quedara sin memoria. He puesto el modelo Rápido, que necesita menos. Vuelve a elegir el archivo.",
+    crash_hint_background:
+      "Se cerró mientras Gate32 estaba en segundo plano: el teléfono cierra las apps que no están en pantalla cuando le falta memoria. Déjala abierta hasta que termine.",
     share_empty_hint: "Prueba otra vez con «Compartir», o guarda el audio y elígelo desde aquí.",
     decode_sin_audio: "Este vídeo no tiene sonido: no lleva ninguna pista de audio, así que no hay nada que transcribir.",
     decode_sin_audio_hint: "Comprueba que es el archivo correcto: algunas aplicaciones guardan la imagen y el sonido en archivos separados.",
@@ -198,6 +209,17 @@ const dict = {
     share_empty: "No file arrived from the other app.",
     webgpu_retry: "This device's graphics card returned a meaningless result. Retrying on the processor: slower, but reliable.",
     done_cpu: " · redone on the processor because this device's graphics card failed; it will use the processor from now on",
+    of_audio_elapsed: "{t} of audio · {e} so far",
+    crash_msg: "The last transcription stopped before it finished.",
+    crash_hint:
+      "Most likely the device ran out of memory. Close other apps and try again, or try a shorter file.",
+    crash_try_fast: " The Fast model also needs less.",
+    crash_hint_gpu:
+      "Most likely the device ran out of memory. From now on Gate32 will use the processor here, which needs less. Choose the file again.",
+    crash_hint_model:
+      "Most likely the phone ran out of memory. I've switched to the Fast model, which needs less. Choose the file again.",
+    crash_hint_background:
+      "It closed while Gate32 was in the background: phones close apps that aren't on screen when they're short on memory. Keep it open until it finishes.",
     share_empty_hint: "Try “Share” again, or save the audio and pick it from here.",
     decode_sin_audio: "This video has no sound: it carries no audio track, so there is nothing to transcribe.",
     decode_sin_audio_hint: "Check it is the right file: some apps save picture and sound in separate files.",
