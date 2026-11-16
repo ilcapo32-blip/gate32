@@ -24,12 +24,23 @@ patrón:
 **Cero efectos de plantilla.** En toda la hoja de estilos hay **un** degradado
 y ninguna transparencia difuminada. Se mantiene así.
 
-**Marca propia:** en la web, el logotipo es un SVG de barras verticales tipo
-onda de audio, dibujado a mano en el HTML. No es un icono de librería. Desde
-el 16/11 hay un logotipo nuevo del fundador, «Gate32» a pincel dentro de un
-bocadillo de diálogo (`public/logo-light.webp` y `logo-dark.webp`, sin fondo y
-con versión clara para el modo oscuro). Por ahora solo lo usa el modo app. No
-se redibuja ni se retoca: es reconocible tal cual.
+**Marca propia:** el logotipo del fundador, «Gate32» a pincel dentro de un
+bocadillo de diálogo (16/11). Sustituyó en toda la web al SVG de barras que
+había antes. Es reconocible tal cual: no se redibuja ni se retoca.
+
+- `public/logo-light.webp` y `logo-dark.webp`: sin fondo, con versión clara
+  para el modo oscuro. Van en un `<picture>` con
+  `(prefers-color-scheme: dark)`, en la cabecera de cada página y en el modo
+  app.
+- Icono (`icon-192.png`, `icon-512.png`, `apple-touch-icon.png`) y favicon
+  (`favicon-48.png`, `favicon-32.png`): el bocadillo con el «32» naranja sobre
+  el crema del logotipo, sin la palabra «Gate», que a 48 px no se lee. Elegido
+  entre tres versiones (crema, oscuro, naranja). El icono deja margen de
+  seguridad porque Android recorta el borde; el favicon no.
+- `public/og.png` y `og-en.png` (1200×630) y `docs/play/grafico-funciones-*.png`
+  (1024×500): logotipo y titular, con textos ya aprobados.
+- Títulos (`h1`, `h2`, `h3`) en **Space Grotesk** en toda la web, autoalojada.
+  Las etiquetas pequeñas en mayúsculas siguen en Inter.
 
 **Modo app** (`html.app`, al final de `src/styles.css`): la interfaz de la app
 de Android y de la web instalada en un teléfono. La decidió el fundador sobre
@@ -63,9 +74,8 @@ indicador, no en un botón ni en un fondo.
 
 No todo está resuelto. Si algún día se rediseña, estos son los puntos débiles:
 
-1. **La tipografía es Inter**, que es exactamente la fuente por defecto del
-   patrón. Una fuente con más carácter para los titulares —manteniendo Inter
-   para el texto— sería el cambio de mayor efecto por menos esfuerzo.
+1. ~~**La tipografía es Inter**~~ Resuelto el 16/11: los títulos van en Space
+   Grotesk y el texto sigue en Inter.
 2. **La fila de insignias con ✓** (`gratis · sin registro · no se suben`) es un
    recurso muy visto. El contenido es cierto y útil, pero la forma es de
    plantilla.

@@ -116,7 +116,7 @@ Con las dos publico `/.well-known/assetlinks.json` y compruebo que se sirve.
 ### 6. Ficha de la tienda · borrador mío, texto final tuyo
 
 Lo que pide Google: icono 512×512 (ya está: `public/icon-512.png`), gráfico
-de funciones 1024×500 (hecho: `docs/play/grafico-funciones-es.png` y `-en.png`), al menos dos capturas de teléfono
+de funciones 1024×500 (hecho: `docs/play/grafico-funciones-es.png` y `-en.png`, rehechos el 16/11 con el logotipo nuevo; el icono de alta resolución de la ficha es `public/icon-512.png`), al menos dos capturas de teléfono
 (reales, del paso 3), la URL de privacidad y los textos.
 
 Los textos de abajo son un **borrador**. Como todo lo público de Gate32, el

@@ -8,10 +8,11 @@
   <link rel="canonical" href="https://gate32.autoritasai.com/en/privacy/" />
   <link rel="alternate" hreflang="en" href="https://gate32.autoritasai.com/en/privacy/" />
   <link rel="alternate" hreflang="es" href="https://gate32.autoritasai.com/privacidad/" />
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48" />
+  <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="manifest" href="/manifest.en.webmanifest" />
   <meta name="theme-color" content="#1c1c1a" />
-  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <script>
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
@@ -20,8 +21,10 @@
 <body>
   <header class="site-header">
     <a class="brand" href="/en/" aria-label="Gate32, home">
-      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="currentColor" opacity="0.14"/><path d="M6 20 V12 M10 23 V9 M14 26 V6 M18 24 V8 M22 21 V11 M26 19 V13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>
-      <span>Gate<b>32</b></span>
+      <picture>
+        <source srcset="/logo-dark.webp" media="(prefers-color-scheme: dark)" />
+        <img class="brand-logo" src="/logo-light.webp" alt="Gate32" width="480" height="267" />
+      </picture>
     </a>
     <nav class="site-nav" aria-label="Sections">
       <a href="/en/">Transcriber</a>

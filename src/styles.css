@@ -26,8 +26,22 @@
   --err-ink: #b3261e;
   --radius: 12px;
   --font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  /* Títulos. Llegó con el logotipo del bocadillo (16/11): Inter en todo era
+     justo la fuente por defecto del patrón, y el skill de diseño lo apuntaba
+     como el cambio de más efecto por menos esfuerzo. Alojada aquí: una fuente
+     de fuera rompería el aislamiento de origen cruzado y los hilos de WASM. */
+  --display: "Space Grotesk", "Inter", system-ui, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
+
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("/fonts/space-grotesk-700.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+
+h1, h2, h3 { font-family: var(--display); font-weight: 700; }
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -76,7 +90,7 @@ button { font-family: inherit; }
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1rem clamp(1rem, 5vw, 3rem);
+  padding: 0.4rem clamp(1rem, 5vw, 3rem);
   border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
@@ -88,17 +102,11 @@ button { font-family: inherit; }
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
   text-decoration: none;
-  color: var(--ink);
-  font-weight: 700;
-  font-size: 1.15rem;
-  letter-spacing: -0.01em;
 }
 
-.brand b { color: var(--accent); }
-
-.brand-mark { width: 28px; height: 28px; color: var(--accent); }
+/* El logotipo del bocadillo, en claro o en oscuro según el tema. */
+.brand-logo { display: block; width: auto; height: 46px; }
 
 .site-nav { display: flex; gap: 1.2rem; }
 
@@ -123,7 +131,6 @@ button { font-family: inherit; }
   font-size: clamp(1.7rem, 4.6vw, 2.7rem);
   line-height: 1.15;
   letter-spacing: -0.02em;
-  font-weight: 800;
 }
 
 .hero h1 em {
@@ -433,6 +440,7 @@ button { font-family: inherit; }
 .recents { margin-top: 2rem; text-align: left; }
 
 .recents h2 {
+  font-family: var(--font);
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -1099,17 +1107,9 @@ body.embed .toolbar { position: static; }
  * esquinas de 16 px.
  */
 
-@font-face {
-  font-family: "Space Grotesk";
-  src: url("/fonts/space-grotesk-700.woff2") format("woff2");
-  font-weight: 700;
-  font-display: swap;
-}
-
 .app-only { display: none; }
 
 html.app {
-  --display: "Space Grotesk", var(--font);
   --radius-app: 16px;
   --chip: #f3f1ea;
   --accent-glow: #e07a3a;
