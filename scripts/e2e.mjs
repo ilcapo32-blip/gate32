@@ -981,6 +981,102 @@ try {
   await crashCtx.unrouteAll({ behavior: "ignoreErrors" });
   await crashCtx.close();
 
+  // 4d · modo app (16/11). La app de Android era la portada de la web, con
+  // todas sus explicaciones: «parece una página web de móvil». Ahora tiene su
+  // propia interfaz, y la web, en el mismo móvil, no cambia.
+  const appUi = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+    locale: "es-ES",
+  });
+  await appUi.route(/huggingface\.co|hf\.co/, (r) => r.abort());
+  await appUi.addInitScript(() => {
+    try {
+      localStorage.setItem(
+        "g32:history",
+        JSON.stringify([
+          {
+            id: "h1",
+            title: "Nota de prueba",
+            date: Date.now(),
+            minutes: 1,
+            seconds: 42,
+            segments: [
+              { start: 0, end: 20, text: "Hola, esto es una prueba de la tarjeta de recientes." },
+              { start: 20, end: 42, text: "Con dos frases." },
+            ],
+          },
+        ]),
+      );
+    } catch {
+      /* sin almacenamiento no hay recientes que comprobar */
+    }
+  });
+  const ap = await appUi.newPage();
+  await ap.goto(`${BASE}/?app=android&e2e=1`, { waitUntil: "load" });
+  check("app: la página entra en modo app", await ap.evaluate(() => document.documentElement.classList.contains("app")));
+  check(
+    "app: sin cabecera, pie, titular ni preguntas de la web",
+    (await ap.locator(".site-header").isHidden()) &&
+      (await ap.locator(".site-footer").isHidden()) &&
+      (await ap.locator("#faq").isHidden()) &&
+      (await ap.locator(".hero h1").isHidden()),
+  );
+  check(
+    "app: el logotipo y el botón grande de elegir audio",
+    (await ap.locator(".app-logo").isVisible()) && (await ap.locator(".app-pick").isVisible()),
+  );
+  check("app: cada reciente lleva la forma de su habla", (await ap.locator(".recent-thumb svg rect").count()) === 11);
+  await ap.evaluate(() =>
+    window.__g32.showResult([
+      { start: 0, end: 3, text: "Primera línea de prueba." },
+      { start: 3, end: 6, text: "Segunda línea." },
+    ]),
+  );
+  check(
+    "app: el resultado ocupa la pantalla, sin la portada",
+    (await ap.locator(".app-hero").isHidden()) && (await ap.locator("#app-dock").isVisible()),
+  );
+  await ap.click("#dock-export");
+  check("app: Exportar abre la hoja", await ap.locator("#app-sheet").isVisible());
+  // En la app, atrás es el botón del teléfono: antes cerraba la app entera.
+  await ap.goBack();
+  await ap.waitForTimeout(300);
+  check(
+    "app: atrás cierra la hoja y deja el texto",
+    (await ap.locator("#app-sheet").isHidden()) && (await ap.locator("#result").isVisible()),
+  );
+  await ap.click("#dock-export");
+  const appTxt = ap.waitForEvent("download", { timeout: 5000 }).then((d) => d.suggestedFilename(), () => "");
+  await ap.click('[data-sheet-export="txt"]');
+  check("app: «Texto» descarga el TXT", (await appTxt).endsWith(".txt"));
+  await ap.waitForTimeout(300);
+  check("app: al exportar, la hoja se cierra", await ap.locator("#app-sheet").isHidden());
+  await ap.goBack();
+  await ap.waitForTimeout(300);
+  check(
+    "app: atrás desde el resultado vuelve al inicio",
+    (await ap.locator("#result").isHidden()) && (await ap.locator(".app-pick").isVisible()),
+  );
+  await appUi.unrouteAll({ behavior: "ignoreErrors" });
+  await appUi.close();
+  const webUi = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+    locale: "es-ES",
+  });
+  const wp = await webUi.newPage();
+  await wp.goto(`${BASE}/`, { waitUntil: "load" });
+  check(
+    "web en el móvil: sin modo app y con su portada de siempre",
+    !(await wp.evaluate(() => document.documentElement.classList.contains("app"))) &&
+      (await wp.locator(".hero h1").isVisible()) &&
+      (await wp.locator(".app-hero").isHidden()),
+  );
+  await webUi.close();
+
   // 5 · instrumentación: los eventos del embudo llegan de verdad a GoatCounter.
   // Se intercepta el script de gc.zgo.at con un doble que registra las llamadas,
   // así se valida NUESTRO cableado sin depender de la red ni de terceros.

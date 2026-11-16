@@ -47,6 +47,7 @@ import {
 import { initAnalytics, track, trackVisit } from "./lib/analytics";
 import { looksEmpty, soundActivity, SOUND_FOR_SPEECH } from "./lib/sanity";
 import { LOOP_MARK } from "./lib/loops";
+import { barsSvg, speechBars } from "./lib/speechbars";
 import { ensureStorage, humanBytes } from "./lib/storage";
 import {
   loadHistory,
@@ -364,6 +365,21 @@ if (toEnglish) location.replace(`/en/${location.search}`);
 const cpuOnly = onPhone || inApp;
 
 /**
+ * Modo app: la interfaz propia de la app de Android y de la web instalada en
+ * un teléfono. Lo decide un script del <head> antes de pintar (ver el final de
+ * `styles.css`); aquí solo se lee. Es más amplio que `inApp`, que sirve para
+ * medir: la web instalada en un móvil también se ve como app.
+ */
+const appMode = document.documentElement.classList.contains("app");
+// En la app el modelo va en un botón pequeño: «Equilibrado · ~80 MB» no cabe
+// y se cortaba. El tamaño ya se ve mientras se descarga, que es cuando importa.
+if (appMode) {
+  for (const option of Array.from(modelSelect.options)) {
+    option.textContent = (option.textContent ?? "").split(" · ")[0] ?? option.textContent;
+  }
+}
+
+/**
  * Una transcripción en marcha, apuntada fuera de la página.
  *
  * Cuando el sistema mata la página a mitad —el teléfono se queda sin memoria,
@@ -392,6 +408,8 @@ let runMark: RunMark | null = null;
 let releaseRunLock: (() => void) | null = null;
 let screenLock: { release(): Promise<void> } | null = null;
 let ticker: number | undefined;
+/** La línea de detalle sigue al contador hasta que llega la estimación del primer bloque. */
+let liveDetail = true;
 // La página se está yendo por decisión de quien la usa: la nota ya no se
 // escribe. Hace falta porque al salir el navegador avisa de que se oculta
 // *después* de avisar de que se va, y ese aviso la volvía a escribir.
@@ -608,13 +626,53 @@ function hideIfPresent(selector: string): void {
 
 function setProgress(pct: number | null): void {
   const wrap = $("#progress-wrap");
+  const ring = document.querySelector<HTMLElement>("#app-ring");
+  const arc = document.querySelector<SVGElement>("#ring-arc");
   if (pct === null) {
     wrap.classList.add("indeterminate");
     progressBar.style.width = "40%";
+    ring?.classList.add("spin");
+    if (arc) arc.style.strokeDashoffset = "";
   } else {
+    const v = Math.max(0, Math.min(100, pct));
     wrap.classList.remove("indeterminate");
-    progressBar.style.width = `${Math.max(0, Math.min(100, pct)).toFixed(1)}%`;
+    progressBar.style.width = `${v.toFixed(1)}%`;
+    ring?.classList.remove("spin");
+    if (arc) arc.style.strokeDashoffset = String(100 - v);
   }
+}
+
+/** Lo que dice el centro del anillo del modo app: una cifra grande y su nombre. */
+function ringText(big: string, small: string): void {
+  const b = document.querySelector<HTMLElement>("#ring-big");
+  const sm = document.querySelector<HTMLElement>("#ring-small");
+  if (b) b.textContent = big;
+  if (sm) sm.textContent = small;
+}
+
+/** «0:41» y no «00:41»: en grande, el cero de delante sobra. */
+const shortClock = (seconds: number): string => clock(seconds).replace(/^0(?=\d:)/, "");
+
+/**
+ * El texto que va saliendo. En la web, una línea en cursiva; en la app, las
+ * tres últimas frases, que entran una detrás de otra.
+ */
+function showPartial(segs: Segment[], label = ""): void {
+  if (!appMode) {
+    const tail = segs.slice(-2).map((x) => x.text).join(" ");
+    if (tail) partialBox.textContent = label ? `${label}: …${tail.slice(-200)}` : `…${tail.slice(-220)}`;
+    return;
+  }
+  const last = segs.slice(-3).filter((x) => x.text.trim());
+  if (last.length === 0) return;
+  partialBox.replaceChildren(
+    ...last.map((x, i) => {
+      const p = document.createElement("p");
+      p.textContent = (label && i === 0 ? `${label}: ` : "") + x.text.trim();
+      p.style.animationDelay = `${i * 0.18}s`;
+      return p;
+    }),
+  );
 }
 
 // La descarga del modelo es el único tiempo muerto del flujo, y es también el
@@ -853,6 +911,9 @@ async function startTranscription(
   dropzone.classList.add("disabled");
   setProgress(null);
   statusText.textContent = t("reading");
+  ringText("", "");
+  const statusFile = document.querySelector<HTMLElement>("#status-file");
+  if (statusFile) statusFile.textContent = name;
   statusDetail.textContent = "";
 
   let audio: Float32Array;
@@ -1044,6 +1105,7 @@ async function startTranscription(
           ? t("downloading_eta", { done: doneMB, total: totalMB, eta: clock(eta) })
           : t("downloading_size", { done: doneMB, total: totalMB });
       setProgress(Math.min(99, (sum / spec.bytes) * 100));
+      ringText(`${Math.min(99, Math.round((sum / spec.bytes) * 100))} %`, t("ring_download"));
       showWaitSurvey(sum);
     },
     onReady(cached, seconds) {
@@ -1063,11 +1125,13 @@ async function startTranscription(
       // y la app sin moverse parecían un cuelgue. La barra se mueve sola y el
       // contador dice cuánto lleva.
       setProgress(null);
+      // El anillo cuenta el tiempo todo el rato; la línea de detalle, solo
+      // hasta que el primer bloque trae su propia estimación.
+      liveDetail = true;
       startTicker(() => {
-        statusDetail.textContent = t("of_audio_elapsed", {
-          t: clock(duration),
-          e: clock((performance.now() - tGen0) / 1000),
-        });
+        const e = (performance.now() - tGen0) / 1000;
+        ringText(shortClock(e), t("ring_elapsed"));
+        if (liveDetail) statusDetail.textContent = t("of_audio_elapsed", { t: clock(duration), e: clock(e) });
       });
       if (plan && trackAudios.length > 0) {
         transcribeTracks(plan.kind, trackAudios, language, quality, tGen0, tLoad0, trackNote);
@@ -1075,11 +1139,10 @@ async function startTranscription(
       }
       transcriber.transcribe(audio, language, {
         onWindowProgress(done, total, partial) {
-          stopTicker();
+          liveDetail = false;
           updateRun({});
           setProgress((done / total) * 100);
-          const tail = partial.slice(-2).map((s) => s.text).join(" ");
-          if (tail) partialBox.textContent = `…${tail.slice(-220)}`;
+          showPartial(partial);
           const elapsed = (performance.now() - tGen0) / 1000;
           const eta = done > 0 ? (elapsed / done) * (total - done) : 0;
           statusDetail.textContent =
@@ -1229,11 +1292,10 @@ function transcribeTracks(
     const tTrack0 = performance.now();
     transcriber.transcribe(item.audio, language, {
       onWindowProgress(done, total, partial) {
-        stopTicker();
+        liveDetail = false;
         updateRun({});
         setProgress(((i + done / total) / items.length) * 100);
-        const tail = partial.slice(-2).map((x) => x.text).join(" ");
-        if (tail) partialBox.textContent = `${item.label}: …${tail.slice(-200)}`;
+        showPartial(partial, item.label);
         const elapsed = (performance.now() - tTrack0) / 1000;
         const eta = done > 0 ? (elapsed / done) * (total - done) : 0;
         statusDetail.textContent =
@@ -1416,6 +1478,9 @@ function renderSegments(): void {
     if (reason) {
       row.classList.add("doubtful");
       row.title = t(`doubt_why_${reason}` as `doubt_why_${DoubtReason}`);
+      // En la app el aviso va escrito bajo la línea: en un teléfono no hay
+      // ratón que se pose encima para leer el `title`.
+      row.dataset["doubt"] = t("doubt_line");
     }
 
     const time = document.createElement("button");
@@ -1537,6 +1602,7 @@ function renderResult(metaText: string): void {
   resultMeta.textContent = `${humanLength(current.minutes, current.seconds)} · ${metaText}${micNote}`;
   if (!current.fromHistory) show(player);
   else hide(player);
+  if (appMode) enterAppResult(current.fromHistory);
 
   // El aviso va aquí y no antes: durante la espera solo añadiría ruido, y en
   // este punto el usuario ya sabe si le ha merecido la pena volver.
@@ -2338,6 +2404,182 @@ newBtn.addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
+// ── modo app: resultado, reproductor, compartir y hoja de exportar ──
+//
+// Todo llama a los mismos botones y funciones que la web: el modo app cambia
+// cómo se ve y se toca, no lo que hace. Si un día falla una exportación, falla
+// igual en los dos sitios y se arregla una vez.
+
+const appDock = document.querySelector<HTMLElement>("#app-dock");
+const appSheet = document.querySelector<HTMLElement>("#app-sheet");
+const dockPlay = document.querySelector<HTMLButtonElement>("#dock-play");
+const dockSeek = document.querySelector<HTMLInputElement>("#dock-seek");
+const dockTime = document.querySelector<HTMLElement>("#dock-time");
+const dockCopy = document.querySelector<HTMLButtonElement>("#dock-copy");
+const sheetAttribution = document.querySelector<HTMLInputElement>("#sheet-attribution");
+const fixBar = document.querySelector<HTMLElement>(".fixbar");
+
+/**
+ * El botón de atrás del teléfono.
+ *
+ * En la app no hay barra de direcciones: atrás es la única salida, y sin esto
+ * cerraba la app entera desde el resultado o con la hoja abierta. Cada pantalla
+ * que se abre deja una entrada en el historial, y atrás la cierra.
+ */
+let ignorePop = false;
+const navState = (): string | undefined => (history.state as { g32?: string } | null)?.g32;
+
+function enterAppResult(fromHistory: boolean): void {
+  appDock?.classList.toggle("no-audio", fromHistory);
+  fixBar?.classList.remove("open");
+  window.scrollTo({ top: 0 });
+  if (navState() !== "result") history.pushState({ g32: "result" }, "");
+}
+
+function openSheet(): void {
+  if (!appSheet) return;
+  if (sheetAttribution) sheetAttribution.checked = attributionCheck.checked;
+  const sheetRetry = document.querySelector<HTMLElement>("#sheet-retry");
+  const retryLabel = document.querySelector<HTMLElement>("#sheet-retry-label");
+  if (sheetRetry) sheetRetry.hidden = !retryBox || retryBox.hidden;
+  if (retryLabel && retryBtn) retryLabel.textContent = retryBtn.textContent ?? "";
+  appSheet.hidden = false;
+  history.pushState({ g32: "sheet" }, "");
+  track("app_sheet");
+}
+
+function closeSheet(fromPop = false): void {
+  if (!appSheet || appSheet.hidden) return;
+  appSheet.hidden = true;
+  if (!fromPop && navState() === "sheet") {
+    ignorePop = true;
+    history.back();
+  }
+}
+
+window.addEventListener("popstate", () => {
+  if (!appMode) return;
+  if (ignorePop) {
+    ignorePop = false;
+    return;
+  }
+  if (appSheet && !appSheet.hidden) {
+    closeSheet(true);
+    return;
+  }
+  if (!resultSection.hidden && !busy) newBtn.click();
+});
+
+document.querySelector("#app-back")?.addEventListener("click", () => {
+  if (navState() === "result") history.back();
+  else newBtn.click();
+});
+
+// Reproductor propio: el del navegador no se puede adaptar al dedo ni al tema.
+let seeking = false;
+const audioLength = (): number =>
+  Number.isFinite(player.duration) && player.duration > 0 ? player.duration : current?.seconds ?? 0;
+function syncDockTime(): void {
+  if (!dockTime || !dockSeek) return;
+  const length = audioLength();
+  if (!seeking && length > 0) dockSeek.value = String(Math.round((player.currentTime / length) * 1000));
+  dockTime.textContent = `${shortClock(player.currentTime)} / ${shortClock(length)}`;
+}
+function syncDockPlay(): void {
+  dockPlay?.classList.toggle("playing", !player.paused);
+  dockPlay?.setAttribute("aria-label", t(player.paused ? "play" : "pause"));
+}
+dockPlay?.addEventListener("click", () => {
+  if (player.paused) void player.play().catch(() => undefined);
+  else player.pause();
+});
+for (const ev of ["play", "pause", "ended"]) player.addEventListener(ev, syncDockPlay);
+for (const ev of ["timeupdate", "loadedmetadata", "durationchange"]) player.addEventListener(ev, syncDockTime);
+dockSeek?.addEventListener("input", () => {
+  seeking = true;
+  const length = audioLength();
+  if (length > 0) player.currentTime = (Number(dockSeek.value) / 1000) * length;
+  syncDockTime();
+});
+dockSeek?.addEventListener("change", () => {
+  seeking = false;
+});
+
+// Compartir: el menú de Android, para mandarlo por WhatsApp, correo o a notas.
+// Como texto, que es lo que se pega en un chat; solo si es muy largo, como
+// archivo, porque Android no pasa entre apps textos de cientos de KB.
+document.querySelector("#dock-share")?.addEventListener("click", async () => {
+  if (!current || current.segments.length === 0) return;
+  const text = toTXT(current.segments, attributionCheck.checked, t("attribution"));
+  const title = current.title;
+  try {
+    if (text.length > 50_000) {
+      const file = new File([text], exportName(title, "txt"), { type: "text/plain" });
+      if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title });
+      else download(text, exportName(title, "txt"), "text/plain;charset=utf-8");
+    } else if (typeof navigator.share === "function") {
+      await navigator.share({ title, text });
+    } else {
+      await navigator.clipboard.writeText(text);
+      alert(t("shared_copied"));
+    }
+    track("export", { format: "share", lang });
+    track("export_share");
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") return;
+    try {
+      await navigator.clipboard.writeText(text);
+      alert(t("shared_copied"));
+    } catch {
+      alert(t("clipboard_fail"));
+    }
+  }
+});
+
+dockCopy?.addEventListener("click", () => {
+  document.querySelector<HTMLButtonElement>('[data-export="copy"]')?.click();
+  dockCopy.classList.add("done");
+  window.setTimeout(() => dockCopy.classList.remove("done"), 1600);
+});
+
+document.querySelector("#dock-export")?.addEventListener("click", openSheet);
+document.querySelectorAll("[data-sheet-close]").forEach((el) => el.addEventListener("click", () => closeSheet()));
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeSheet();
+});
+
+document.querySelectorAll<HTMLButtonElement>("[data-sheet-export]").forEach((row) => {
+  row.addEventListener("click", () => {
+    const format = row.dataset["sheetExport"] ?? "";
+    closeSheet();
+    document.querySelector<HTMLButtonElement>(`[data-export="${format}"]`)?.click();
+  });
+});
+
+document.querySelector("#sheet-more")?.addEventListener("click", (e) => {
+  const others = document.querySelector<HTMLElement>("#sheet-others");
+  if (!others) return;
+  others.hidden = !others.hidden;
+  (e.currentTarget as HTMLElement).setAttribute("aria-expanded", String(!others.hidden));
+});
+
+document.querySelector("#sheet-fix")?.addEventListener("click", () => {
+  closeSheet();
+  fixBar?.classList.add("open");
+  fixBar?.scrollIntoView({ block: "center", behavior: "smooth" });
+  fixFind?.focus({ preventScroll: true });
+});
+
+document.querySelector("#sheet-retry")?.addEventListener("click", () => {
+  closeSheet();
+  retryBtn?.click();
+});
+
+sheetAttribution?.addEventListener("change", () => {
+  attributionCheck.checked = sheetAttribution.checked;
+  attributionCheck.dispatchEvent(new Event("change"));
+});
+
 // ── Pro y compartir ──
 
 proBtn.addEventListener("click", () => {
@@ -2394,13 +2636,46 @@ function renderRecents(): void {
       day: "numeric",
       month: "short",
     });
-    chip.innerHTML = `<strong></strong><span>${date} · ${humanLength(entry.minutes, entry.seconds)}</span>`;
-    const strong = chip.querySelector("strong");
-    if (strong) strong.textContent = entry.title;
+    if (appMode) {
+      fillAppRecent(chip, entry);
+    } else {
+      chip.innerHTML = `<strong></strong><span>${date} · ${humanLength(entry.minutes, entry.seconds)}</span>`;
+      const strong = chip.querySelector("strong");
+      if (strong) strong.textContent = entry.title;
+    }
     chip.addEventListener("click", () => openFromHistory(entry));
     recentsList.appendChild(chip);
   });
   show(recentsBox);
+}
+
+/**
+ * Tarjeta de reciente del modo app: la forma del habla, el título, la duración
+ * en una etiqueta, las primeras palabras y cuándo fue.
+ */
+function fillAppRecent(chip: HTMLElement, entry: HistoryEntry): void {
+  chip.innerHTML =
+    `<span class="recent-thumb">${barsSvg(speechBars(entry.segments, entry.seconds))}</span>` +
+    '<span class="recent-body"><span class="recent-top"><strong></strong><span class="recent-badge"></span></span>' +
+    '<span class="recent-snippet"></span><span class="recent-when"></span></span>';
+  const set = (sel: string, text: string): void => {
+    const el = chip.querySelector(sel);
+    if (el) el.textContent = text;
+  };
+  set("strong", entry.title);
+  set(".recent-badge", shortClock(entry.seconds ?? entry.minutes * 60));
+  set(".recent-snippet", entry.segments.map((s) => s.text.trim()).join(" ").slice(0, 140));
+  const day = new Date(entry.date);
+  const today = new Date();
+  const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+  set(
+    ".recent-when",
+    day.toDateString() === today.toDateString()
+      ? t("today")
+      : day.toDateString() === yesterday.toDateString()
+        ? t("yesterday")
+        : day.toLocaleDateString(locale, { day: "numeric", month: "short" }),
+  );
 }
 
 function openFromHistory(entry: HistoryEntry): void {

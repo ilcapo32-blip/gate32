@@ -24,8 +24,28 @@ patrón:
 **Cero efectos de plantilla.** En toda la hoja de estilos hay **un** degradado
 y ninguna transparencia difuminada. Se mantiene así.
 
-**Marca propia:** el logotipo es un SVG de barras verticales tipo onda de
-audio, dibujado a mano en el HTML. No es un icono de librería.
+**Marca propia:** en la web, el logotipo es un SVG de barras verticales tipo
+onda de audio, dibujado a mano en el HTML. No es un icono de librería. Desde
+el 16/11 hay un logotipo nuevo del fundador, «Gate32» a pincel dentro de un
+bocadillo de diálogo (`public/logo-light.webp` y `logo-dark.webp`, sin fondo y
+con versión clara para el modo oscuro). Por ahora solo lo usa el modo app. No
+se redibuja ni se retoca: es reconocible tal cual.
+
+**Modo app** (`html.app`, al final de `src/styles.css`): la interfaz de la app
+de Android y de la web instalada en un teléfono. La decidió el fundador sobre
+una maqueta con dos versiones, y eligió la sobria en los tres puntos dudosos:
+
+- Botón principal de **naranja liso** (`--accent`), con sombra neutra. Se
+  descartó el degradado `#C4622D → #E07A3A` con brillo naranja: es un rasgo
+  de plantilla y su extremo claro deja el texto blanco a 3:1.
+- Reproductor flotante **opaco**. Se descartó el cristal desenfocado.
+- Sin fondo con degradado en la pantalla de transcribir.
+
+Lo que sí entró: **Space Grotesk** en los títulos (autoalojada en
+`public/fonts/`, licencia OFL), esquinas de 16 px, sombras suaves en lugar de
+bordes, el arco de progreso con un degradado del naranja del logotipo y un
+halo que late. El degradado del arco es el único de la app, y va en un
+indicador, no en un botón ni en un fondo.
 
 ## Señales que delatan una página generada, y que aquí no entran
 

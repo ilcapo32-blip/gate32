@@ -1081,3 +1081,555 @@ body.embed .toolbar { position: static; }
   min-height: 2.6rem;
   padding-inline: 1.1rem;
 }
+
+/* ═════════════════════════ MODO APP ═════════════════════════
+ *
+ * La app de Android es esta misma página. Hasta el 16/11 se veía igual que la
+ * web, y el fundador lo dijo sin rodeos: «parece una página web de móvil,
+ * tiene demasiadas cosas y demasiadas explicaciones». Tenía razón: la portada
+ * está hecha para convencer a quien llega de un buscador, y quien abre la app
+ * ya se ha convencido al instalarla.
+ *
+ * Todo lo de aquí cuelga de `html.app`, que pone un script del <head> antes de
+ * pintar (app de Android, o la web instalada en un teléfono). La web no cambia.
+ *
+ * Elegido sobre una maqueta con dos versiones: naranja liso y no degradado,
+ * reproductor opaco y no de cristal. Las mismas variables de color de siempre;
+ * lo nuevo es el logotipo del bocadillo, Space Grotesk en los títulos y
+ * esquinas de 16 px.
+ */
+
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("/fonts/space-grotesk-700.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+
+.app-only { display: none; }
+
+html.app {
+  --display: "Space Grotesk", var(--font);
+  --radius-app: 16px;
+  --chip: #f3f1ea;
+  --accent-glow: #e07a3a;
+  --shadow: 0 1px 2px rgb(28 28 26 / 0.06), 0 4px 14px rgb(28 28 26 / 0.07);
+  --shadow-float: 0 2px 6px rgb(28 28 26 / 0.08), 0 12px 32px rgb(28 28 26 / 0.14);
+  --scrim: rgb(28 28 26 / 0.42);
+  --knob: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  html.app {
+    --chip: #24231e;
+    --accent-glow: #f2a65a;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 18px rgb(0 0 0 / 0.35);
+    --shadow-float: 0 2px 6px rgb(0 0 0 / 0.5), 0 12px 32px rgb(0 0 0 / 0.5);
+    --scrim: rgb(0 0 0 / 0.55);
+    --knob: #eceae2;
+  }
+}
+
+/* Lo que solo sirve para convencer, fuera. */
+html.app .site-header,
+html.app .site-footer,
+html.app .info,
+html.app .hero > h1,
+html.app .hero-sub,
+html.app .badges,
+html.app .firstrun,
+html.app .privacy-inline,
+html.app #mobile-note,
+html.app #gpu-note,
+html.app .wait-survey,
+html.app .drop-icon,
+html.app .dropzone > strong,
+html.app .dropzone > span:not(.app-pick),
+html.app .control > span,
+html.app #install,
+html.app #persist-note,
+html.app #new-btn,
+html.app #player,
+html.app .toolbar,
+html.app #retry-better,
+html.app .usecase,
+html.app #share-btn,
+html.app .progress,
+html.app .doubt-note,
+html.app .fixbar:not(.open),
+html.app .edit-hint:not(.app-edit-hint),
+html.app .segment.doubtful .seg-time::after { display: none !important; }
+
+html.app svg.i {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+
+html.app .hero {
+  max-width: 560px;
+  padding: 0 20px 28px;
+}
+
+/* ── inicio ── */
+
+html.app .app-hero { display: block; padding-top: 22px; }
+.app-logo { display: block; width: 200px; height: auto; margin: 0 auto; }
+.app-tagline {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+  margin-top: 12px;
+}
+.app-sub { color: var(--ink-soft); font-size: 0.95rem; margin: 2px 0 22px; }
+
+html.app .panel {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+/* El orden de la web pone los desplegables arriba; en la app van debajo de los
+   dos botones, como un ajuste y no como una pregunta. */
+html.app .panel > * { order: 4; margin-top: 0; }
+html.app .panel > .dropzone { order: 1; }
+html.app .panel > .alt-actions { order: 2; }
+html.app .panel > .controls { order: 3; }
+
+html.app .dropzone {
+  flex-direction: row;
+  justify-content: center;
+  height: 64px;
+  padding: 0 16px;
+  border: none;
+  border-radius: var(--radius-app);
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 2px 6px rgb(28 28 26 / 0.14);
+  transition: transform 0.12s ease;
+}
+html.app .dropzone:hover,
+html.app .dropzone.dragging { border: none; background: var(--accent); }
+html.app .dropzone:focus-visible { background: var(--accent); outline: 3px solid var(--accent-glow); outline-offset: 2px; }
+html.app .app-pick { display: flex; align-items: center; gap: 12px; font-size: 1.1rem; font-weight: 600; }
+
+html.app .alt-actions,
+html.app .alt-buttons { display: block; margin: 0; }
+html.app #record-btn,
+html.app .mark-btn {
+  width: 100%;
+  height: 64px;
+  justify-content: center;
+  gap: 12px;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: var(--radius-app);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+html.app .mark-btn { margin-top: 12px; background: var(--accent); color: var(--accent-ink); }
+html.app #record-btn .rec-dot { width: 14px; height: 14px; box-shadow: 0 0 0 4px rgb(221 51 51 / 0.15); }
+
+/* Pulsar se nota: el botón cede un poco bajo el dedo. */
+html.app .dropzone:active,
+html.app #record-btn:active,
+html.app .btn:active,
+html.app .dock-act:active,
+html.app .sheet-row:active,
+html.app .recent-chip:active { transform: scale(0.97); }
+
+html.app .controls { justify-content: center; gap: 8px; margin: 2px 0 0; flex-wrap: nowrap; }
+html.app .control { flex: 0 1 auto; min-width: 0; }
+html.app .control select {
+  -webkit-appearance: none;
+  appearance: none;
+  max-width: 44vw;
+  padding: 8px 30px 8px 14px;
+  border: none;
+  border-radius: 999px;
+  background: var(--chip) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a877c' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center / 14px;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  text-overflow: ellipsis;
+}
+
+html.app .ready {
+  border: none;
+  border-radius: var(--radius-app);
+  box-shadow: var(--shadow);
+  background: var(--surface);
+  padding: 16px;
+}
+html.app .ready-actions .btn { height: 46px; padding: 0 18px; border-radius: 14px; font-size: 1rem; }
+html.app .error { border-radius: var(--radius-app); }
+html.app .mobile-note { border-radius: 12px; }
+
+/* recientes: tarjetas con la forma del habla de cada audio */
+html.app .recents { margin-top: 28px; }
+html.app .recents h2 {
+  font-family: var(--display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+html.app .recents-list { flex-direction: column; flex-wrap: nowrap; gap: 10px; }
+html.app .recent-chip {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  max-width: none;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: var(--radius-app);
+  box-shadow: var(--shadow);
+  text-align: left;
+  font-size: 0.85rem;
+  transition: transform 0.12s ease;
+}
+.recent-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.recent-thumb svg { width: 36px; height: 26px; }
+.recent-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.recent-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+html.app .recent-chip strong { font-size: 0.97rem; font-weight: 600; }
+.recent-badge {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.recent-snippet { color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recent-when { color: var(--muted); font-size: 0.75rem; }
+
+/* ── transcribiendo: una sola cosa en pantalla ── */
+
+html.app .hero:has(#status:not([hidden])) :is(.dropzone, .alt-actions, .controls, .recents, #ready, .app-tagline, .app-sub) {
+  display: none !important;
+}
+html.app .hero:has(#status:not([hidden])) .app-logo { width: 104px; }
+html.app .hero:has(#status:not([hidden])) .app-hero { padding-top: 10px; }
+
+html.app .status {
+  margin: 4px 0 0;
+  padding: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+html.app .app-file {
+  display: block;
+  max-width: 100%;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html.app .app-ring { display: block; position: relative; width: 210px; height: 210px; margin: 20px auto 14px; }
+.app-ring svg { width: 100%; height: 100%; overflow: visible; }
+.ring-stop-a { stop-color: var(--accent-glow); }
+.ring-stop-b { stop-color: var(--accent); }
+.ring-halo {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-opacity: 0.14;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ring-pulse 1.8s ease-in-out infinite;
+}
+.ring-track { fill: none; stroke: var(--line); stroke-width: 7; }
+.ring-arc {
+  fill: none;
+  stroke: url(#ring-grad);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(-90deg);
+  transition: stroke-dashoffset 0.4s ease;
+}
+/* Sin porcentaje que enseñar (descarga sin tamaño, o un solo bloque de audio),
+   el arco gira: algo se mueve y no promete una cifra que no existe. */
+.app-ring.spin .ring-arc { stroke-dashoffset: 72; animation: ring-spin 1.4s linear infinite; }
+@keyframes ring-spin { from { transform: rotate(-90deg); } to { transform: rotate(270deg); } }
+@keyframes ring-pulse {
+  0%, 100% { transform: scale(0.97); stroke-opacity: 0.05; }
+  50% { transform: scale(1.02); stroke-opacity: 0.22; }
+}
+.ring-num { position: absolute; inset: 0; display: grid; place-content: center; }
+.ring-num b {
+  font-family: var(--display);
+  font-size: 2.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.ring-num span { font-size: 0.8rem; color: var(--muted); }
+
+html.app .status-row { flex-direction: column; align-items: center; gap: 2px; font-family: var(--display); font-size: 1.25rem; font-weight: 700; }
+html.app .status-detail { font-family: var(--font); font-size: 0.88rem; }
+html.app .app-keep { display: block; font-size: 0.88rem; color: var(--ink-soft); margin-top: 6px; }
+html.app #status-warn { text-align: left; }
+html.app .partial {
+  width: 100%;
+  min-height: 0;
+  margin: 20px 0 0;
+  padding: 14px 16px;
+  border-radius: var(--radius-app);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  text-align: left;
+  font-style: normal;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+html.app .partial:empty { display: none; }
+html.app .partial p { animation: line-in 0.6s ease both; }
+html.app .partial p:not(:last-child) { color: var(--ink-soft); }
+@keyframes line-in { from { opacity: 0; transform: translateY(6px); } }
+html.app #cancel-btn {
+  margin-top: 26px;
+  height: 48px;
+  padding: 0 30px;
+  border: none;
+  border-radius: var(--radius-app);
+  background: var(--chip);
+  color: var(--ink-soft);
+  font-size: 1rem;
+}
+
+/* ── resultado: el texto manda ── */
+
+html.app main:has(> #result:not([hidden])) > .hero { display: none; }
+html.app .result { max-width: 560px; padding: 0 20px 220px; }
+html.app .result-head {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: 0 -20px 6px;
+  padding: 6px 16px 8px 4px;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg);
+}
+html.app .result-head > div { flex: 1; min-width: 0; }
+html.app .app-back {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+html.app .result-head h2 {
+  font-family: var(--display);
+  font-size: 1.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+html.app .result-meta { font-size: 0.78rem; }
+html.app .app-edit-hint { display: block; font-size: 0.8rem; color: var(--muted); margin: 0 0 6px; }
+html.app .fixbar.open { display: block; margin: 6px 0 10px; }
+html.app .doubt-bar { margin: 6px 0; padding-top: 4px; padding-bottom: 4px; }
+
+html.app .segment { grid-template-columns: 42px 1fr; gap: 8px; padding: 8px 0; }
+html.app .segment.active { background: var(--accent-soft); margin: 0 -20px; padding: 8px 20px; border-radius: 0; }
+html.app .seg-time { text-align: left; font-size: 0.75rem; padding: 0; }
+html.app .seg-text { font-size: 1.03rem; line-height: 1.55; padding: 0; }
+/* Línea dudosa: una barra gruesa a la izquierda y el aviso escrito debajo. */
+html.app .segment.doubtful { border-left: 4px solid var(--accent); margin-left: -20px; padding-left: 16px; }
+html.app .segment.doubtful .seg-text { text-decoration: none; }
+html.app .segment.doubtful::after {
+  content: attr(data-doubt);
+  grid-column: 2;
+  margin-top: -4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+html.app .after-export { margin-top: 28px; }
+
+html.app .app-dock {
+  display: block;
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 20;
+  max-width: 536px;
+  margin: 0 auto;
+  padding: 12px 14px 14px;
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+}
+@media (prefers-color-scheme: dark) {
+  html.app .app-dock { border: 1px solid var(--line); }
+}
+.dock-player { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.app-dock.no-audio .dock-player { display: none; }
+.dock-play {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border: none;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--bg);
+  cursor: pointer;
+}
+html.app .dock-play svg.i { width: 16px; height: 16px; fill: currentColor; stroke: none; }
+html.app .dock-play .i-pause,
+html.app .dock-play.playing .i-play { display: none; }
+html.app .dock-play.playing .i-pause { display: block; }
+#dock-seek { flex: 1; min-width: 0; accent-color: var(--accent); }
+.dock-time { font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dock-actions { display: flex; gap: 8px; }
+.dock-act {
+  flex: 1;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 14px;
+  background: var(--chip);
+  color: var(--ink);
+  font: 600 0.97rem var(--font);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+.dock-act.primary { flex: 1.3; background: var(--accent); color: var(--accent-ink); }
+.dock-act.square { flex: none; width: 46px; }
+/* Copiado: el botón se tiñe un momento, sin ventanas que tapen el texto. */
+.dock-act.done { background: var(--accent-soft); color: var(--accent); }
+
+/* ── hoja de exportar ── */
+
+html.app .app-sheet { display: block; position: fixed; inset: 0; z-index: 30; }
+html.app body:has(#app-sheet:not([hidden])) { overflow: hidden; }
+.sheet-scrim { position: absolute; inset: 0; background: var(--scrim); animation: fade-in 0.2s ease; }
+.sheet-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-width: 560px;
+  max-height: 88vh;
+  margin: 0 auto;
+  overflow-y: auto;
+  padding: 4px 0 calc(20px + env(safe-area-inset-bottom));
+  border-radius: 24px 24px 0 0;
+  background: var(--surface);
+  animation: sheet-up 0.25s ease;
+}
+@keyframes sheet-up { from { transform: translateY(100%); } }
+@keyframes fade-in { from { opacity: 0; } }
+.sheet-grab { display: block; width: 80px; height: 22px; margin: 2px auto 4px; border: none; background: none; cursor: pointer; }
+.sheet-grab::before { content: ""; display: block; width: 40px; height: 4px; margin: 0 auto; border-radius: 2px; background: var(--line); }
+.sheet-h { font-family: var(--display); font-size: 1.05rem; font-weight: 700; padding: 6px 20px 4px; }
+.sheet-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 9px 20px;
+  border: none;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+.sheet-ic {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border-radius: 12px;
+  background: var(--chip);
+  color: var(--accent);
+}
+html.app .sheet-ic svg.i { width: 21px; height: 21px; stroke-width: 1.8; }
+.sheet-t { flex: 1; display: flex; flex-direction: column; }
+.sheet-t b { font-size: 0.97rem; font-weight: 600; }
+.sheet-t span { font-size: 0.8rem; color: var(--ink-soft); }
+.sheet-gap { height: 8px; margin: 8px 0; background: var(--bg); }
+.sheet-switch input {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  width: 44px;
+  height: 26px;
+  flex: none;
+  border-radius: 13px;
+  background: var(--line);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.sheet-switch input::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--knob);
+  transition: transform 0.15s ease;
+}
+.sheet-switch input:checked { background: var(--accent); }
+.sheet-switch input:checked::after { transform: translateX(18px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ring-halo,
+  .app-ring.spin .ring-arc,
+  html.app .partial p,
+  .sheet-panel,
+  .sheet-scrim { animation: none; }
+}

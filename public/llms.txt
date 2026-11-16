@@ -61,6 +61,10 @@
   sale flojo.
 - Instalable como aplicación (PWA): conserva el modelo entre visitas y arranca
   al instante, también sin conexión.
+  Instalada en un teléfono se abre con una interfaz propia, sin las
+  explicaciones de la web: elegir o grabar, el texto a pantalla completa con
+  su reproductor, y compartir el resultado con el menú del móvil (WhatsApp,
+  correo, notas). Sigue el modo oscuro del teléfono.
 - Idiomas de transcripción: 47 seleccionables más detección automática, entre
   ellos español, inglés, alemán, francés, italiano, portugués, catalán,
   gallego, euskera, ruso, polaco, neerlandés, árabe, hindi, japonés, coreano,

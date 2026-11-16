@@ -3,6 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Modo app: la misma página, sin lo que solo sirve para convencer a quien
+       llega de un buscador. Se decide antes de pintar nada para que no se vea
+       la web un instante y luego cambie. Entra la app de Android (?app=android,
+       recordado en la sesión) y la web instalada en un teléfono. -->
+  <script>
+    (function () {
+      try {
+        var q = new URLSearchParams(location.search).get("app") === "android" || document.referrer.indexOf("android-app://") === 0;
+        if (q) sessionStorage.setItem("gate32.app", "android");
+        // Lo que llega desde «Compartir» solo puede venir de una app instalada.
+        var app = q || sessionStorage.getItem("gate32.app") === "android" ||
+          new URLSearchParams(location.search).has("compartido") ||
+          (matchMedia("(display-mode: standalone)").matches && matchMedia("(pointer: coarse)").matches);
+        if (app) document.documentElement.classList.add("app");
+      } catch (e) {}
+    })();
+  </script>
   <title>Gate32 — Transcribir audio a texto y subtítulos gratis, sin subir archivos</title>
   <meta name="description" content="Transcribe audio y vídeo a texto o subtítulos SRT/VTT con IA, gratis y sin límites. Todo ocurre en tu navegador: tus archivos nunca se suben a ningún servidor. Sin registro." />
   <link rel="canonical" href="https://gate32.autoritasai.com/" />
@@ -147,6 +164,15 @@
   <main>
     <!-- ═════════ HERO + APP ═════════ -->
     <section class="hero">
+      <!-- Modo app (ver el script del <head>): logotipo y una frase; nada más. -->
+      <div class="app-hero app-only">
+        <picture>
+          <source srcset="/logo-dark.webp" media="(prefers-color-scheme: dark)" />
+          <img class="app-logo" src="/logo-light.webp" alt="Gate32" width="480" height="267" />
+        </picture>
+        <p class="app-tagline">Tu audio, a texto.</p>
+        <p class="app-sub">En tu móvil. Sin subir nada a ningún sitio.</p>
+      </div>
       <h1>Transcribe audio y vídeo a texto, <em>sin que salga de tu navegador</em></h1>
       <p class="hero-sub">
         Whisper, la IA de reconocimiento de voz, ejecutándose en tu propio equipo.
@@ -199,6 +225,7 @@
           <strong>Arrastra un archivo de audio o vídeo</strong>
           <span>o haz clic para elegirlo · MP3, WAV, M4A, OGG, MP4, WEBM…</span>
           <span class="drop-tracks">¿Cada voz en su propio archivo? Suéltalos juntos y sale como diálogo.</span>
+          <span class="app-only app-pick"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15h6M12 12v6"/></svg>Elegir audio o vídeo</span>
         </div>
 
         <div class="firstrun">
@@ -272,10 +299,21 @@
 
         <!-- estado: cargando / transcribiendo / error -->
         <div id="status" class="status" role="status" aria-live="polite" hidden>
+          <p class="app-only app-file" id="status-file"></p>
+          <div class="app-only app-ring" id="app-ring" aria-hidden="true">
+            <svg viewBox="0 0 100 100">
+              <defs><linearGradient id="ring-grad" x1="0" y1="0" x2="1" y2="1"><stop class="ring-stop-a" offset="0" /><stop class="ring-stop-b" offset="1" /></linearGradient></defs>
+              <circle class="ring-halo" cx="50" cy="50" r="48.5" />
+              <circle class="ring-track" cx="50" cy="50" r="42" />
+              <circle class="ring-arc" id="ring-arc" cx="50" cy="50" r="42" pathLength="100" />
+            </svg>
+            <div class="ring-num"><b id="ring-big"></b><span id="ring-small"></span></div>
+          </div>
           <div class="status-row">
             <span id="status-text">Preparando…</span>
             <span id="status-detail" class="status-detail"></span>
           </div>
+          <p class="app-only app-keep">Deja la app abierta hasta que termine.</p>
           <p id="status-warn" class="mobile-note" hidden></p>
           <div class="progress" id="progress-wrap">
             <div class="progress-bar" id="progress-bar" style="width:0%"></div>
@@ -315,6 +353,7 @@
     <!-- ═════════ RESULTADO ═════════ -->
     <section id="result" class="result" hidden aria-label="Resultado de la transcripción">
       <div class="result-head">
+        <button class="app-only app-back" id="app-back" type="button" aria-label="Volver"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
         <div>
           <h2 id="result-title">Transcripción</h2>
           <p id="result-meta" class="result-meta"></p>
@@ -357,6 +396,7 @@
       </div>
 
       <p class="edit-hint">Haz clic en cualquier texto para corregirlo. Clic en un tiempo para saltar al audio.</p>
+      <p class="edit-hint app-only app-edit-hint">Toca un texto para corregirlo. Toca la hora para oír ese momento.</p>
         <!-- El pase de corrección. Sale de la primera transcripción larga que
              salió bien: 69 minutos sobre Claude, y Whisper escribió "Cloud"
              noventa veces. Todo lo demás correcto y el texto igual de inútil. -->
@@ -392,6 +432,42 @@
         </div>
 
       <div id="segments" class="segments"></div>
+
+      <!-- Modo app: reproductor y acciones flotando sobre el texto. Las acciones
+           llaman a los mismos botones de exportar que la web. -->
+      <div class="app-only app-dock" id="app-dock">
+        <div class="dock-player">
+          <button class="dock-play" id="dock-play" type="button" aria-label="Reproducir"><svg class="i i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg><svg class="i i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h3v16H7zM14 4h3v16h-3z"/></svg></button>
+          <input type="range" id="dock-seek" min="0" max="1000" value="0" step="1" aria-label="Posición del audio" />
+          <span class="dock-time" id="dock-time">0:00</span>
+        </div>
+        <div class="dock-actions">
+          <button class="dock-act primary" id="dock-share" type="button"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>Compartir</button>
+          <button class="dock-act" id="dock-export" type="button"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Exportar</button>
+          <button class="dock-act square" id="dock-copy" type="button" aria-label="Copiar el texto"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
+        </div>
+      </div>
+
+      <div class="app-only app-sheet" id="app-sheet" hidden>
+        <div class="sheet-scrim" data-sheet-close></div>
+        <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+          <button class="sheet-grab" type="button" data-sheet-close aria-label="Cerrar"></button>
+          <h3 class="sheet-h" id="sheet-title">Exportar</h3>
+          <button class="sheet-row" type="button" data-sheet-export="txt"><span class="sheet-ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></span><span class="sheet-t"><b>Texto</b><span>Para leerlo o pegarlo donde quieras</span></span></button>
+          <button class="sheet-row" type="button" data-sheet-export="srt"><span class="sheet-ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M10 10.5a2 2 0 1 0 0 3M17 10.5a2 2 0 1 0 0 3"/></svg></span><span class="sheet-t"><b>Subtítulos</b><span>Para vídeos: YouTube, CapCut, Premiere</span></span></button>
+          <button class="sheet-row" type="button" data-sheet-export="md"><span class="sheet-ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"/></svg></span><span class="sheet-t"><b>Markdown</b><span>Con las marcas de tiempo, para notas</span></span></button>
+          <button class="sheet-row" type="button" id="sheet-more" aria-expanded="false"><span class="sheet-ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></span><span class="sheet-t"><b>Otros formatos</b><span>VTT y JSON</span></span></button>
+          <div id="sheet-others" hidden>
+            <button class="sheet-row" type="button" data-sheet-export="vtt"><span class="sheet-ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M10 10.5a2 2 0 1 0 0 3M17 10.5a2 2 0 1 0 0 3"/></svg></span><span class="sheet-t"><b>VTT</b><span>Subtítulos para la web</span></span></button>
+            <button class="sheet-row" type="button" data-sheet-export="json"><span class="sheet-ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg></span><span class="sheet-t"><b>JSON</b><span>Para reabrirlo en Gate32 u otro programa</span></span></button>
+          </div>
+          <div class="sheet-gap"></div>
+          <h3 class="sheet-h">Mejorar el texto</h3>
+          <button class="sheet-row" type="button" id="sheet-fix"><span class="sheet-ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span><span class="sheet-t"><b>Corregir en todo el texto</b><span>Una palabra mal, arreglada en todas partes</span></span></button>
+          <button class="sheet-row" type="button" id="sheet-retry" hidden><span class="sheet-ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></span><span class="sheet-t"><b id="sheet-retry-label">Repetir con un modelo mejor</b><span>Menos errores; tarda más</span></span></button>
+          <label class="sheet-row sheet-switch"><span class="sheet-t"><b>Firmar «Transcrito con Gate32»</b><span>Al final del texto exportado</span></span><input type="checkbox" id="sheet-attribution" role="switch" checked /></label>
+        </div>
+      </div>
 
       <div id="usecase" class="usecase" hidden>
         <span>¿Para qué lo has usado? (anónimo)</span>

@@ -1012,6 +1012,36 @@ casos construidos, no del campo. Y tres grabadores a la vez no se han medido
 en un equipo modesto. La prueba con audio real en la web publicada va antes de
 anunciarlo en ningún sitio.
 
+### La app de Android tiene su propia interfaz (2026-11-16, sin datos todavía)
+
+Con la app ya funcionando, el fundador la juzgó sin rodeos: «no tiene para
+nada aspecto de app móvil atractiva, parece una página web de móvil, tiene
+demasiadas cosas y demasiadas explicaciones». Era cierto: la app era la
+portada de la web, hecha para convencer a quien llega de un buscador. Quien
+abre la app ya se ha convencido al instalarla.
+
+Se construyó un **modo app** (`html.app`) sobre una maqueta que el fundador
+aprobó, eligiendo en los tres puntos dudosos la versión sobria: botón de
+naranja liso en lugar de degradado con brillo, reproductor opaco en lugar de
+cristal desenfocado y sin fondo degradado. Lo pidió así después de verlas
+juntas; el motivo está en el skill de diseño.
+
+- **Inicio:** logotipo nuevo, una frase, dos botones grandes (elegir audio,
+  grabar), idioma y modelo en dos botones pequeños, y recientes con la forma
+  del habla de cada audio.
+- **Transcribiendo:** solo el nombre, un anillo con el tiempo transcurrido o el
+  porcentaje de descarga, el aviso de dejar la app abierta y las frases según
+  salen.
+- **Resultado:** el texto a pantalla completa, reproductor flotante, Compartir
+  (menú de Android) y Exportar (hoja con los formatos y las herramientas).
+- **El botón de atrás del teléfono** cierra la hoja y vuelve del resultado al
+  inicio; antes cerraba la app entera.
+- La web no cambia; las pruebas lo comprueban en el mismo móvil.
+
+Qué mirar cuando haya datos: `export_share` frente a `export` (si compartir
+desplaza a descargar archivos), `app_sheet`, y sobre todo
+`transcribe_done_app / transcribe_start_app` y `pro_interest` en la app.
+
 ### La app de Android, en el móvil del fundador: dos fallos seguidos (2026-11-12 y 15)
 
 **12/11.** Primera transcripción en la app instalada desde la prueba interna:
@@ -1244,6 +1274,8 @@ reparto por caso de uso. `wait_survey_shown` da el denominador.
 | `transcribe_start_movil` / `transcribe_done_movil` | lo mismo en cualquier teléfono (app o web), que transcribe siempre con el procesador | — |
 | `transcribe_crash` / `transcribe_crash_app` | al abrir, la nota de la última transcripción sigue ahí: la página murió a mitad | — |
 | `transcribe_crash_<fase>_<dispositivo>_<modelo>[_reintento]` | dónde murió: `load`, `inference` o `fondo` (estaba en segundo plano); `webgpu`, `wasm` o `x` | — |
+| `app_sheet` | en el modo app, abre la hoja de Exportar | — |
+| `export_share` | en el modo app, comparte el texto con el menú del móvil (también cuenta como `export` con formato `share`) | — |
 | `transcribe_bucle` / `transcribe_bucle_<modelo>` | el modelo se enganchó repitiendo una frase; se dejó una vez con «[…]» | — |
 | `webgpu_basura` | resultado vacío con WebGPU para un audio con sonido: se repite con el procesador | — |
 | `webgpu_reintento_cpu` / `webgpu_basura_confirmada` / `webgpu_basura_no` | la repetición, y si con el procesador salió texto (la tarjeta gráfica era el fallo) o tampoco | — |
