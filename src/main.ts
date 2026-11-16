@@ -1078,10 +1078,17 @@ async function startTranscription(
   statusText.textContent = t("preparing");
   const useCpu = opts.sanityRetry === true || cpuOnly || webgpuDistrusted();
   if (useCpu && !opts.sanityRetry && !cpuOnly) track("webgpu_evitado");
+  // ¿Está ya guardado? La librería informa del progreso igual al leerlo del
+  // disco que al bajarlo, y la pantalla decía «Descargando el modelo» también
+  // cuando solo lo estaba cargando: el 16/11, cinco segundos con ese texto en
+  // una app que ya lo tenía. Se mira antes de cargar y se corrige si el
+  // dispositivo resulta ser otro.
+  let fromCache = await modelCached(quality, useCpu ? "wasm" : "webgpu");
   beginRun({ device: useCpu ? "wasm" : "?", quality, retry: opts.sanityRetry === true });
   transcriber.load(quality, {
     onDevice(device) {
       updateRun({ device });
+      if (device === "wasm" && !useCpu) void modelCached(quality, "wasm").then((c) => (fromCache = c));
       if (current) current.device = device;
       statusDetail.textContent = device === "webgpu" ? t("device_gpu") : t("device_wasm");
     },
@@ -1094,6 +1101,14 @@ async function startTranscription(
       const spec = MODELS[quality];
       const doneMB = Math.round(sum / 1e6);
       const totalMB = Math.round(spec.bytes / 1e6);
+      const pct = Math.min(99, (sum / spec.bytes) * 100);
+      if (fromCache) {
+        statusText.textContent = t("preparing");
+        statusDetail.textContent = "";
+        setProgress(pct);
+        ringText(`${Math.round(pct)} %`, t("ring_prepare"));
+        return;
+      }
       statusText.textContent = t("downloading");
 
       // Estimación de lo que queda a partir del ritmo medido. Solo se muestra
@@ -1104,8 +1119,8 @@ async function startTranscription(
         eta > 3 && eta < 3600
           ? t("downloading_eta", { done: doneMB, total: totalMB, eta: clock(eta) })
           : t("downloading_size", { done: doneMB, total: totalMB });
-      setProgress(Math.min(99, (sum / spec.bytes) * 100));
-      ringText(`${Math.min(99, Math.round((sum / spec.bytes) * 100))} %`, t("ring_download"));
+      setProgress(pct);
+      ringText(`${Math.round(pct)} %`, t("ring_download"));
       showWaitSurvey(sum);
     },
     onReady(cached, seconds) {
@@ -1221,6 +1236,28 @@ async function startTranscription(
       showError(t("load_error", { msg: message }), t("load_hint"));
     },
   }, useCpu ? "wasm" : undefined);
+}
+
+/**
+ * Si los pesos del modelo ya están guardados en este dispositivo para el modo
+ * en que se van a usar. Mira la caché de la librería por los nombres de archivo
+ * que pide cada modo: cuantizados en el procesador; el codificador entero y el
+ * decodificador en 4 bits en la tarjeta gráfica (ver `worker.ts`).
+ */
+async function modelCached(quality: ModelQuality, device: "webgpu" | "wasm"): Promise<boolean> {
+  try {
+    const spec = MODELS[quality];
+    const files =
+      device === "webgpu"
+        ? ["encoder_model.onnx", "decoder_model_merged_q4.onnx"]
+        : ["encoder_model_quantized.onnx", "decoder_model_merged_quantized.onnx"];
+    const keys = (await (await caches.open("transformers-cache")).keys()).map((r) => r.url);
+    return [spec.id, spec.fallbackId].some((id) =>
+      files.every((f) => keys.some((url) => url.includes(`/${id}/`) && url.endsWith(`/${f}`))),
+    );
+  } catch {
+    return false;
+  }
 }
 
 /** Descodifica cada pista. Una que falle se salta: nunca tumba a las demás. */
